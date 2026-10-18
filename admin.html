@@ -3,33 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Management Dashboard</title>
+    <title>WIN USDBOX - Admin Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="bg-gray-900 text-white font-sans">
+<body class="bg-[#0b0f19] text-white font-sans min-h-screen">
+    <!-- Màn hình đăng nhập -->
     <div id="login-screen" class="min-h-screen flex items-center justify-center p-4">
-        <div class="bg-gray-800 p-8 rounded-xl shadow-xl w-full max-w-md border border-gray-700">
-            <h2 class="text-2xl font-bold mb-6 text-center text-emerald-400">Đăng Nhập Quản Trị</h2>
+        <div class="bg-gray-800/80 backdrop-blur p-8 rounded-2xl shadow-2xl w-full max-w-md border border-gray-700">
+            <div class="text-center mb-6">
+                <i class="fa-solid fa-shield-halved text-4xl text-emerald-400 mb-2"></i>
+                <h2 class="text-2xl font-bold text-white">Quản Trị Hệ Thống</h2>
+                <p class="text-sm text-gray-400">WIN USDBOX Management</p>
+            </div>
             <div class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium mb-1">Tài khoản</label>
-                    <input type="text" id="username" class="w-full px-4 py-2 bg-gray-700 rounded border border-gray-600 focus:outline-none focus:border-emerald-500" value="admin">
+                    <label class="block text-xs font-semibold uppercase text-gray-400 mb-1">Tài khoản</label>
+                    <input type="text" id="username" class="w-full px-4 py-3 bg-gray-900 rounded-xl border border-gray-700 focus:outline-none focus:border-emerald-500 text-white" value="admin">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium mb-1">Mật khẩu</label>
-                    <input type="password" id="password" class="w-full px-4 py-2 bg-gray-700 rounded border border-gray-600 focus:outline-none focus:border-emerald-500" value="admin123">
+                    <label class="block text-xs font-semibold uppercase text-gray-400 mb-1">Mật khẩu</label>
+                    <input type="password" id="password" class="w-full px-4 py-3 bg-gray-900 rounded-xl border border-gray-700 focus:outline-none focus:border-emerald-500 text-white" value="admin123">
                 </div>
-                <button onclick="login()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded transition">Đăng Nhập</button>
+                <button onclick="handleLogin()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-emerald-600/30">Đăng Nhập</button>
             </div>
         </div>
     </div>
-    <div id="admin-panel" class="hidden min-h-screen p-6">
-        <h1 class="text-3xl font-bold text-emerald-400 mb-4">Trang Quản Trị Hệ Thống</h1>
-        <p class="text-gray-300">Đăng nhập thành công! Hệ thống quản lý nạp rút và số dư đang hoạt động.</p>
+
+    <!-- Bảng điều khiển Admin -->
+    <div id="admin-panel" class="hidden min-h-screen p-4 md:p-6">
+        <header class="flex justify-between items-center mb-6 bg-gray-800/50 p-4 rounded-2xl border border-gray-700">
+            <div>
+                <h1 class="text-xl md:text-2xl font-bold text-emerald-400"><i class="fa-solid fa-chart-line mr-2"></i>Admin Dashboard</h1>
+                <p class="text-xs text-gray-400">Quản lý nạp rút, duyệt lệnh và số dư thành viên</p>
+            </div>
+            <button onclick="handleLogout()" class="bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white px-4 py-2 rounded-xl text-sm font-semibold transition border border-red-500/30">Đăng Xuất</button>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="bg-gray-800/60 p-5 rounded-2xl border border-gray-700">
+                <p class="text-gray-400 text-sm">Tổng Thành Viên</p>
+                <h3 class="text-2xl font-bold text-white mt-1">1,248</h3>
+            </div>
+            <div class="bg-gray-800/60 p-5 rounded-2xl border border-gray-700">
+                <p class="text-gray-400 text-sm">Chờ Duyệt Nạp</p>
+                <h3 class="text-2xl font-bold text-amber-400 mt-1">3 Yêu Cầu</h3>
+            </div>
+            <div class="bg-gray-800/60 p-5 rounded-2xl border border-gray-700">
+                <p class="text-gray-400 text-sm">Chờ Duyệt Rút</p>
+                <h3 class="text-2xl font-bold text-rose-400 mt-1">2 Yêu Cầu</h3>
+            </div>
+        </div>
+
+        <div class="bg-gray-800/60 rounded-2xl border border-gray-700 p-5">
+            <h3 class="text-lg font-bold mb-4 text-white"><i class="fa-solid fa-list-check mr-2 text-emerald-400"></i>Danh Sách Giao Dịch Cần Duyệt</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-sm">
+                    <thead>
+                        <tr class="border-b border-gray-700 text-gray-400">
+                            <th class="py-3 px-4">Thành Viên</th>
+                            <th class="py-3 px-4">Loại</th>
+                            <th class="py-3 px-4">Số Tiền</th>
+                            <th class="py-3 px-4">Thao Tác</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-700/50">
+                        <tr>
+                            <td class="py-3 px-4">user_demo01</td>
+                            <td class="py-3 px-4"><span class="bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded text-xs">Nạp Tiền</span></td>
+                            <td class="py-3 px-4 font-semibold text-emerald-400">+500,000 đ</td>
+                            <td class="py-3 px-4 space-x-2">
+                                <button onclick="alert('Đã duyệt nạp thành công!')" class="bg-emerald-600 hover:bg-emerald-500 px-3 py-1 rounded text-xs font-semibold">Duyệt</button>
+                                <button onclick="alert('Đã từ chối!')" class="bg-red-600 hover:bg-red-500 px-3 py-1 rounded text-xs font-semibold">Hủy</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
+
     <script>
-        function login() {
+        function handleLogin() {
             const u = document.getElementById('username').value;
             const p = document.getElementById('password').value;
             if(u === 'admin' && p === 'admin123') {
@@ -38,6 +93,10 @@
             } else {
                 alert('Sai tài khoản hoặc mật khẩu!');
             }
+        }
+        function handleLogout() {
+            document.getElementById('admin-panel').classList.add('hidden');
+            document.getElementById('login-screen').classList.remove('hidden');
         }
     </script>
 </body>
