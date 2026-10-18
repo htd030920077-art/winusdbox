@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WIN USDBOX - Investment Dashboard</title>
+    <!-- Tailwind CSS & FontAwesome Icons -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-main: #0b0f19;
+            --neon-green: #c0f135;
+        }
+        body {
+            background-color: var(--bg-main);
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .grid-bg {
+            background-image: linear-gradient(rgba(192, 241, 53, 0.02) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(192, 241, 53, 0.02) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        .card-dark {
+            background: rgba(18, 26, 43, 0.85);
+            border: 1px solid rgba(192, 241, 53, 0.15);
+        }
+        .neon-btn { background-color: var(--neon-green); color: #000; }
+        .neon-text { color: var(--neon-green); }
+
+        .modal-overlay {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease-in-out;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .progress-ring-circle {
+            transition: stroke-dashoffset 0.3s linear;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+    </style>
+</head>
+<body class="flex justify-center min-h-screen">
+
+    <div class="w-full max-w
