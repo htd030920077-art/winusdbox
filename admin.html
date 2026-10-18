@@ -3,9 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WIN USDBOX - Admin Pro Dashboard</title>
+    <title>WIN USDBOX - Admin Realtime Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 </head>
 <body class="bg-[#0b0f19] text-white font-sans min-h-screen pb-12">
     <!-- Màn hình đăng nhập -->
@@ -14,7 +18,7 @@
             <div class="text-center mb-6">
                 <i class="fa-solid fa-shield-halved text-4xl text-emerald-400 mb-2"></i>
                 <h2 class="text-2xl font-bold text-white">Quản Trị Hệ Thống</h2>
-                <p class="text-sm text-gray-400">WIN USDBOX Management v3.0</p>
+                <p class="text-sm text-gray-400">WIN USDBOX Realtime v4.0</p>
             </div>
             <div class="space-y-4">
                 <div>
@@ -34,8 +38,8 @@
     <div id="admin-panel" class="hidden max-w-7xl mx-auto p-4 md:p-6 space-y-6">
         <header class="flex flex-col md:flex-row justify-between items-center bg-gray-800/60 p-5 rounded-2xl border border-gray-700 gap-4">
             <div>
-                <h1 class="text-2xl font-bold text-emerald-400"><i class="fa-solid fa-gauge-high mr-2"></i>Admin Dashboard Pro</h1>
-                <p class="text-xs text-gray-400">Hệ thống quản lý nạp rút và thành viên thời gian thực</p>
+                <h1 class="text-2xl font-bold text-emerald-400"><i class="fa-solid fa-gauge-high mr-2"></i>Admin Dashboard Realtime</h1>
+                <p class="text-xs text-gray-400">Hệ thống đồng bộ dữ liệu trực tiếp từ Firebase</p>
             </div>
             <button onclick="handleLogout()" class="bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white px-4 py-2 rounded-xl text-sm font-semibold transition border border-red-500/30">Đăng Xuất</button>
         </header>
@@ -44,21 +48,21 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="bg-gray-800/60 p-5 rounded-2xl border border-gray-700">
                 <p class="text-gray-400 text-sm">Tổng Thành Viên</p>
-                <h3 class="text-3xl font-bold text-white mt-1">1,248</h3>
+                <h3 id="stat-total-users" class="text-3xl font-bold text-white mt-1">0</h3>
             </div>
             <div class="bg-gray-800/60 p-5 rounded-2xl border border-gray-700">
                 <p class="text-gray-400 text-sm">Nạp Tiền Chờ Duyệt</p>
-                <h3 id="count-nap" class="text-3xl font-bold text-emerald-400 mt-1">0 Yêu Cầu</h3>
+                <h3 id="stat-count-nap" class="text-3xl font-bold text-emerald-400 mt-1">0 Yêu Cầu</h3>
             </div>
             <div class="bg-gray-800/60 p-5 rounded-2xl border border-gray-700">
                 <p class="text-gray-400 text-sm">Rút Tiền Chờ Duyệt</p>
-                <h3 id="count-rut" class="text-3xl font-bold text-rose-400 mt-1">0 Yêu Cầu</h3>
+                <h3 id="stat-count-rut" class="text-3xl font-bold text-rose-400 mt-1">0 Yêu Cầu</h3>
             </div>
         </div>
 
         <!-- 1. QUẢN LÝ NẠP TIỀN CHỜ DUYỆT -->
         <div class="bg-gray-800/60 rounded-2xl border border-gray-700 p-5 shadow-xl">
-            <h3 class="text-lg font-bold mb-4 text-emerald-400"><i class="fa-solid fa-wallet mr-2"></i>Nạp Tiền Chờ Duyệt</h3>
+            <h3 class="text-lg font-bold mb-4 text-emerald-400"><i class="fa-solid fa-wallet mr-2"></i>Nạp Tiền Chờ Duyệt (Realtime)</h3>
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse text-sm">
                     <thead>
@@ -71,7 +75,7 @@
                         </tr>
                     </thead>
                     <tbody id="table-nap-pending" class="divide-y divide-gray-700/50">
-                        <tr id="empty-nap"><td colspan="5" class="py-4 text-center text-gray-500 italic">Không có yêu cầu nạp tiền nào đang chờ duyệt</td></tr>
+                        <tr><td colspan="5" class="py-4 text-center text-gray-500 italic">Đang đồng bộ dữ liệu...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -79,7 +83,7 @@
 
         <!-- 2. QUẢN LÝ RÚT TIỀN CHỜ DUYỆT -->
         <div class="bg-gray-800/60 rounded-2xl border border-gray-700 p-5 shadow-xl">
-            <h3 class="text-lg font-bold mb-4 text-rose-400"><i class="fa-solid fa-money-bill-transfer mr-2"></i>Rút Tiền Chờ Duyệt</h3>
+            <h3 class="text-lg font-bold mb-4 text-rose-400"><i class="fa-solid fa-money-bill-transfer mr-2"></i>Rút Tiền Chờ Duyệt (Realtime)</h3>
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse text-sm">
                     <thead>
@@ -92,7 +96,7 @@
                         </tr>
                     </thead>
                     <tbody id="table-rut-pending" class="divide-y divide-gray-700/50">
-                        <tr id="empty-rut"><td colspan="5" class="py-4 text-center text-gray-500 italic">Không có yêu cầu rút tiền nào đang chờ duyệt</td></tr>
+                        <tr><td colspan="5" class="py-4 text-center text-gray-500 italic">Đang đồng bộ dữ liệu...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -100,7 +104,6 @@
 
         <!-- LỊCH SỬ ĐÃ DUYỆT (CHIA NẠP & RÚT) -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- Lịch Sử Nạp -->
             <div class="bg-gray-800/60 rounded-2xl border border-gray-700 p-5 shadow-xl">
                 <h3 class="text-md font-bold mb-3 text-emerald-400"><i class="fa-solid fa-clock-rotate-left mr-2"></i>Lịch Sử Nạp Tiền Đã Duyệt</h3>
                 <div class="overflow-x-auto">
@@ -114,13 +117,12 @@
                             </tr>
                         </thead>
                         <tbody id="table-nap-history" class="divide-y divide-gray-700/50">
-                            <tr id="empty-nap-hist"><td colspan="4" class="py-3 text-center text-gray-500 italic">Chưa có lịch sử nạp tiền</td></tr>
+                            <tr><td colspan="4" class="py-3 text-center text-gray-500 italic">Chưa có lịch sử</td></tr>
                         </tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- Lịch Sử Rút -->
             <div class="bg-gray-800/60 rounded-2xl border border-gray-700 p-5 shadow-xl">
                 <h3 class="text-md font-bold mb-3 text-rose-400"><i class="fa-solid fa-clock-rotate-left mr-2"></i>Lịch Sử Rút Tiền Đã Duyệt</h3>
                 <div class="overflow-x-auto">
@@ -134,7 +136,7 @@
                             </tr>
                         </thead>
                         <tbody id="table-rut-history" class="divide-y divide-gray-700/50">
-                            <tr id="empty-rut-hist"><td colspan="4" class="py-3 text-center text-gray-500 italic">Chưa có lịch sử rút tiền</td></tr>
+                            <tr><td colspan="4" class="py-3 text-center text-gray-500 italic">Chưa có lịch sử</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -158,32 +160,13 @@
                             <th class="py-3 px-4">Tài Khoản</th>
                             <th class="py-3 px-4">Số Điện Thoại</th>
                             <th class="py-3 px-4">Ngân Hàng / Số TK</th>
-                            <th class="py-3 px-4">Cấp Dưới Của (Giới Thiệu)</th>
+                            <th class="py-3 px-4">Cấp Dưới Của (Mã GT)</th>
                             <th class="py-3 px-4">Số Dư</th>
                             <th class="py-3 px-4 text-center">Thao Tác Sửa</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-700/50">
-                        <tr data-phone="0912345678" data-ref="REF888">
-                            <td class="py-3 px-4 font-semibold text-white">user_demo01</td>
-                            <td class="py-3 px-4 text-gray-300">0912345678</td>
-                            <td class="py-3 px-4 text-gray-300 font-mono text-xs">VCB - 1029384756</td>
-                            <td class="py-3 px-4 text-amber-400">leader_master (REF888)</td>
-                            <td class="py-3 px-4 text-emerald-400 font-bold">2,500,000 đ</td>
-                            <td class="py-3 px-4 text-center">
-                                <button onclick="openEditModal('user_demo01', '0912345678', 'VCB - 1029384756', '2500000')" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition"><i class="fa-solid fa-pen-to-square mr-1"></i>Sửa</button>
-                            </td>
-                        </tr>
-                        <tr data-phone="0988888888" data-ref="REF999">
-                            <td class="py-3 px-4 font-semibold text-white">user_pro99</td>
-                            <td class="py-3 px-4 text-gray-300">0988888888</td>
-                            <td class="py-3 px-4 text-gray-300 font-mono text-xs">MB - 0987654321</td>
-                            <td class="py-3 px-4 text-amber-400">boss_top1 (REF999)</td>
-                            <td class="py-3 px-4 text-emerald-400 font-bold">10,800,000 đ</td>
-                            <td class="py-3 px-4 text-center">
-                                <button onclick="openEditModal('user_pro99', '0988888888', 'MB - 0987654321', '10800000')" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition"><i class="fa-solid fa-pen-to-square mr-1"></i>Sửa</button>
-                            </td>
-                        </tr>
+                    <tbody id="table-users" class="divide-y divide-gray-700/50">
+                        <tr><td colspan="6" class="py-4 text-center text-gray-500 italic">Đang tải danh sách thành viên...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -194,6 +177,7 @@
     <div id="editModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
         <div class="bg-gray-800 border border-gray-700 p-6 rounded-2xl w-full max-w-md space-y-4 shadow-2xl">
             <h3 class="text-xl font-bold text-cyan-400"><i class="fa-solid fa-user-pen mr-2"></i>Sửa Thông Tin Thành Viên</h3>
+            <input type="hidden" id="editKey">
             <div>
                 <label class="block text-xs font-semibold text-gray-400 mb-1">Tài Khoản</label>
                 <input type="text" id="editUser" disabled class="w-full px-4 py-2.5 bg-gray-900 rounded-xl border border-gray-700 text-gray-400 text-sm">
@@ -218,12 +202,28 @@
     </div>
 
     <script>
+        // Cấu hình Firebase của bạn
+        const firebaseConfig = {
+            apiKey: "AIzaSyC832BgFHW5LIavbuwE17dp...",
+            authDomain: "winusdbox.firebaseapp.com",
+            databaseURL: "https://winusdbox-default-rtdb.firebaseio.com",
+            projectId: "winusdbox",
+            storageBucket: "winusdbox.appspot.com",
+            messagingSenderId: "665540389423",
+            appId: "1:665540389423:web:7249d5d07b...",
+            measurementId: "G-KZKL342PD7"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
         function handleLogin() {
             const u = document.getElementById('username').value;
             const p = document.getElementById('password').value;
             if(u === 'admin' && p === 'admin123') {
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('admin-panel').classList.remove('hidden');
+                initRealtimeListeners();
             } else {
                 alert('Sai tài khoản hoặc mật khẩu!');
             }
@@ -233,88 +233,177 @@
             document.getElementById('login-screen').classList.remove('hidden');
         }
 
-        // Xử lý duyệt nạp tiền
-        function approveNap(btn, user, amount, content, status) {
-            const row = btn.closest('tr');
-            row.remove();
+        // Lắng nghe dữ liệu Realtime từ Firebase
+        function initRealtimeListeners() {
+            // 1. Lắng nghe Nạp tiền chờ duyệt
+            db.ref('transactions/nap_pending').on('value', snapshot => {
+                const tbody = document.getElementById('table-nap-pending');
+                tbody.innerHTML = '';
+                let count = 0;
+                const data = snapshot.val();
+                if(data) {
+                    Object.keys(data).forEach(key => {
+                        let item = data[key];
+                        count++;
+                        tbody.innerHTML += `<tr>
+                            <td class="py-3 px-4 font-semibold">${item.username}</td>
+                            <td class="py-3 px-4 text-emerald-400 font-bold">+${Number(item.amount).toLocaleString()} đ</td>
+                            <td class="py-3 px-4 text-gray-300 font-mono text-xs bg-gray-900/50 p-1.5 rounded">${item.content}</td>
+                            <td class="py-3 px-4 text-gray-400 text-xs">${item.time}</td>
+                            <td class="py-3 px-4 space-x-2">
+                                <button onclick="processTransaction('nap', '${key}', true, '${item.username}', ${item.amount})" class="bg-emerald-600 hover:bg-emerald-500 px-3 py-1.5 rounded-lg text-xs font-semibold shadow">Duyệt</button>
+                                <button onclick="processTransaction('nap', '${key}', false, '${item.username}', 0)" class="bg-red-600 hover:bg-red-500 px-3 py-1.5 rounded-lg text-xs font-semibold shadow">Hủy</button>
+                            </td>
+                        </tr>`;
+                    });
+                }
+                if(count === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="py-4 text-center text-gray-500 italic">Không có yêu cầu nạp tiền nào đang chờ duyệt</td></tr>';
+                }
+                document.getElementById('stat-count-nap').innerText = count + ' Yêu Cầu';
+            });
 
-            // Xóa thông báo trống nếu có
-            const emptyHist = document.getElementById('empty-nap-hist');
-            if(emptyHist) emptyHist.remove();
+            // 2. Lắng nghe Rút tiền chờ duyệt
+            db.ref('transactions/rut_pending').on('value', snapshot => {
+                const tbody = document.getElementById('table-rut-pending');
+                tbody.innerHTML = '';
+                let count = 0;
+                const data = snapshot.val();
+                if(data) {
+                    Object.keys(data).forEach(key => {
+                        let item = data[key];
+                        count++;
+                        tbody.innerHTML += `<tr>
+                            <td class="py-3 px-4 font-semibold">${item.username}</td>
+                            <td class="py-3 px-4 text-rose-400 font-bold">-${Number(item.amount).toLocaleString()} đ</td>
+                            <td class="py-3 px-4 text-gray-300 font-mono text-xs">${item.bankInfo}</td>
+                            <td class="py-3 px-4 text-gray-400 text-xs">${item.time}</td>
+                            <td class="py-3 px-4 space-x-2">
+                                <button onclick="processTransaction('rut', '${key}', true, '${item.username}', ${item.amount})" class="bg-emerald-600 hover:bg-emerald-500 px-3 py-1.5 rounded-lg text-xs font-semibold shadow">Duyệt</button>
+                                <button onclick="processTransaction('rut', '${key}', false, '${item.username}', 0)" class="bg-red-600 hover:bg-red-500 px-3 py-1.5 rounded-lg text-xs font-semibold shadow">Hủy</button>
+                            </td>
+                        </tr>`;
+                    });
+                }
+                if(count === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="py-4 text-center text-gray-500 italic">Không có yêu cầu rút tiền nào đang chờ duyệt</td></tr>';
+                }
+                document.getElementById('stat-count-rut').innerText = count + ' Yêu Cầu';
+            });
 
-            // Thêm vào lịch sử
-            const historyTable = document.getElementById('table-nap-history');
-            const statusTag = status === 'Thành công' 
-                ? '<span class="bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded text-[10px] font-semibold">Thành công</span>'
-                : '<span class="bg-red-500/20 text-red-400 px-2 py-0.5 rounded text-[10px] font-semibold">Đã hủy</span>';
-            
-            const newRow = `<tr>
-                <td class="py-2 px-3 font-semibold text-white">${user}</td>
-                <td class="py-2 px-3 text-emerald-400 font-bold">${amount}</td>
-                <td class="py-2 px-3 text-gray-400 font-mono">${content}</td>
-                <td class="py-2 px-3">${statusTag}</td>
-            </tr>`;
-            historyTable.innerHTML += newRow;
+            // 3. Lịch sử nạp đã duyệt
+            db.ref('transactions/nap_history').on('value', snapshot => {
+                const tbody = document.getElementById('table-nap-history');
+                tbody.innerHTML = '';
+                const data = snapshot.val();
+                if(data) {
+                    Object.keys(data).forEach(key => {
+                        let item = data[key];
+                        let statusTag = item.success ? '<span class="bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded text-[10px] font-semibold">Thành công</span>' : '<span class="bg-red-500/20 text-red-400 px-2 py-0.5 rounded text-[10px] font-semibold">Đã hủy</span>';
+                        tbody.innerHTML += `<tr>
+                            <td class="py-2 px-3 font-semibold text-white">${item.username}</td>
+                            <td class="py-2 px-3 text-emerald-400 font-bold">+${Number(item.amount).toLocaleString()} đ</td>
+                            <td class="py-2 px-3 text-gray-400 font-mono">${item.content}</td>
+                            <td class="py-2 px-3">${statusTag}</td>
+                        </tr>`;
+                    });
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="4" class="py-3 text-center text-gray-500 italic">Chưa có lịch sử</td></tr>';
+                }
+            });
 
-            // Cập nhật đếm
-            updateCounts();
+            // 4. Lịch sử rút đã duyệt
+            db.ref('transactions/rut_history').on('value', snapshot => {
+                const tbody = document.getElementById('table-rut-history');
+                tbody.innerHTML = '';
+                const data = snapshot.val();
+                if(data) {
+                    Object.keys(data).forEach(key => {
+                        let item = data[key];
+                        let statusTag = item.success ? '<span class="bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded text-[10px] font-semibold">Thành công</span>' : '<span class="bg-red-500/20 text-red-400 px-2 py-0.5 rounded text-[10px] font-semibold">Đã hủy</span>';
+                        tbody.innerHTML += `<tr>
+                            <td class="py-2 px-3 font-semibold text-white">${item.username}</td>
+                            <td class="py-2 px-3 text-rose-400 font-bold">-${Number(item.amount).toLocaleString()} đ</td>
+                            <td class="py-2 px-3 text-gray-300 font-mono">${item.bankInfo}</td>
+                            <td class="py-2 px-3">${statusTag}</td>
+                        </tr>`;
+                    });
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="4" class="py-3 text-center text-gray-500 italic">Chưa có lịch sử</td></tr>';
+                }
+            });
+
+            // 5. Danh sách người dùng
+            db.ref('users').on('value', snapshot => {
+                const tbody = document.getElementById('table-users');
+                tbody.innerHTML = '';
+                let count = 0;
+                const data = snapshot.val();
+                if(data) {
+                    Object.keys(data).forEach(key => {
+                        let user = data[key];
+                        count++;
+                        tbody.innerHTML += `<tr data-phone="${user.phone || ''}" data-ref="${user.refCode || ''}">
+                            <td class="py-3 px-4 font-semibold text-white">${user.username}</td>
+                            <td class="py-3 px-4 text-gray-300">${user.phone || 'Chưa cập nhật'}</td>
+                            <td class="py-3 px-4 text-gray-300 font-mono text-xs">${user.bank || 'Chưa cập nhật'}</td>
+                            <td class="py-3 px-4 text-amber-400">${user.parentRef || 'Không có'}</td>
+                            <td class="py-3 px-4 text-emerald-400 font-bold">${Number(user.balance || 0).toLocaleString()} đ</td>
+                            <td class="py-3 px-4 text-center">
+                                <button onclick="openEditModal('${key}', '${user.username}', '${user.phone || ''}', '${user.bank || ''}', '${user.balance || 0}')" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition"><i class="fa-solid fa-pen-to-square mr-1"></i>Sửa</button>
+                            </td>
+                        </tr>`;
+                    });
+                }
+                if(count === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-gray-500 italic">Chưa có thành viên nào</td></tr>';
+                }
+                document.getElementById('stat-total-users').innerText = count;
+            });
         }
 
-        // Xử lý duyệt rút tiền
-        function approveRut(btn, user, amount, bank, status) {
-            const row = btn.closest('tr');
-            row.remove();
+        // Xử lý duyệt giao dịch
+        function processTransaction(type, id, isSuccess, username, amount) {
+            const pathPending = `transactions/${type}_pending/${id}`;
+            const pathHistory = `transactions/${type}_history`;
 
-            // Xóa thông báo trống nếu có
-            const emptyHist = document.getElementById('empty-rut-hist');
-            if(emptyHist) emptyHist.remove();
+            db.ref(pathPending).once('value', snapshot => {
+                const item = snapshot.val();
+                if(item) {
+                    // Đẩy vào lịch sử
+                    db.ref(pathHistory).push({
+                        ...item,
+                        success: isSuccess,
+                        processedTime: new Date().toLocaleString()
+                    });
+                    // Xóa khỏi chờ duyệt
+                    db.ref(pathPending).remove();
 
-            // Thêm vào lịch sử
-            const historyTable = document.getElementById('table-rut-history');
-            const statusTag = status === 'Thành công' 
-                ? '<span class="bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded text-[10px] font-semibold">Thành công</span>'
-                : '<span class="bg-red-500/20 text-red-400 px-2 py-0.5 rounded text-[10px] font-semibold">Đã hủy</span>';
-            
-            const newRow = `<tr>
-                <td class="py-2 px-3 font-semibold text-white">${user}</td>
-                <td class="py-2 px-3 text-rose-400 font-bold">${amount}</td>
-                <td class="py-2 px-3 text-gray-300 font-mono">${bank}</td>
-                <td class="py-2 px-3">${statusTag}</td>
-            </tr>`;
-            historyTable.innerHTML += newRow;
-
-            // Cập nhật đếm
-            updateCounts();
+                    // Nếu là nạp tiền thành công -> cộng số dư cho user
+                    if(type === 'nap' && isSuccess) {
+                        db.ref('users').orderByChild('username').equalTo(username).once('value', userSnap => {
+                            if(userSnap.exists()) {
+                                userSnap.forEach(child => {
+                                    let currentBal = Number(child.val().balance || 0);
+                                    db.ref(`users/${child.key}`).update({ balance: currentBal + Number(amount) });
+                                });
+                            }
+                        });
+                    }
+                }
+            });
         }
 
-        function updateCounts() {
-            const countNap = document.querySelectorAll('#table-nap-pending tr:not(#empty-nap)').length;
-            const countRut = document.querySelectorAll('#table-rut-pending tr:not(#empty-rut)').length;
-
-            document.getElementById('count-nap').innerText = countNap + ' Yêu Cầu';
-            document.getElementById('count-rut').innerText = countRut + ' Yêu Cầu';
-
-            if(countNap === 0 && !document.getElementById('empty-nap')) {
-                document.getElementById('table-nap-pending').innerHTML = '<tr id="empty-nap"><td colspan="5" class="py-4 text-center text-gray-500 italic">Không có yêu cầu nạp tiền nào đang chờ duyệt</td></tr>';
-            }
-            if(countRut === 0 && !document.getElementById('empty-rut')) {
-                document.getElementById('table-rut-pending').innerHTML = '<tr id="empty-rut"><td colspan="5" class="py-4 text-center text-gray-500 italic">Không có yêu cầu rút tiền nào đang chờ duyệt</td></tr>';
-            }
-        }
-
-        // Tìm kiếm người chơi theo SĐT hoặc Mã Giới Thiệu
+        // Tìm kiếm người chơi
         function filterTable() {
             let filterPhone = document.getElementById('searchPhone').value.toLowerCase();
             let filterRef = document.getElementById('searchRef').value.toLowerCase();
-            let rows = document.querySelectorAll('#playerTable tbody tr');
+            let rows = document.querySelectorAll('#table-users tr');
 
             rows.forEach(row => {
-                let phone = row.getAttribute('data-phone').toLowerCase();
-                let ref = row.getAttribute('data-ref').toLowerCase();
-                let matchPhone = phone.includes(filterPhone);
-                let matchRef = ref.includes(filterRef);
-
-                if (matchPhone && matchRef) {
+                let phone = (row.getAttribute('data-phone') || '').toLowerCase();
+                let ref = (row.getAttribute('data-ref') || '').toLowerCase();
+                if(phone.includes(filterPhone) && ref.includes(filterRef)) {
                     row.style.display = '';
                 } else {
                     row.style.display = 'none';
@@ -323,7 +412,8 @@
         }
 
         // Modal sửa thông tin
-        function openEditModal(username, phone, bank, balance) {
+        function openEditModal(firebaseKey, username, phone, bank, balance) {
+            document.getElementById('editKey').value = firebaseKey;
             document.getElementById('editUser').value = username;
             document.getElementById('editPhone').value = phone;
             document.getElementById('editBank').value = bank;
@@ -334,8 +424,23 @@
             document.getElementById('editModal').classList.add('hidden');
         }
         function saveUserChanges() {
-            alert('Đã cập nhật thông tin thành viên thành công theo thời gian thực!');
-            closeEditModal();
+            let key = document.getElementById('editKey').value;
+            let phone = document.getElementById('editPhone').value;
+            let bank = document.getElementById('editBank').value;
+            let balance = Number(document.getElementById('editBalance').value);
+
+            db.ref(`users/${key}`).update({
+                phone: phone,
+                bank: bank,
+                balance: balance
+            }, error => {
+                if(!error) {
+                    alert('Đã cập nhật thông tin thành viên thành công!');
+                    closeEditModal();
+                } else {
+                    alert('Lỗi cập nhật!');
+                }
+            });
         }
     </script>
 </body>
