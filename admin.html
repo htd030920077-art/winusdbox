@@ -3,147 +3,202 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WIN USDBOX - Admin Control Panel</title>
+    <title>WIN USDBOX - Admin Control Panel Pro</title>
     <!-- Tailwind CSS & FontAwesome Icons -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --bg-main: #0b0f19;
-            --neon-green: #c0f135;
+            --bg-main: #070b14;
+            --neon-rose: #f43f5e;
         }
         body {
             background-color: var(--bg-main);
             color: #ffffff;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            user-select: none;
+        }
+        .grid-bg {
+            background-image: linear-gradient(rgba(244, 63, 94, 0.02) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(244, 63, 94, 0.02) 1px, transparent 1px);
+            background-size: 20px 20px;
         }
         .card-dark {
-            background: rgba(18, 26, 43, 0.85);
-            border: 1px solid rgba(192, 241, 53, 0.15);
+            background: rgba(17, 24, 39, 0.85);
+            border: 1px solid rgba(244, 63, 94, 0.2);
         }
-        .neon-btn { background-color: var(--neon-green); color: #000; }
-        .neon-text { color: var(--neon-green); }
+        .rose-btn { background-color: var(--neon-rose); color: #fff; }
+        .rose-text { color: var(--neon-rose); }
     </style>
 </head>
-<body class="min-h-screen bg-[#0b0f19] p-4 md:p-8">
+<body class="flex justify-center min-h-screen">
 
-    <!-- LOGIN ADMIN SCREEN -->
-    <div id="admin-login-screen" class="fixed inset-0 bg-[#0b0f19] z-50 flex items-center justify-center p-4">
-        <div class="card-dark w-full max-w-sm p-6 rounded-3xl space-y-5 border border-[#c0f135]/30 shadow-2xl">
-            <div class="text-center space-y-2">
-                <div class="w-14 h-14 bg-[#c0f135] text-gray-950 font-black text-2xl rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-lime-500/20">
-                    <i class="fa-solid fa-[#c0f135] fa-user-shield text-black"></i>
-                </div>
-                <h2 class="text-xl font-black text-white">ADMIN LOGIN</h2>
-                <p class="text-xs text-gray-400">Hệ thống quản trị WIN USDBOX</p>
-            </div>
+    <div class="w-full max-w-md bg-[#070b14] flex flex-col justify-between min-h-screen relative grid-bg pb-12 shadow-2xl border-x border-gray-800 overflow-hidden">
 
-            <div class="space-y-3">
-                <div>
-                    <label class="text-xs font-bold text-gray-300">Mật khẩu Quản trị</label>
-                    <input type="password" id="admin-password-input" placeholder="Nhập mật khẩu admin..." class="w-full bg-[#121929] border border-gray-800 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-[#c0f135] mt-1">
+        <!-- MÀN HÌNH ĐĂNG NHẬP ADMIN -->
+        <div id="admin-auth-screen" class="fixed inset-0 bg-[#070b14] z-[100] flex items-center justify-center p-6">
+            <div class="w-full max-w-sm space-y-6">
+                <div class="text-center space-y-2">
+                    <div class="w-16 h-16 bg-gradient-to-tr from-rose-600 to-pink-500 rounded-2xl mx-auto flex items-center justify-center text-white text-3xl font-black shadow-lg shadow-rose-600/30">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <h1 class="text-2xl font-black text-white tracking-wide">ADMIN CONTROL PRO</h1>
+                    <p class="text-xs text-gray-400">Hệ thống quản trị thời gian thực WIN USDBOX</p>
                 </div>
-                <button onclick="loginAdmin()" class="w-full neon-btn font-extrabold py-3 rounded-xl text-xs shadow-lg shadow-lime-500/20 active:scale-95 transition cursor-pointer">
-                    ĐĂNG NHẬP ADMIN
-                </button>
+
+                <div class="space-y-4">
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-gray-300">Mật khẩu quản trị</label>
+                        <input type="password" id="admin-pass-input" placeholder="Nhập mật khẩu (admin123)..." class="w-full bg-[#111827] border border-gray-800 rounded-xl p-3.5 text-xs text-gray-200 focus:outline-none focus:border-rose-500 placeholder-gray-600">
+                    </div>
+                    <button onclick="handleAdminLogin()" class="w-full rose-btn font-extrabold py-3.5 rounded-xl text-xs tracking-wider shadow-lg shadow-rose-600/25 active:scale-95 transition cursor-pointer">
+                        TRUY CẬP HỆ THỐNG
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- MAIN ADMIN DASHBOARD -->
-    <div id="admin-dashboard" class="max-w-5xl mx-auto space-y-6 hidden">
-
-        <!-- HEADER -->
-        <header class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-4 border-b border-gray-800">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-[#c0f135] rounded-xl flex items-center justify-center text-gray-950 font-black text-lg shadow">
-                    <i class="fa-solid fa-cube"></i>
+        <!-- HEADER QUẢN TRỊ -->
+        <header class="w-full px-4 py-3 flex items-center justify-between border-b border-gray-800/80 bg-[#070b14]/90 sticky top-0 z-30">
+            <div class="flex items-center gap-2">
+                <div class="w-7 h-7 bg-rose-600 rounded-lg flex items-center justify-center text-white font-black text-xs shadow">
+                    <i class="fa-solid fa-gauge-high"></i>
                 </div>
-                <div>
-                    <h1 class="text-xl font-black text-white tracking-wide">BẢNG QUẢN TRỊ ADMIN</h1>
-                    <p class="text-xs text-gray-400">Quản lý giao dịch nạp/rút & thành viên hệ thống</p>
-                </div>
+                <span class="font-black text-sm tracking-wider text-white">ADMIN PRO</span>
             </div>
             
-            <div class="flex items-center gap-3">
-                <button onclick="refreshData()" class="bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-2 transition cursor-pointer">
-                    <i class="fa-solid fa-rotate"></i> Làm mới dữ liệu
-                </button>
-                <button onclick="logoutAdmin()" class="bg-red-950/80 hover:bg-red-900 border border-red-500/30 text-red-400 font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-2 transition cursor-pointer">
-                    <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
+            <div class="flex items-center gap-2">
+                <span id="sync-status" class="text-[10px] text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 px-2 py-0.5 rounded-full font-semibold">
+                    <i class="fa-solid fa-circle text-[8px] animate-pulse"></i> Live
+                </span>
+                <button onclick="handleAdminLogout()" class="px-2.5 py-1.5 rounded-xl bg-gray-900 border border-gray-800 text-xs font-semibold text-rose-400 hover:bg-gray-800 transition cursor-pointer">
+                    <i class="fa-solid fa-right-from-bracket"></i>
                 </button>
             </div>
         </header>
 
-        <!-- STATS OVERVIEW -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div class="card-dark p-4 rounded-2xl border border-gray-800">
-                <p class="text-xs text-gray-400">Tổng Thành Viên</p>
-                <p class="text-xl font-black text-white mt-1" id="stat-users-count">0</p>
+        <!-- NỘI DUNG QUẢN TRỊ CHÍNH -->
+        <main class="p-4 space-y-4 overflow-y-auto flex-1">
+            
+            <!-- THỐNG KÊ TỔNG QUAN -->
+            <div class="grid grid-cols-2 gap-3">
+                <div class="card-dark rounded-2xl p-3.5 border border-gray-800 space-y-1">
+                    <p class="text-[10px] text-gray-400 font-medium">Lệnh Nạp Chờ Duyệt</p>
+                    <h2 class="text-xl font-black text-emerald-400" id="stat-pending-deposit">0</h2>
+                </div>
+                <div class="card-dark rounded-2xl p-3.5 border border-gray-800 space-y-1">
+                    <p class="text-[10px] text-gray-400 font-medium">Lệnh Rút Chờ Duyệt</p>
+                    <h2 class="text-xl font-black text-rose-400" id="stat-pending-withdraw">0</h2>
+                </div>
             </div>
-            <div class="card-dark p-4 rounded-2xl border border-gray-800">
-                <p class="text-xs text-gray-400">Chờ Duyệt Nạp</p>
-                <p class="text-xl font-black text-amber-400 mt-1" id="stat-pending-deposit">0</p>
+
+            <!-- TABS ĐIỀU HƯỚNG ADMIN -->
+            <div class="flex bg-[#111827] p-1 rounded-xl border border-gray-800 text-xs font-semibold">
+                <button onclick="switchAdminTab('deposits')" id="tab-btn-deposits" class="flex-1 py-2 rounded-lg text-center transition rose-btn shadow">Nạp Tiền</button>
+                <button onclick="switchAdminTab('withdraws')" id="tab-btn-withdraws" class="flex-1 py-2 rounded-lg text-center text-gray-400 transition hover:text-white">Rút Tiền</button>
+                <button onclick="switchAdminTab('users')" id="tab-btn-users" class="flex-1 py-2 rounded-lg text-center text-gray-400 transition hover:text-white">Thành Viên</button>
             </div>
-            <div class="card-dark p-4 rounded-2xl border border-gray-800">
-                <p class="text-xs text-gray-400">Chờ Duyệt Rút</p>
-                <p class="text-xl font-black text-amber-400 mt-1" id="stat-pending-withdraw">0</p>
+
+            <!-- 1. TAB NẠP TIỀN -->
+            <div id="admin-tab-deposits" class="admin-pane space-y-3">
+                <div class="flex justify-between items-center px-1">
+                    <h3 class="font-bold text-xs text-gray-300 uppercase tracking-wider flex items-center gap-1.5">
+                        <i class="fa-solid fa-arrow-up-from-bracket text-emerald-400"></i> Quản lý Nạp Tiền
+                    </h3>
+                    <button onclick="loadAdminData()" class="text-[10px] text-rose-400 hover:underline"><i class="fa-solid fa-rotate"></i> Làm mới</button>
+                </div>
+                <div id="admin-deposit-list" class="space-y-3"></div>
             </div>
-            <div class="card-dark p-4 rounded-2xl border border-gray-800">
-                <p class="text-xs text-gray-400">Tỷ giá Quy đổi</p>
-                <p class="text-xl font-black text-[#c0f135] mt-1">26.000 VNĐ</p>
+
+            <!-- 2. TAB RÚT TIỀN -->
+            <div id="admin-tab-withdraws" class="admin-pane space-y-3 hidden">
+                <div class="flex justify-between items-center px-1">
+                    <h3 class="font-bold text-xs text-gray-300 uppercase tracking-wider flex items-center gap-1.5">
+                        <i class="fa-solid fa-arrow-down-to-bracket text-rose-400"></i> Quản lý Rút Tiền
+                    </h3>
+                    <button onclick="loadAdminData()" class="text-[10px] text-rose-400 hover:underline"><i class="fa-solid fa-rotate"></i> Làm mới</button>
+                </div>
+                <div id="admin-withdraw-list" class="space-y-3"></div>
+            </div>
+
+            <!-- 3. TAB THÀNH VIÊN -->
+            <div id="admin-tab-users" class="admin-pane space-y-3 hidden">
+                <div class="flex justify-between items-center px-1">
+                    <h3 class="font-bold text-xs text-gray-300 uppercase tracking-wider flex items-center gap-1.5">
+                        <i class="fa-solid fa-users text-sky-400"></i> Danh sách Thành viên Hệ thống
+                    </h3>
+                </div>
+                <div id="admin-users-list" class="space-y-3"></div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- MODAL CHỈNH SỬA THÔNG TIN THÀNH VIÊN -->
+    <div id="edit-user-modal" class="fixed inset-0 bg-black/80 z-[120] hidden items-center justify-center p-4">
+        <div class="bg-[#111827] border border-rose-500/40 rounded-3xl p-5 w-full max-w-sm space-y-4 shadow-2xl relative">
+            <div class="flex justify-between items-center border-b border-gray-800 pb-2">
+                <h3 class="text-sm font-bold text-rose-400"><i class="fa-solid fa-user-pen mr-1"></i> Chỉnh sửa thành viên</h3>
+                <button onclick="closeEditUserModal()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <input type="hidden" id="edit-user-index">
+
+            <div class="space-y-3 text-xs">
+                <div class="space-y-1">
+                    <label class="font-bold text-gray-300">Họ và tên</label>
+                    <input type="text" id="edit-fullname" class="w-full bg-[#070b14] border border-gray-800 rounded-xl p-2.5 text-gray-200 focus:outline-none focus:border-rose-500">
+                </div>
+                <div class="space-y-1">
+                    <label class="font-bold text-gray-300">Số điện thoại / Email (Tài khoản)</label>
+                    <input type="text" id="edit-username" class="w-full bg-[#070b14] border border-gray-800 rounded-xl p-2.5 text-gray-200 focus:outline-none focus:border-rose-500">
+                </div>
+                <div class="space-y-1">
+                    <label class="font-bold text-gray-300">Mật khẩu</label>
+                    <input type="text" id="edit-password" class="w-full bg-[#070b14] border border-gray-800 rounded-xl p-2.5 text-gray-200 focus:outline-none focus:border-rose-500">
+                </div>
+                <div class="space-y-1">
+                    <label class="font-bold text-gray-300">Số dư ví (USD)</label>
+                    <input type="number" step="0.01" id="edit-balance" class="w-full bg-[#070b14] border border-gray-800 rounded-xl p-2.5 text-gray-200 focus:outline-none focus:border-rose-500">
+                </div>
+                <div class="space-y-1">
+                    <label class="font-bold text-gray-300">Ngân hàng & Số tài khoản nhận</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="text" id="edit-bank-name" placeholder="Tên NH (VD: MB)" class="bg-[#070b14] border border-gray-800 rounded-xl p-2.5 text-gray-200 focus:outline-none focus:border-rose-500">
+                        <input type="text" id="edit-bank-acc" placeholder="Số TK" class="bg-[#070b14] border border-gray-800 rounded-xl p-2.5 text-gray-200 focus:outline-none focus:border-rose-500">
+                    </div>
+                </div>
+                <div class="space-y-1">
+                    <label class="font-bold text-gray-300">Tên chủ tài khoản ngân hàng</label>
+                    <input type="text" id="edit-bank-holder" placeholder="Họ tên không dấu..." class="w-full bg-[#070b14] border border-gray-800 rounded-xl p-2.5 text-gray-200 focus:outline-none focus:border-rose-500">
+                </div>
+            </div>
+
+            <div class="pt-2 flex gap-2">
+                <button onclick="closeEditUserModal()" class="w-1/2 bg-gray-800 text-gray-300 font-bold py-2.5 rounded-xl text-xs">Hủy</button>
+                <button onclick="saveEditedUser()" class="w-1/2 rose-btn font-extrabold py-2.5 rounded-xl text-xs shadow">Lưu thay đổi</button>
             </div>
         </div>
+    </div>
 
-        <!-- TABS NAVIGATION -->
-        <div class="flex border-b border-gray-800 space-x-4">
-            <button onclick="switchAdminTab('deposits')" id="tab-btn-deposits" class="pb-3 text-xs font-bold border-b-2 border-[#c0f135] text-[#c0f135] cursor-pointer flex items-center gap-2">
-                <i class="fa-solid fa-arrow-up-from-bracket"></i> Lệnh Nạp Tiền
-            </button>
-            <button onclick="switchAdminTab('withdraws')" id="tab-btn-withdraws" class="pb-3 text-xs font-bold border-b-2 border-transparent text-gray-400 hover:text-white cursor-pointer flex items-center gap-2">
-                <i class="fa-solid fa-arrow-down-to-bracket"></i> Lệnh Rút Tiền
-            </button>
-            <button onclick="switchAdminTab('users')" id="tab-btn-users" class="pb-3 text-xs font-bold border-b-2 border-transparent text-gray-400 hover:text-white cursor-pointer flex items-center gap-2">
-                <i class="fa-solid fa-users"></i> Danh Sách Thành Viên
-            </button>
-        </div>
-
-        <!-- TAB 1: DUYỆT NẠP TIỀN -->
-        <div id="admin-tab-deposits" class="admin-pane space-y-4">
-            <div class="flex justify-between items-center">
-                <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                    <i class="fa-solid fa-clock-rotate-left text-[#c0f135]"></i> Danh Sách Yêu Cầu Nạp Tiền
-                </h3>
+    <!-- MODAL XEM LỊCH SỬ THÀNH VIÊN -->
+    <div id="user-history-modal" class="fixed inset-0 bg-black/80 z-[120] hidden items-center justify-center p-4">
+        <div class="bg-[#111827] border border-rose-500/40 rounded-3xl p-5 w-full max-w-sm space-y-4 shadow-2xl relative max-h-[85vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b border-gray-800 pb-2">
+                <h3 class="text-sm font-bold text-rose-400" id="history-modal-title">Lịch sử giao dịch</h3>
+                <button onclick="closeUserHistoryModal()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <div id="deposit-list-container" class="space-y-3"></div>
-        </div>
 
-        <!-- TAB 2: DUYỆT RÚT TIỀN -->
-        <div id="admin-tab-withdraws" class="admin-pane hidden space-y-4">
-            <div class="flex justify-between items-center">
-                <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                    <i class="fa-solid fa-money-bill-transfer text-[#c0f135]"></i> Danh Sách Yêu Cầu Rút Tiền
-                </h3>
-            </div>
-            <div id="withdraw-list-container" class="space-y-3"></div>
-        </div>
+            <div id="user-history-content" class="space-y-3 text-xs"></div>
 
-        <!-- TAB 3: DANH SÁCH USER -->
-        <div id="admin-tab-users" class="admin-pane hidden space-y-4">
-            <div class="flex justify-between items-center">
-                <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                    <i class="fa-solid fa-users-gear text-[#c0f135]"></i> Tất Cả Người Dùng Trong Hệ Thống
-                </h3>
-            </div>
-            <div id="user-list-container" class="space-y-3"></div>
+            <button onclick="closeUserHistoryModal()" class="w-full bg-gray-800 text-white font-bold py-2.5 rounded-xl text-xs">Đóng</button>
         </div>
-
     </div>
 
     <!-- JAVASCRIPT ADMIN LOGIC -->
     <script>
-        const ADMIN_PASS = "admin123"; // Mật khẩu truy cập Admin
         const USD_TO_VND = 26000;
+        let isAdminLoggedIn = localStorage.getItem('isAdminLoggedIn') === 'true';
 
         const investmentPlans = [
             { id: 0, priceUsd: 0, ratePerSec: 0.000000200, title: "Gói Khai Thác Free" },
@@ -155,230 +210,411 @@
             { id: 6, priceUsd: 100, ratePerSec: 0.000115740, title: "Gói VIP 100 USD" }
         ];
 
-        let depositHistory = JSON.parse(localStorage.getItem('depositHistory')) || [];
-        let withdrawHistory = JSON.parse(localStorage.getItem('withdrawHistory')) || [];
-        let registeredUsers = JSON.parse(localStorage.getItem('registeredUsers')) || [];
-
-        function loginAdmin() {
-            const pass = document.getElementById('admin-password-input').value.trim();
-            if (pass === ADMIN_PASS) {
-                document.getElementById('admin-login-screen').classList.add('hidden');
-                document.getElementById('admin-dashboard').classList.remove('hidden');
-                refreshData();
+        function handleAdminLogin() {
+            const pass = document.getElementById('admin-pass-input').value.trim();
+            if (pass === "admin123") {
+                isAdminLoggedIn = true;
+                localStorage.setItem('isAdminLoggedIn', 'true');
+                checkAdminAuth();
             } else {
-                alert("Mật khẩu Admin không chính xác!");
+                alert("Mật khẩu quản trị không chính xác! (Mật khẩu mặc định: admin123)");
             }
         }
 
-        function logoutAdmin() {
-            document.getElementById('admin-login-screen').classList.remove('hidden');
-            document.getElementById('admin-dashboard').classList.add('hidden');
-            document.getElementById('admin-password-input').value = '';
+        function handleAdminLogout() {
+            isAdminLoggedIn = false;
+            localStorage.removeItem('isAdminLoggedIn');
+            checkAdminAuth();
         }
 
-        function refreshData() {
-            depositHistory = JSON.parse(localStorage.getItem('depositHistory')) || [];
-            withdrawHistory = JSON.parse(localStorage.getItem('withdrawHistory')) || [];
-            registeredUsers = JSON.parse(localStorage.getItem('registeredUsers')) || [];
-
-            renderStats();
-            renderDeposits();
-            renderWithdraws();
-            renderUsers();
+        function checkAdminAuth() {
+            const authScreen = document.getElementById('admin-auth-screen');
+            if (isAdminLoggedIn) {
+                authScreen.classList.add('hidden');
+                loadAdminData();
+            } else {
+                authScreen.classList.remove('hidden');
+            }
         }
 
-        function renderStats() {
-            document.getElementById('stat-users-count').innerText = registeredUsers.length;
-            const pendingDep = depositHistory.filter(d => d.status === "Đang chờ duyệt").length;
-            const pendingWith = withdrawHistory.filter(w => w.status === "Đang chờ duyệt").length;
-            document.getElementById('stat-pending-deposit').innerText = pendingDep;
-            document.getElementById('stat-pending-withdraw').innerText = pendingWith;
+        function switchAdminTab(tabName) {
+            document.querySelectorAll('.admin-pane').forEach(pane => pane.classList.add('hidden'));
+            document.getElementById(`admin-tab-${tabName}`).classList.remove('hidden');
+
+            ['deposits', 'withdraws', 'users'].forEach(t => {
+                const btn = document.getElementById(`tab-btn-${t}`);
+                if (t === tabName) {
+                    btn.className = "flex-1 py-2 rounded-lg text-center transition rose-btn shadow";
+                } else {
+                    btn.className = "flex-1 py-2 rounded-lg text-center text-gray-400 transition hover:text-white";
+                }
+            });
         }
 
-        function renderDeposits() {
-            const container = document.getElementById('deposit-list-container');
+        function loadAdminData() {
+            let depositHistory = JSON.parse(localStorage.getItem('depositHistory')) || [];
+            let withdrawHistory = JSON.parse(localStorage.getItem('withdrawHistory')) || [];
+            let registeredUsers = JSON.parse(localStorage.getItem('registeredUsers')) || [];
+
+            const pendingDeposits = depositHistory.filter(item => item.status === "Đang chờ duyệt");
+            const pendingWithdraws = withdrawHistory.filter(item => item.status === "Đang chờ duyệt");
+
+            document.getElementById('stat-pending-deposit').innerText = pendingDeposits.length;
+            document.getElementById('stat-pending-withdraw').innerText = pendingWithdraws.length;
+
+            renderAdminDeposits(depositHistory);
+            renderAdminWithdraws(withdrawHistory);
+            renderAdminUsers(registeredUsers);
+        }
+
+        function renderAdminDeposits(depositHistory) {
+            const container = document.getElementById('admin-deposit-list');
             container.innerHTML = "";
 
             if (depositHistory.length === 0) {
-                container.innerHTML = `<p class="text-center text-xs text-gray-500 py-8">Chưa có giao dịch nạp tiền nào.</p>`;
+                container.innerHTML = `<div class="card-dark rounded-2xl p-6 text-center text-xs text-gray-500">Chưa có lịch sử nạp tiền nào.</div>`;
                 return;
             }
 
-            depositHistory.forEach((item, index) => {
+            depositHistory.forEach((item, idx) => {
                 const isPending = item.status === "Đang chờ duyệt";
-                const isSuccess = item.status === "Thành công";
+                const memo = item.memo || "WIN1234";
+                
+                let statusBadge = `<span class="text-amber-400 font-bold">Đang chờ duyệt</span>`;
+                if (item.status === "Thành công") statusBadge = `<span class="text-emerald-400 font-semibold">Thành công</span>`;
+                if (item.status === "Đã từ chối") statusBadge = `<span class="text-rose-400 font-semibold">Đã từ chối</span>`;
 
                 container.innerHTML += `
-                    <div class="card-dark rounded-2xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 border border-gray-800">
-                        <div class="space-y-1">
-                            <div class="flex items-center gap-2">
-                                <span class="text-xs font-bold text-white">Nạp ${item.vnd.toLocaleString()} VNĐ</span>
-                                <span class="text-xs font-black neon-text">(${item.usd.toFixed(2)} USD)</span>
-                                <span class="text-[10px] px-2 py-0.5 rounded-full font-bold ${isPending ? 'bg-amber-500/20 text-amber-400' : isSuccess ? 'bg-[#c0f135]/20 text-[#c0f135]' : 'bg-red-500/20 text-red-400'}">${item.status}</span>
-                            </div>
-                            <p class="text-[11px] text-gray-400">Thời gian tạo: ${item.time}</p>
+                    <div class="card-dark rounded-2xl p-3.5 space-y-2 border border-gray-800 text-xs">
+                        <div class="flex justify-between items-center text-gray-400">
+                            <span>${item.time}</span>
+                            ${statusBadge}
                         </div>
-
+                        <div class="space-y-1 bg-gray-900/60 p-2.5 rounded-xl border border-gray-800">
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Số tiền nạp:</span>
+                                <span class="text-white font-bold">${item.vnd.toLocaleString()} VNĐ</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Quy đổi USD:</span>
+                                <span class="neon-text font-bold">+${item.usd.toFixed(2)} USD</span>
+                            </div>
+                            <div class="flex justify-between border-t border-gray-800 pt-1 mt-1">
+                                <span class="text-gray-400">Nội dung CK:</span>
+                                <span class="text-amber-300 font-black">${memo}</span>
+                            </div>
+                        </div>
                         ${isPending ? `
-                            <div class="flex items-center gap-2">
-                                <button onclick="adminApproveDeposit(${index})" class="neon-btn font-extrabold px-4 py-2 rounded-xl text-xs active:scale-95 transition shadow cursor-pointer">
-                                    <i class="fa-solid fa-check mr-1"></i> DUYỆT NẠP
+                            <div class="pt-1 flex gap-2">
+                                <button onclick="adminRejectDeposit(${idx})" class="w-1/2 bg-gray-800 hover:bg-gray-700 text-rose-400 font-bold py-2 rounded-xl text-xs active:scale-95 transition cursor-pointer border border-rose-500/30">
+                                    <i class="fa-solid fa-xmark mr-1"></i> Từ chối
                                 </button>
-                                <button onclick="adminRejectDeposit(${index})" class="bg-red-950 border border-red-500/30 text-red-400 font-bold px-4 py-2 rounded-xl text-xs hover:bg-red-900 transition cursor-pointer">
-                                    TỪ CHỐI
+                                <button onclick="adminApproveDeposit(${idx})" class="w-1/2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-xl text-xs active:scale-95 transition cursor-pointer shadow">
+                                    <i class="fa-solid fa-check mr-1"></i> Duyệt tiền
                                 </button>
                             </div>
                         ` : ''}
+                    </div>
+                `;
+            });
+        }
+
+        function renderAdminWithdraws(withdrawHistory) {
+            const container = document.getElementById('admin-withdraw-list');
+            container.innerHTML = "";
+
+            if (withdrawHistory.length === 0) {
+                container.innerHTML = `<div class="card-dark rounded-2xl p-6 text-center text-xs text-gray-500">Chưa có lịch sử rút tiền nào.</div>`;
+                return;
+            }
+
+            withdrawHistory.forEach((item, idx) => {
+                const isPending = item.status === "Đang chờ duyệt";
+                
+                let statusBadge = `<span class="text-amber-400 font-bold">Đang chờ duyệt</span>`;
+                if (item.status === "Thành công") statusBadge = `<span class="text-emerald-400 font-semibold">Thành công</span>`;
+                if (item.status === "Đã từ chối") statusBadge = `<span class="text-rose-400 font-semibold">Đã từ chối</span>`;
+
+                container.innerHTML += `
+                    <div class="card-dark rounded-2xl p-3.5 space-y-2 border border-gray-800 text-xs">
+                        <div class="flex justify-between items-center text-gray-400">
+                            <span>${item.time}</span>
+                            ${statusBadge}
+                        </div>
+                        <div class="space-y-1 bg-gray-900/60 p-2.5 rounded-xl border border-gray-800">
+                            <p class="text-white font-bold flex items-center gap-1.5"><i class="fa-solid fa-building-columns text-rose-400"></i> Ngân hàng: ${item.bank}</p>
+                            <p class="text-gray-300">Số tài khoản: <strong class="text-white select-all">${item.acc}</strong></p>
+                            <p class="text-gray-300">Chủ tài khoản: <strong class="text-white uppercase">${item.name}</strong></p>
+                        </div>
+                        <div class="flex justify-between items-center pt-1 border-t border-gray-800">
+                            <span class="text-gray-400">Yêu cầu rút (${item.amount.toFixed(2)}U) - Phí 5%:</span>
+                            <span class="font-black text-rose-400">Thực chuyển: -${item.net.toFixed(2)} USD</span>
+                        </div>
+                        ${isPending ? `
+                            <div class="pt-1 flex gap-2">
+                                <button onclick="adminRejectWithdraw(${idx})" class="w-1/2 bg-gray-800 hover:bg-gray-700 text-rose-400 font-bold py-2 rounded-xl text-xs active:scale-95 transition cursor-pointer border border-rose-500/30">
+                                    <i class="fa-solid fa-xmark mr-1"></i> Từ chối
+                                </button>
+                                <button onclick="adminApproveWithdraw(${idx})" class="w-1/2 bg-rose-600 hover:bg-rose-500 text-white font-bold py-2 rounded-xl text-xs active:scale-95 transition cursor-pointer shadow">
+                                    <i class="fa-solid fa-check mr-1"></i> Xác nhận CK
+                                </button>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            });
+        }
+
+        function renderAdminUsers(registeredUsers) {
+            const container = document.getElementById('admin-users-list');
+            container.innerHTML = "";
+
+            if (registeredUsers.length === 0) {
+                container.innerHTML = `<div class="card-dark rounded-2xl p-6 text-center text-xs text-gray-500">Chưa có người dùng đăng ký nào.</div>`;
+                return;
+            }
+
+            registeredUsers.forEach((user, idx) => {
+                const createdAt = user.createdAt || "01/01/2026 - 12:00";
+                const userBalance = user.balance !== undefined ? user.balance : (parseFloat(localStorage.getItem('availableBalance')) || 0.00);
+                const bankInfo = user.bankAcc ? `${user.bankName || 'NH'} - ${user.bankAcc} (${user.bankHolder || ''})` : "Chưa cập nhật NH";
+
+                container.innerHTML += `
+                    <div class="card-dark rounded-2xl p-3.5 space-y-2.5 border border-gray-800 text-xs">
+                        <div class="flex justify-between items-start">
+                            <div class="space-y-0.5">
+                                <p class="font-bold text-white text-sm">${user.fullname}</p>
+                                <p class="text-gray-400"><i class="fa-solid fa-phone mr-1"></i> ${user.username}</p>
+                                <p class="text-[10px] text-gray-500"><i class="fa-regular fa-clock mr-1"></i> Tạo lúc: ${createdAt}</p>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-xs font-black text-[#c0f135]">$${userBalance.toFixed(2)}</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-gray-900/60 p-2 rounded-xl border border-gray-800 text-[11px] text-gray-300">
+                            <p><i class="fa-solid fa-wallet text-rose-400 mr-1"></i> NH: <strong class="text-white">${bankInfo}</strong></p>
+                        </div>
+
+                        <div class="pt-1 border-t border-gray-800 flex justify-end gap-2">
+                            <button onclick="openUserHistoryModal(${idx})" class="bg-sky-600 hover:bg-sky-500 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition">
+                                <i class="fa-solid fa-clock-rotate-left mr-1"></i> Lịch sử
+                            </button>
+                            <button onclick="openEditUserModal(${idx})" class="bg-amber-600 hover:bg-amber-500 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition">
+                                <i class="fa-solid fa-pen-to-square mr-1"></i> Sửa thông tin
+                            </button>
+                        </div>
                     </div>
                 `;
             });
         }
 
         function adminApproveDeposit(index) {
+            let depositHistory = JSON.parse(localStorage.getItem('depositHistory')) || [];
             if (!depositHistory[index]) return;
+
             const item = depositHistory[index];
             item.status = "Thành công";
             localStorage.setItem('depositHistory', JSON.stringify(depositHistory));
 
-            // Kích hoạt gói đầu tư khớp số tiền
-            let matchedPlan = investmentPlans.find(p => p.priceUsd === Math.round(item.usd)) || investmentPlans[1];
+            let matchedPlan = investmentPlans.find(p => p.priceUsd === Math.round(item.usd));
+            if (!matchedPlan) {
+                matchedPlan = investmentPlans.find(p => p.priceUsd >= 3) || investmentPlans[1];
+            }
             localStorage.setItem('activePlanId', matchedPlan.id);
 
-            // Cập nhật hoa hồng và trạng thái
-            let currentUser = JSON.parse(localStorage.getItem('currentUser'));
-            if (currentUser) {
-                const prefix = currentUser.username;
-                let balance = parseFloat(localStorage.getItem(`availableBalance_${prefix}`)) || 0;
-                balance += item.usd;
-                localStorage.setItem(`availableBalance_${prefix}`, balance);
-            }
+            let appNotifications = JSON.parse(localStorage.getItem('appNotifications')) || [];
+            const now = new Date();
+            const timeString = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} - ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            
+            appNotifications.unshift({
+                title: "Nạp tiền thành công",
+                content: `Lệnh nạp ${item.usd.toFixed(2)} USD đã được admin duyệt. Đã kích hoạt gói ${matchedPlan.title}.`,
+                time: timeString
+            });
+            localStorage.setItem('appNotifications', JSON.stringify(appNotifications));
+            localStorage.setItem('hasUnreadNotif', 'true');
 
-            alert(`Đã duyệt lệnh nạp ${item.usd.toFixed(2)} USD thành công!`);
-            refreshData();
+            alert("Đã duyệt lệnh nạp tiền và kích hoạt gói thành công!");
+            loadAdminData();
         }
 
         function adminRejectDeposit(index) {
+            let depositHistory = JSON.parse(localStorage.getItem('depositHistory')) || [];
             if (!depositHistory[index]) return;
-            depositHistory[index].status = "Thất bại";
+
+            const item = depositHistory[index];
+            item.status = "Đã từ chối";
             localStorage.setItem('depositHistory', JSON.stringify(depositHistory));
-            alert("Đã từ chối lệnh nạp tiền!");
-            refreshData();
-        }
 
-        function renderWithdraws() {
-            const container = document.getElementById('withdraw-list-container');
-            container.innerHTML = "";
-
-            if (withdrawHistory.length === 0) {
-                container.innerHTML = `<p class="text-center text-xs text-gray-500 py-8">Chưa có giao dịch rút tiền nào.</p>`;
-                return;
-            }
-
-            withdrawHistory.forEach((item, index) => {
-                const isPending = item.status === "Đang chờ duyệt";
-                const isSuccess = item.status === "Thành công";
-
-                container.innerHTML += `
-                    <div class="card-dark rounded-2xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 border border-gray-800">
-                        <div class="space-y-1">
-                            <div class="flex items-center gap-2">
-                                <span class="text-xs font-bold text-white">Rút ${item.amount.toFixed(2)} USD</span>
-                                <span class="text-[11px] text-gray-400">(Thực nhận: ${item.net.toFixed(2)} U)</span>
-                                <span class="text-[10px] px-2 py-0.5 rounded-full font-bold ${isPending ? 'bg-amber-500/20 text-amber-400' : isSuccess ? 'bg-[#c0f135]/20 text-[#c0f135]' : 'bg-red-500/20 text-red-400'}">${item.status}</span>
-                            </div>
-                            <p class="text-[11px] text-gray-300">Ngân hàng: <strong class="text-[#c0f135]">${item.bank}</strong> | STK: <strong class="text-white">${item.acc}</strong> | Chủ TK: <strong class="text-white">${item.name}</strong></p>
-                            <p class="text-[10px] text-gray-400">Thời gian tạo: ${item.time}</p>
-                        </div>
-
-                        ${isPending ? `
-                            <div class="flex items-center gap-2">
-                                <button onclick="adminApproveWithdraw(${index})" class="neon-btn font-extrabold px-4 py-2 rounded-xl text-xs active:scale-95 transition shadow cursor-pointer">
-                                    <i class="fa-solid fa-check mr-1"></i> DUYỆT RÚT
-                                </button>
-                                <button onclick="adminRejectWithdraw(${index})" class="bg-red-950 border border-red-500/30 text-red-400 font-bold px-4 py-2 rounded-xl text-xs hover:bg-red-900 transition cursor-pointer">
-                                    TỪ CHỐI
-                                </button>
-                            </div>
-                        ` : ''}
-                    </div>
-                `;
+            let appNotifications = JSON.parse(localStorage.getItem('appNotifications')) || [];
+            const now = new Date();
+            const timeString = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} - ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            
+            appNotifications.unshift({
+                title: "Nạp tiền bị từ chối",
+                content: `Lệnh nạp ${item.usd.toFixed(2)} USD (${item.vnd.toLocaleString()} VNĐ) đã bị từ chối bởi hệ thống.`,
+                time: timeString
             });
+            localStorage.setItem('appNotifications', JSON.stringify(appNotifications));
+            localStorage.setItem('hasUnreadNotif', 'true');
+
+            alert("Đã từ chối lệnh nạp tiền!");
+            loadAdminData();
         }
 
         function adminApproveWithdraw(index) {
+            let withdrawHistory = JSON.parse(localStorage.getItem('withdrawHistory')) || [];
+            let availableBalance = parseFloat(localStorage.getItem('availableBalance')) || 0.00;
+
             if (!withdrawHistory[index]) return;
+
             const item = withdrawHistory[index];
+            if (availableBalance < item.amount) {
+                alert("Số dư khả dụng của người dùng không đủ để trừ!");
+                return;
+            }
 
             item.status = "Thành công";
             localStorage.setItem('withdrawHistory', JSON.stringify(withdrawHistory));
 
-            // Trừ số dư người dùng
-            let currentUser = JSON.parse(localStorage.getItem('currentUser'));
-            if (currentUser) {
-                const prefix = currentUser.username;
-                let balance = parseFloat(localStorage.getItem(`availableBalance_${prefix}`)) || 0;
-                balance = Math.max(0, balance - item.amount);
-                localStorage.setItem(`availableBalance_${prefix}`, balance);
-            }
+            availableBalance -= item.amount;
+            localStorage.setItem('availableBalance', availableBalance);
 
-            alert(`Đã duyệt chuyển khoản ${item.net.toFixed(2)} USD cho tài khoản ${item.name}!`);
-            refreshData();
+            let appNotifications = JSON.parse(localStorage.getItem('appNotifications')) || [];
+            const now = new Date();
+            const timeString = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} - ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            
+            appNotifications.unshift({
+                title: "Rút tiền thành công",
+                content: `Lệnh rút ${item.amount.toFixed(2)} USD đã được admin duyệt chuyển về ngân hàng ${item.bank}.`,
+                time: timeString
+            });
+            localStorage.setItem('appNotifications', JSON.stringify(appNotifications));
+            localStorage.setItem('hasUnreadNotif', 'true');
+
+            alert("Đã duyệt lệnh rút tiền thành công!");
+            loadAdminData();
         }
 
         function adminRejectWithdraw(index) {
+            let withdrawHistory = JSON.parse(localStorage.getItem('withdrawHistory')) || [];
             if (!withdrawHistory[index]) return;
-            withdrawHistory[index].status = "Thất bại";
+
+            const item = withdrawHistory[index];
+            item.status = "Đã từ chối";
             localStorage.setItem('withdrawHistory', JSON.stringify(withdrawHistory));
+
+            let appNotifications = JSON.parse(localStorage.getItem('appNotifications')) || [];
+            const now = new Date();
+            const timeString = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} - ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            
+            appNotifications.unshift({
+                title: "Rút tiền bị từ chối",
+                content: `Lệnh rút ${item.amount.toFixed(2)} USD về ngân hàng ${item.bank} đã bị từ chối.`,
+                time: timeString
+            });
+            localStorage.setItem('appNotifications', JSON.stringify(appNotifications));
+            localStorage.setItem('hasUnreadNotif', 'true');
+
             alert("Đã từ chối lệnh rút tiền!");
-            refreshData();
+            loadAdminData();
         }
 
-        function renderUsers() {
-            const container = document.getElementById('user-list-container');
-            container.innerHTML = "";
+        function openEditUserModal(index) {
+            let registeredUsers = JSON.parse(localStorage.getItem('registeredUsers')) || [];
+            const user = registeredUsers[index];
+            if (!user) return;
 
-            if (registeredUsers.length === 0) {
-                container.innerHTML = `<p class="text-center text-xs text-gray-500 py-8">Chưa có người dùng nào đăng ký.</p>`;
-                return;
+            document.getElementById('edit-user-index').value = index;
+            document.getElementById('edit-fullname').value = user.fullname || '';
+            document.getElementById('edit-username').value = user.username || '';
+            document.getElementById('edit-password').value = user.password || '';
+            document.getElementById('edit-balance').value = user.balance !== undefined ? user.balance : (parseFloat(localStorage.getItem('availableBalance')) || 0.00);
+            document.getElementById('edit-bank-name').value = user.bankName || '';
+            document.getElementById('edit-bank-acc').value = user.bankAcc || '';
+            document.getElementById('edit-bank-holder').value = user.bankHolder || '';
+
+            document.getElementById('edit-user-modal').classList.remove('hidden');
+            document.getElementById('edit-user-modal').classList.add('flex');
+        }
+
+        function closeEditUserModal() {
+            document.getElementById('edit-user-modal').classList.add('hidden');
+            document.getElementById('edit-user-modal').classList.remove('flex');
+        }
+
+        function saveEditedUser() {
+            const index = parseInt(document.getElementById('edit-user-index').value);
+            let registeredUsers = JSON.parse(localStorage.getItem('registeredUsers')) || [];
+            if (!registeredUsers[index]) return;
+
+            registeredUsers[index].fullname = document.getElementById('edit-fullname').value.trim();
+            registeredUsers[index].username = document.getElementById('edit-username').value.trim();
+            registeredUsers[index].password = document.getElementById('edit-password').value.trim();
+            registeredUsers[index].balance = parseFloat(document.getElementById('edit-balance').value) || 0;
+            registeredUsers[index].bankName = document.getElementById('edit-bank-name').value.trim();
+            registeredUsers[index].bankAcc = document.getElementById('edit-bank-acc').value.trim();
+            registeredUsers[index].bankHolder = document.getElementById('edit-bank-holder').value.trim();
+
+            localStorage.setItem('registeredUsers', JSON.stringify(registeredUsers));
+            localStorage.setItem('availableBalance', registeredUsers[index].balance);
+
+            closeEditUserModal();
+            alert("Đã cập nhật thông tin thành viên thành công!");
+            loadAdminData();
+        }
+
+        function openUserHistoryModal(index) {
+            let registeredUsers = JSON.parse(localStorage.getItem('registeredUsers')) || [];
+            const user = registeredUsers[index];
+            if (!user) return;
+
+            document.getElementById('history-modal-title').innerText = `Lịch sử: ${user.fullname}`;
+            const contentContainer = document.getElementById('user-history-content');
+            contentContainer.innerHTML = "";
+
+            let depositHistory = JSON.parse(localStorage.getItem('depositHistory')) || [];
+            let withdrawHistory = JSON.parse(localStorage.getItem('withdrawHistory')) || [];
+
+            let html = `<p class="font-bold text-emerald-400">Lịch sử nạp tiền:</p>`;
+            if (depositHistory.length === 0) {
+                html += `<p class="text-gray-500 mb-2">Chưa có giao dịch nạp.</p>`;
+            } else {
+                depositHistory.forEach(d => {
+                    html += `<div class="bg-gray-900 p-2 rounded-xl mb-1 flex justify-between"><span>${d.time}</span><span class="text-emerald-400">+${d.usd.toFixed(2)}U (${d.status})</span></div>`;
+                });
             }
 
-            registeredUsers.forEach(u => {
-                const prefix = u.username;
-                const balance = parseFloat(localStorage.getItem(`availableBalance_${prefix}`)) || 0.00;
+            html += `<p class="font-bold text-rose-400 mt-3">Lịch sử rút tiền:</p>`;
+            if (withdrawHistory.length === 0) {
+                html += `<p class="text-gray-500">Chưa có giao dịch rút.</p>`;
+            } else {
+                withdrawHistory.forEach(w => {
+                    html += `<div class="bg-gray-900 p-2 rounded-xl mb-1 flex justify-between"><span>${w.time}</span><span class="text-rose-400">-${w.amount.toFixed(2)}U (${w.status})</span></div>`;
+                });
+            }
 
-                container.innerHTML += `
-                    <div class="card-dark rounded-2xl p-4 flex items-center justify-between border border-gray-800">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-[#c0f135]/10 text-[#c0f135] font-black flex items-center justify-center text-sm">
-                                <i class="fa-solid fa-user"></i>
-                            </div>
-                            <div>
-                                <p class="text-xs font-bold text-white">${u.fullname}</p>
-                                <p class="text-[11px] text-gray-400">SĐT/Email: ${u.username} | Pass: ${u.password}</p>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <p class="text-xs font-black neon-text">$${balance.toFixed(2)} USD</p>
-                            <p class="text-[10px] text-gray-500">Số dư hiện tại</p>
-                        </div>
-                    </div>
-                `;
-            });
+            contentContainer.innerHTML = html;
+            document.getElementById('user-history-modal').classList.remove('hidden');
+            document.getElementById('user-history-modal').classList.add('flex');
         }
 
-        function switchAdminTab(tabName) {
-            document.querySelectorAll('.admin-pane').forEach(p => p.classList.add('hidden'));
-            document.getElementById(`admin-tab-${tabName}`).classList.remove('hidden');
-
-            ['deposits', 'withdraws', 'users'].forEach(t => {
-                const btn = document.getElementById(`tab-btn-${t}`);
-                if (t === tabName) {
-                    btn.className = "pb-3 text-xs font-bold border-b-2 border-[#c0f135] text-[#c0f135] cursor-pointer flex items-center gap-2";
-                } else {
-                    btn.className = "pb-3 text-xs font-bold border-b-2 border-transparent text-gray-400 hover:text-white cursor-pointer flex items-center gap-2";
-                }
-            });
+        function closeUserHistoryModal() {
+            document.getElementById('user-history-modal').classList.add('hidden');
+            document.getElementById('user-history-modal').classList.remove('flex');
         }
+
+        // Tự động đồng bộ thời gian thực mỗi 2 giây
+        setInterval(() => {
+            if (isAdminLoggedIn) {
+                loadAdminData();
+            }
+        }, 2000);
+
+        document.addEventListener("DOMContentLoaded", () => {
+            checkAdminAuth();
+        });
     </script>
 </body>
 </html>
