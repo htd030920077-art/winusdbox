@@ -14,7 +14,7 @@
             <div class="text-center mb-6">
                 <i class="fa-solid fa-shield-halved text-4xl text-emerald-400 mb-2"></i>
                 <h2 class="text-2xl font-bold text-white">Quản Trị Hệ Thống</h2>
-                <p class="text-sm text-gray-400">WIN USDBOX Management v2.0</p>
+                <p class="text-sm text-gray-400">WIN USDBOX Management v3.0</p>
             </div>
             <div class="space-y-4">
                 <div>
@@ -48,17 +48,17 @@
             </div>
             <div class="bg-gray-800/60 p-5 rounded-2xl border border-gray-700">
                 <p class="text-gray-400 text-sm">Nạp Tiền Chờ Duyệt</p>
-                <h3 class="text-3xl font-bold text-emerald-400 mt-1">2 Yêu Cầu</h3>
+                <h3 id="count-nap" class="text-3xl font-bold text-emerald-400 mt-1">0 Yêu Cầu</h3>
             </div>
             <div class="bg-gray-800/60 p-5 rounded-2xl border border-gray-700">
                 <p class="text-gray-400 text-sm">Rút Tiền Chờ Duyệt</p>
-                <h3 class="text-3xl font-bold text-rose-400 mt-1">2 Yêu Cầu</h3>
+                <h3 id="count-rut" class="text-3xl font-bold text-rose-400 mt-1">0 Yêu Cầu</h3>
             </div>
         </div>
 
-        <!-- BẢNG 1: QUẢN LÝ NẠP TIỀN -->
+        <!-- 1. QUẢN LÝ NẠP TIỀN CHỜ DUYỆT -->
         <div class="bg-gray-800/60 rounded-2xl border border-gray-700 p-5 shadow-xl">
-            <h3 class="text-lg font-bold mb-4 text-emerald-400"><i class="fa-solid fa-钱包 mr-2"></i>Thống Kê & Duyệt Nạp Tiền</h3>
+            <h3 class="text-lg font-bold mb-4 text-emerald-400"><i class="fa-solid fa-wallet mr-2"></i>Nạp Tiền Chờ Duyệt</h3>
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse text-sm">
                     <thead>
@@ -70,25 +70,16 @@
                             <th class="py-3 px-4">Thao Tác</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-700/50">
-                        <tr>
-                            <td class="py-3 px-4 font-semibold">user_demo01</td>
-                            <td class="py-3 px-4 text-emerald-400 font-bold">+500,000 đ</td>
-                            <td class="py-3 px-4 text-gray-300 font-mono text-xs bg-gray-900/50 p-1.5 rounded">WINNAP 8821 tructiep</td>
-                            <td class="py-3 px-4 text-gray-400 text-xs">Hôm nay 00:20</td>
-                            <td class="py-3 px-4 space-x-2">
-                                <button onclick="alert('Đã duyệt nạp thành công!')" class="bg-emerald-600 hover:bg-emerald-500 px-3 py-1.5 rounded-lg text-xs font-semibold shadow">Duyệt</button>
-                                <button onclick="alert('Đã từ chối lệnh nạp!')" class="bg-red-600 hover:bg-red-500 px-3 py-1.5 rounded-lg text-xs font-semibold shadow">Hủy</button>
-                            </td>
-                        </tr>
+                    <tbody id="table-nap-pending" class="divide-y divide-gray-700/50">
+                        <tr id="empty-nap"><td colspan="5" class="py-4 text-center text-gray-500 italic">Không có yêu cầu nạp tiền nào đang chờ duyệt</td></tr>
                     </tbody>
                 </table>
             </div>
         </div>
 
-        <!-- BẢNG 2: QUẢN LÝ RÚT TIỀN -->
+        <!-- 2. QUẢN LÝ RÚT TIỀN CHỜ DUYỆT -->
         <div class="bg-gray-800/60 rounded-2xl border border-gray-700 p-5 shadow-xl">
-            <h3 class="text-lg font-bold mb-4 text-rose-400"><i class="fa-solid fa-money-bill-transfer mr-2"></i>Thống Kê & Duyệt Rút Tiền</h3>
+            <h3 class="text-lg font-bold mb-4 text-rose-400"><i class="fa-solid fa-money-bill-transfer mr-2"></i>Rút Tiền Chờ Duyệt</h3>
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse text-sm">
                     <thead>
@@ -96,27 +87,61 @@
                             <th class="py-3 px-4">Thành Viên</th>
                             <th class="py-3 px-4">Số Tiền Rút</th>
                             <th class="py-3 px-4">Số Tài Khoản Ngân Hàng</th>
-                            <th class="py-3 px-4">Thời Gian Thực Hiện</th>
+                            <th class="py-3 px-4">Thời Gian</th>
                             <th class="py-3 px-4">Thao Tác</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-700/50">
-                        <tr>
-                            <td class="py-3 px-4 font-semibold">user_pro99</td>
-                            <td class="py-3 px-4 text-rose-400 font-bold">-1,200,000 đ</td>
-                            <td class="py-3 px-4 font-mono text-emerald-300">MBBank - 0987654321 (NGUYEN VAN A)</td>
-                            <td class="py-3 px-4 text-gray-400 text-xs">Hôm nay 00:18</td>
-                            <td class="py-3 px-4 space-x-2">
-                                <button onclick="alert('Đã duyệt rút tiền thành công!')" class="bg-emerald-600 hover:bg-emerald-500 px-3 py-1.5 rounded-lg text-xs font-semibold shadow">Duyệt</button>
-                                <button onclick="alert('Đã từ chối lệnh rút!')" class="bg-red-600 hover:bg-red-500 px-3 py-1.5 rounded-lg text-xs font-semibold shadow">Hủy</button>
-                            </td>
-                        </tr>
+                    <tbody id="table-rut-pending" class="divide-y divide-gray-700/50">
+                        <tr id="empty-rut"><td colspan="5" class="py-4 text-center text-gray-500 italic">Không có yêu cầu rút tiền nào đang chờ duyệt</td></tr>
                     </tbody>
                 </table>
             </div>
         </div>
 
-        <!-- BẢNG 3: DANH SÁCH & TÌM KIẾM NGƯỜI CHƠI -->
+        <!-- LỊCH SỬ ĐÃ DUYỆT (CHIA NẠP & RÚT) -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Lịch Sử Nạp -->
+            <div class="bg-gray-800/60 rounded-2xl border border-gray-700 p-5 shadow-xl">
+                <h3 class="text-md font-bold mb-3 text-emerald-400"><i class="fa-solid fa-clock-rotate-left mr-2"></i>Lịch Sử Nạp Tiền Đã Duyệt</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="border-b border-gray-700 text-gray-400">
+                                <th class="py-2 px-3">Thành Viên</th>
+                                <th class="py-2 px-3">Số Tiền</th>
+                                <th class="py-2 px-3">Nội Dung</th>
+                                <th class="py-2 px-3">Trạng Thái</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-nap-history" class="divide-y divide-gray-700/50">
+                            <tr id="empty-nap-hist"><td colspan="4" class="py-3 text-center text-gray-500 italic">Chưa có lịch sử nạp tiền</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Lịch Sử Rút -->
+            <div class="bg-gray-800/60 rounded-2xl border border-gray-700 p-5 shadow-xl">
+                <h3 class="text-md font-bold mb-3 text-rose-400"><i class="fa-solid fa-clock-rotate-left mr-2"></i>Lịch Sử Rút Tiền Đã Duyệt</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="border-b border-gray-700 text-gray-400">
+                                <th class="py-2 px-3">Thành Viên</th>
+                                <th class="py-2 px-3">Số Tiền</th>
+                                <th class="py-2 px-3">Số TK / Ngân Hàng</th>
+                                <th class="py-2 px-3">Trạng Thái</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-rut-history" class="divide-y divide-gray-700/50">
+                            <tr id="empty-rut-hist"><td colspan="4" class="py-3 text-center text-gray-500 italic">Chưa có lịch sử rút tiền</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- DANH SÁCH & TÌM KIẾM NGƯỜI CHƠI -->
         <div class="bg-gray-800/60 rounded-2xl border border-gray-700 p-5 shadow-xl space-y-4">
             <div class="flex flex-col md:flex-row justify-between items-center gap-4">
                 <h3 class="text-lg font-bold text-cyan-400"><i class="fa-solid fa-users mr-2"></i>Quản Lý Thông Tin Người Chơi</h3>
@@ -206,6 +231,75 @@
         function handleLogout() {
             document.getElementById('admin-panel').classList.add('hidden');
             document.getElementById('login-screen').classList.remove('hidden');
+        }
+
+        // Xử lý duyệt nạp tiền
+        function approveNap(btn, user, amount, content, status) {
+            const row = btn.closest('tr');
+            row.remove();
+
+            // Xóa thông báo trống nếu có
+            const emptyHist = document.getElementById('empty-nap-hist');
+            if(emptyHist) emptyHist.remove();
+
+            // Thêm vào lịch sử
+            const historyTable = document.getElementById('table-nap-history');
+            const statusTag = status === 'Thành công' 
+                ? '<span class="bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded text-[10px] font-semibold">Thành công</span>'
+                : '<span class="bg-red-500/20 text-red-400 px-2 py-0.5 rounded text-[10px] font-semibold">Đã hủy</span>';
+            
+            const newRow = `<tr>
+                <td class="py-2 px-3 font-semibold text-white">${user}</td>
+                <td class="py-2 px-3 text-emerald-400 font-bold">${amount}</td>
+                <td class="py-2 px-3 text-gray-400 font-mono">${content}</td>
+                <td class="py-2 px-3">${statusTag}</td>
+            </tr>`;
+            historyTable.innerHTML += newRow;
+
+            // Cập nhật đếm
+            updateCounts();
+        }
+
+        // Xử lý duyệt rút tiền
+        function approveRut(btn, user, amount, bank, status) {
+            const row = btn.closest('tr');
+            row.remove();
+
+            // Xóa thông báo trống nếu có
+            const emptyHist = document.getElementById('empty-rut-hist');
+            if(emptyHist) emptyHist.remove();
+
+            // Thêm vào lịch sử
+            const historyTable = document.getElementById('table-rut-history');
+            const statusTag = status === 'Thành công' 
+                ? '<span class="bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded text-[10px] font-semibold">Thành công</span>'
+                : '<span class="bg-red-500/20 text-red-400 px-2 py-0.5 rounded text-[10px] font-semibold">Đã hủy</span>';
+            
+            const newRow = `<tr>
+                <td class="py-2 px-3 font-semibold text-white">${user}</td>
+                <td class="py-2 px-3 text-rose-400 font-bold">${amount}</td>
+                <td class="py-2 px-3 text-gray-300 font-mono">${bank}</td>
+                <td class="py-2 px-3">${statusTag}</td>
+            </tr>`;
+            historyTable.innerHTML += newRow;
+
+            // Cập nhật đếm
+            updateCounts();
+        }
+
+        function updateCounts() {
+            const countNap = document.querySelectorAll('#table-nap-pending tr:not(#empty-nap)').length;
+            const countRut = document.querySelectorAll('#table-rut-pending tr:not(#empty-rut)').length;
+
+            document.getElementById('count-nap').innerText = countNap + ' Yêu Cầu';
+            document.getElementById('count-rut').innerText = countRut + ' Yêu Cầu';
+
+            if(countNap === 0 && !document.getElementById('empty-nap')) {
+                document.getElementById('table-nap-pending').innerHTML = '<tr id="empty-nap"><td colspan="5" class="py-4 text-center text-gray-500 italic">Không có yêu cầu nạp tiền nào đang chờ duyệt</td></tr>';
+            }
+            if(countRut === 0 && !document.getElementById('empty-rut')) {
+                document.getElementById('table-rut-pending').innerHTML = '<tr id="empty-rut"><td colspan="5" class="py-4 text-center text-gray-500 italic">Không có yêu cầu rút tiền nào đang chờ duyệt</td></tr>';
+            }
         }
 
         // Tìm kiếm người chơi theo SĐT hoặc Mã Giới Thiệu
