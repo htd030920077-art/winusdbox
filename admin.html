@@ -138,7 +138,7 @@
                 <div id="admin-users-list" class="space-y-3"></div>
             </div>
 
-            <!-- 4. TAB GIFTCODE -->
+            <!-- 4. TAB GIFTCODE (CÓ GIỚI HẠN NHẬP) -->
             <div id="admin-tab-giftcode" class="admin-pane space-y-4 hidden">
                 <div class="card-dark rounded-2xl p-4 space-y-3 border border-rose-500/30">
                     <h3 class="font-bold text-sm text-rose-400 flex items-center gap-2">
@@ -154,11 +154,11 @@
                             <input type="number" id="admin-usd-input" step="0.01" placeholder="VD: 1.00 (tương đương 26k)" class="w-full bg-[#070b14] border border-gray-800 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-rose-500">
                         </div>
                         <div class="space-y-1">
-                            <label class="font-bold text-gray-300">Số lượng lượt nhập tối đa</label>
+                            <label class="font-bold text-gray-300">Giới hạn lượt nhập tối đa</label>
                             <input type="number" id="admin-limit-input" value="50" class="w-full bg-[#070b14] border border-gray-800 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-rose-500">
                         </div>
                         <button onclick="adminCreateGiftcode()" class="w-full rose-btn font-extrabold py-3.5 rounded-xl text-xs active:scale-95 transition shadow-lg cursor-pointer mt-1">
-                            Tạo & Đồng Bộ Giftcode
+                            Tạo & Kích Hoạt Giới Hạn
                         </button>
                     </div>
                 </div>
@@ -295,7 +295,7 @@
             });
         }
 
-        // TẠO VÀ QUẢN LÝ GIFTCODE
+        // TẠO VÀ QUẢN LÝ GIFTCODE KÈM GIỚI HẠN LƯỢT NHẬP
         function adminCreateGiftcode() {
             const code = document.getElementById('admin-code-input').value.trim().toUpperCase();
             const usd = parseFloat(document.getElementById('admin-usd-input').value) || 0;
@@ -318,7 +318,7 @@
             document.getElementById('admin-code-input').value = '';
             document.getElementById('admin-usd-input').value = '';
             renderAdminGiftcodeList();
-            alert(`Đã tạo mã thành công: ${code} (${usd} USD - Giới hạn: ${limit} lượt)!`);
+            alert(`Đã tạo mã thành công: ${code} (${usd} USD - Giới hạn tối đa: ${limit} lượt)!`);
         }
 
         function renderAdminGiftcodeList() {
@@ -332,7 +332,7 @@
                     <div class="bg-gray-900 border border-gray-800 rounded-xl p-3 flex items-center justify-between text-xs">
                         <div>
                             <span class="font-extrabold text-rose-400">${code}</span>
-                            <p class="text-[10px] text-gray-400">Thưởng: $${info.usd.toFixed(2)} | Đã dùng: ${info.usedCount}/${info.limit}</p>
+                            <p class="text-[10px] text-gray-400">Thưởng: $${info.usd.toFixed(2)} | Đã dùng: ${info.usedCount}/${info.limit} lượt</p>
                         </div>
                         <button onclick="adminDeleteGiftcode('${code}')" class="bg-red-950/80 text-rose-400 border border-red-500/30 px-2.5 py-1 rounded-lg text-[10px] font-bold cursor-pointer">Xóa</button>
                     </div>
