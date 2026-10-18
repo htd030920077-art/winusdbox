@@ -3,112 +3,1866 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WIN USDBOX</title>
+    <title>Investment Dashboard - Neon Edition</title>
+    <!-- Tailwind CSS & FontAwesome Icons -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --bg-main: #0b0f19; --neon-green: #c0f135; }
-        body { background-color: var(--bg-main); color: #ffffff; font-family: sans-serif; user-select: none; }
-        .card-dark { background: rgba(18, 26, 43, 0.9); border: 1px solid rgba(192, 241, 53, 0.2); }
+        :root {
+            --bg-main: #0b0f19;
+            --neon-green: #c0f135;
+        }
+        body {
+            background-color: var(--bg-main);
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+        .grid-bg {
+            background-image: linear-gradient(rgba(192, 241, 53, 0.02) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(192, 241, 53, 0.02) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        .card-dark {
+            background: rgba(18, 26, 43, 0.85);
+            border: 1px solid rgba(192, 241, 53, 0.15);
+        }
         .neon-btn { background-color: var(--neon-green); color: #000; }
         .neon-text { color: var(--neon-green); }
+
+        .modal-overlay {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease-in-out;
+            align-items: flex-start !important;
+            padding: 0 !important;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal-content {
+            transform: scale(0.98);
+            transition: transform 0.2s ease-out;
+            margin-top: 0 !important;
+            width: 100% !important;
+            max-width: 448px !important;
+            min-height: 100vh !important;
+            border-radius: 0 !important;
+            overflow-y: auto;
+            padding: 16px;
+        }
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+        }
+
+        @keyframes popupFadeIn {
+            from { opacity: 0; transform: scale(0.90); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .animate-popup {
+            animation: popupFadeIn 0.2s ease-out forwards;
+        }
+
+        .progress-ring-circle {
+            transition: stroke-dashoffset 0.3s linear;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
     </style>
 </head>
 <body class="flex justify-center min-h-screen">
-    <div class="w-full max-w-md bg-[#0b0f19] flex flex-col justify-between min-h-screen relative p-4 pb-20 shadow-2xl">
-        
-        <!-- MÀN HÌNH ĐĂNG NHẬP / ĐĂNG KÝ -->
-        <div id="auth-screen" class="fixed inset-0 bg-[#0b0f19] z-[100] flex items-center justify-center p-6">
-            <div class="w-full max-w-sm space-y-4">
+
+    <div class="w-full max-w-md bg-[#0b0f19] flex flex-col justify-between min-h-screen relative grid-bg pb-20 shadow-2xl border-x border-gray-800 overflow-hidden">
+
+        <!-- AUTH SCREEN -->
+        <div id="auth-screen" class="fixed inset-0 bg-[#0b0f19] z-[100] flex items-center justify-center p-6 overflow-y-auto">
+            <div class="w-full max-w-sm space-y-6 my-auto">
                 <div class="text-center space-y-2">
-                    <div class="w-14 h-14 bg-[#c0f135] rounded-2xl mx-auto flex items-center justify-center text-gray-950 text-2xl font-black">
+                    <div class="w-16 h-16 bg-gradient-to-tr from-emerald-500 to-[#c0f135] rounded-2xl mx-auto flex items-center justify-center text-gray-950 text-3xl font-black shadow-lg shadow-lime-500/25">
                         <i class="fa-solid fa-cube"></i>
                     </div>
-                    <h1 class="text-xl font-black text-white">WIN USDBOX</h1>
+                    <h1 class="text-2xl font-black text-white tracking-wide">WIN USDBOX</h1>
+                    <p class="text-xs text-gray-400">Hệ thống đầu tư & khai thác tài sản số</p>
                 </div>
 
-                <div id="login-form" class="space-y-3">
-                    <input type="text" id="login-username" placeholder="Số điện thoại / Email" class="w-full bg-[#121929] border border-gray-800 rounded-xl p-3 text-xs text-white">
-                    <input type="password" id="login-password" placeholder="Mật khẩu" class="w-full bg-[#121929] border border-gray-800 rounded-xl p-3 text-xs text-white">
-                    <button onclick="handleLogin()" class="w-full neon-btn font-bold py-3 rounded-xl text-xs">ĐĂNG NHẬP</button>
-                    <p class="text-center text-xs text-gray-400">Chưa có tài khoản? <span onclick="switchAuthMode('register')" class="neon-text font-bold cursor-pointer">Đăng ký</span></p>
+                <div id="login-form" class="space-y-4">
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-gray-300">Số điện thoại / Email</label>
+                        <input type="text" id="login-username" placeholder="Nhập tài khoản của bạn..." class="w-full bg-[#121929] border border-gray-800 rounded-xl p-3.5 text-xs text-gray-200 focus:outline-none focus:border-[#c0f135] placeholder-gray-600">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-gray-300">Mật khẩu</label>
+                        <input type="password" id="login-password" placeholder="Nhập mật khẩu..." class="w-full bg-[#121929] border border-gray-800 rounded-xl p-3.5 text-xs text-gray-200 focus:outline-none focus:border-[#c0f135] placeholder-gray-600">
+                    </div>
+                    <button onclick="handleLogin()" class="w-full neon-btn font-extrabold py-3.5 rounded-xl text-xs tracking-wider shadow-lg shadow-lime-500/20 active:scale-95 transition cursor-pointer">
+                        ĐĂNG NHẬP
+                    </button>
+                    <div class="text-center pt-2">
+                        <p class="text-xs text-gray-400">Chưa có tài khoản? <span onclick="switchAuthMode('register')" class="neon-text font-bold cursor-pointer hover:underline">Đăng ký ngay</span></p>
+                    </div>
                 </div>
 
-                <div id="register-form" class="space-y-3 hidden">
-                    <input type="text" id="reg-fullname" placeholder="Họ và tên" class="w-full bg-[#121929] border border-gray-800 rounded-xl p-3 text-xs text-white">
-                    <input type="text" id="reg-username" placeholder="Số điện thoại / Email" class="w-full bg-[#121929] border border-gray-800 rounded-xl p-3 text-xs text-white">
-                    <input type="password" id="reg-password" placeholder="Mật khẩu" class="w-full bg-[#121929] border border-gray-800 rounded-xl p-3 text-xs text-white">
-                    <input type="text" id="reg-refcode" placeholder="Mã người giới thiệu (Tùy chọn)" class="w-full bg-[#121929] border border-gray-800 rounded-xl p-3 text-xs text-white">
-                    <button onclick="handleRegister()" class="w-full neon-btn font-bold py-3 rounded-xl text-xs">ĐĂNG KÝ TÀI KHOẢN</button>
-                    <p class="text-center text-xs text-gray-400">Đã có tài khoản? <span onclick="switchAuthMode('login')" class="neon-text font-bold cursor-pointer">Đăng nhập</span></p>
+                <div id="register-form" class="space-y-4 hidden">
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-gray-300">Họ và tên</label>
+                        <input type="text" id="reg-fullname" placeholder="Nhập họ và tên..." class="w-full bg-[#121929] border border-gray-800 rounded-xl p-3.5 text-xs text-gray-200 focus:outline-none focus:border-[#c0f135] placeholder-gray-600">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-gray-300">Số điện thoại / Email</label>
+                        <input type="text" id="reg-username" placeholder="Nhập số điện thoại hoặc email..." class="w-full bg-[#121929] border border-gray-800 rounded-xl p-3.5 text-xs text-gray-200 focus:outline-none focus:border-[#c0f135] placeholder-gray-600">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-gray-300">Mật khẩu</label>
+                        <input type="password" id="reg-password" placeholder="Tạo mật khẩu..." class="w-full bg-[#121929] border border-gray-800 rounded-xl p-3.5 text-xs text-gray-200 focus:outline-none focus:border-[#c0f135] placeholder-gray-600">
+                    </div>
+                    <button onclick="handleRegister()" class="w-full neon-btn font-extrabold py-3.5 rounded-xl text-xs tracking-wider shadow-lg shadow-lime-500/20 active:scale-95 transition cursor-pointer">
+                        ĐĂNG KÝ TÀI KHOẢN
+                    </button>
+                    <div class="text-center pt-2">
+                        <p class="text-xs text-gray-400">Đã có tài khoản? <span onclick="switchAuthMode('login')" class="neon-text font-bold cursor-pointer hover:underline">Đăng nhập</span></p>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- GIAO DIỆN CHÍNH -->
-        <div class="space-y-4">
-            <div class="flex justify-between items-center border-b border-gray-800 pb-3">
-                <span class="font-bold text-sm">WINUSDBOX</span>
-                <span class="text-xs neon-text font-bold" id="user-display"></span>
+        <!-- HEADER TOP BAR -->
+        <header class="w-full px-4 py-3 flex items-center justify-between border-b border-gray-800/60 bg-[#0b0f19]/90 sticky top-0 z-30">
+            <div class="flex items-center gap-2">
+                <div class="w-7 h-7 bg-[#c0f135] rounded-lg flex items-center justify-center text-gray-950 font-black text-xs shadow">
+                    <i class="fa-solid fa-cube"></i>
+                </div>
+                <span class="font-black text-sm tracking-wider text-white">WINUSDBOX</span>
             </div>
+            
+            <div class="relative">
+                <button onclick="openNotificationModal()" class="w-10 h-10 rounded-xl bg-gray-900 border border-gray-800 flex items-center justify-center text-gray-300 hover:text-white transition relative cursor-pointer">
+                    <i class="fa-solid fa-bell text-sm"></i>
+                    <span id="notif-badge" class="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full hidden"></span>
+                    <span id="notif-badge-solid" class="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full hidden"></span>
+                </button>
+            </div>
+        </header>
 
-            <div class="card-dark rounded-2xl p-5 text-center space-y-3">
-                <p class="text-xs text-gray-400">Số dư khả dụng</p>
-                <h2 class="text-2xl font-black text-[#c0f135]" id="balance-val">$0.00</h2>
-                <button onclick="logout()" class="text-xs text-red-400 underline pt-2">Đăng xuất</button>
+        <!-- MAIN CONTENT -->
+        <main class="p-4 space-y-4 overflow-y-auto flex-1">
+
+            <!-- 1. TRANG CHỦ -->
+            <section id="tab-home" class="tab-pane space-y-4">
+                
+                <div class="card-dark rounded-3xl p-5 border border-[#c0f135]/20 shadow-xl text-center space-y-4">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-[#c0f135] animate-pulse"></span>
+                            <span class="text-xs font-semibold text-gray-300">Lãi khai thác tích lũy</span>
+                        </div>
+                        <span id="active-plan-badge" class="text-xs bg-[#122112] text-[#c0f135] border border-[#c0f135]/40 px-3 py-1 rounded-full font-bold flex items-center gap-1.5">
+                            <i class="fa-solid fa-chart-line text-[11px]"></i> Gói Free
+                        </span>
+                    </div>
+
+                    <div class="relative w-56 h-56 mx-auto flex items-center justify-center my-2">
+                        <svg class="w-full h-full filter drop-shadow-[0_0_10px_rgba(192,241,53,0.2)]" viewBox="0 0 120 120">
+                            <circle cx="60" cy="60" r="50" stroke="#121d30" stroke-width="7" fill="none" />
+                            <circle id="mining-progress-circle" class="progress-ring-circle" cx="60" cy="60" r="50" 
+                                    stroke="url(#gradient-ring)" stroke-width="8" stroke-linecap="round" fill="none" 
+                                    stroke-dasharray="314.159" stroke-dashoffset="314.159" />
+                            <defs>
+                                <linearGradient id="gradient-ring" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#10b981" />
+                                    <stop offset="100%" stop-color="#c0f135" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
+
+                        <div class="absolute inset-0 flex flex-col items-center justify-center space-y-1 p-4">
+                            <i class="fa-solid fa-microchip text-[#c0f135] text-lg mb-1"></i>
+                            <span class="text-[10px] text-gray-400 font-medium">Lãi chưa nhận</span>
+                            <h1 class="text-xl font-black tracking-tight text-white leading-none">
+                                +$<span id="unclaimed-profit-int">0.</span><span id="unclaimed-profit-dec" class="neon-text">0000000</span>
+                            </h1>
+                            <div class="pt-1.5">
+                                <span id="ring-percent-text" class="text-[11px] font-extrabold text-[#c0f135] bg-[#1a2b10] border border-[#c0f135]/40 px-2 py-0.5 rounded-full">
+                                    0% / 0.1U
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-[11px] text-gray-400 flex justify-between items-center px-2 pt-1">
+                        <span>Nhận tối thiểu: <strong class="text-white">0,01 USD</strong></span>
+                        <span id="profit-status" class="text-gray-500 font-medium">Chưa đủ tối thiểu (0.01U)</span>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-2">
+                        <div class="bg-gray-900/80 p-2.5 rounded-2xl border border-gray-800 text-center">
+                            <p class="text-[10px] text-gray-400 font-medium">Tốc độ / giây</p>
+                            <p id="stat-rate-sec" class="text-xs font-extrabold text-white mt-0.5">+0.0000002U</p>
+                        </div>
+                        <div class="bg-gray-900/80 p-2.5 rounded-2xl border border-gray-800 text-center">
+                            <p class="text-[10px] text-gray-400 font-medium">Ưước tính / giờ</p>
+                            <p id="stat-rate-hour" class="text-xs font-extrabold text-white mt-0.5">+0.00072U</p>
+                        </div>
+                        <div class="bg-gray-900/80 p-2.5 rounded-2xl border border-gray-800 text-center">
+                            <p class="text-[10px] text-gray-400 font-medium">Ước tính / ngày</p>
+                            <p id="stat-rate-day" class="text-xs font-extrabold text-[#c0f135] mt-0.5">+0.01728U</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 pt-1">
+                        <button id="claim-btn" onclick="claimProfit()" class="bg-gray-800 text-gray-500 font-bold py-3 rounded-2xl text-xs flex items-center justify-center gap-2 transition cursor-not-allowed" disabled>
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> Nhận lãi
+                        </button>
+                        <button onclick="scrollToPlans()" class="bg-gray-800/90 text-gray-200 border border-gray-700 font-bold py-3 rounded-2xl text-xs flex items-center justify-center gap-2 transition active:scale-95 hover:bg-gray-700/80 cursor-pointer">
+                            <i class="fa-solid fa-layer-group"></i> Nâng cấp gói
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-3">
+                        <div class="card-dark rounded-2xl p-3 border border-gray-800/80">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-[11px] text-gray-400 font-medium">Số dư khả dụng</span>
+                                <div class="w-5 h-5 rounded-full bg-[#c0f135]/20 text-[#c0f135] flex items-center justify-center text-[10px] font-bold">
+                                    <i class="fa-solid fa-dollar-sign"></i>
+                                </div>
+                            </div>
+                            <p class="text-lg font-black text-white" id="available-balance">$0.00</p>
+                            <div class="mt-2 pt-1.5 border-t border-gray-800/80 flex justify-between items-center text-[9px]">
+                                <span class="text-gray-400">Đã nhận</span>
+                                <span class="neon-text font-bold" id="total-claimed">+$0.00 U</span>
+                            </div>
+                        </div>
+
+                        <div class="card-dark rounded-2xl p-3 border border-gray-800/80">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-[11px] text-gray-400 font-medium">Gói đang chạy</span>
+                                <div class="w-5 h-5 rounded-full bg-[#c0f135]/20 text-[#c0f135] flex items-center justify-center text-[10px]">
+                                    <i class="fa-solid fa-lock"></i>
+                                </div>
+                            </div>
+                            <p id="active-plan-usd" class="text-lg font-black text-[#c0f135]">Free</p>
+                            <div class="mt-2 pt-1.5 border-t border-gray-800/80 flex justify-between items-center text-[9px]">
+                                <span class="text-[#c0f135] font-bold" id="active-plan-rate">0.0000002U/s</span>
+                                <span class="text-gray-400">24/7</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div onclick="openInviteTasksModal()" class="card-dark rounded-2xl p-3.5 border border-[#c0f135]/40 flex flex-col justify-between cursor-pointer hover:border-[#c0f135] transition relative overflow-hidden bg-gradient-to-br from-[#121929] to-[#1a253c]">
+                        <div class="absolute -right-3 -bottom-3 text-[#c0f135]/10 text-7xl font-black select-none pointer-events-none">
+                            <i class="fa-solid fa-user-plus"></i>
+                        </div>
+                        
+                        <div class="space-y-2 relative z-10">
+                            <div class="flex items-center justify-between">
+                                <span class="text-[10px] bg-[#c0f135]/20 text-[#c0f135] font-bold px-2 py-0.5 rounded-full border border-[#c0f135]/40">THƯỞNG F1</span>
+                                <i class="fa-solid fa-chevron-right text-xs text-[#c0f135]"></i>
+                            </div>
+                            <h4 class="font-extrabold text-sm text-white">
+                                Nhiệm Vụ Mời Bạn Bè
+                            </h4>
+                            <p class="text-[10px] text-gray-300 leading-tight">
+                                Mời bạn bè F1 nạp tiền nhận thưởng tới <strong class="text-[#c0f135]">1.000.000 VNĐ</strong>
+                            </p>
+                        </div>
+
+                        <div class="pt-3 border-t border-gray-800/80 mt-2 flex items-center justify-between text-[10px] text-gray-400 relative z-10">
+                            <span>Đã mời nạp: <strong id="invited-f1-count" class="neon-text font-bold">0</strong> bạn</span>
+                            <span class="text-[#c0f135] font-bold underline">Xem chi tiết</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 pt-1">
+                    <button onclick="openDepositModal()" class="neon-btn font-extrabold py-3.5 rounded-2xl text-sm flex items-center justify-center gap-2 shadow-lg shadow-lime-500/20 transition active:scale-95 cursor-pointer">
+                        <i class="fa-solid fa-arrow-up-from-bracket"></i> Nạp tiền VND
+                    </button>
+                    <button onclick="openWithdrawModal()" class="bg-gray-800 border border-[#c0f135]/40 text-[#c0f135] font-extrabold py-3.5 rounded-2xl text-sm flex items-center justify-center gap-2 shadow-lg transition active:scale-95 cursor-pointer hover:bg-gray-700">
+                        <i class="fa-solid fa-arrow-down-to-bracket"></i> Rút tiền
+                    </button>
+                </div>
+
+                <div id="investment-plans-section" class="space-y-4 pt-2">
+                    <div class="flex justify-between items-center px-1">
+                        <h3 class="font-bold text-sm text-white flex items-center gap-2">
+                            <i class="fa-solid fa-microchip text-[#c0f135]"></i> Các Gói Đầu Tư Khai Thác
+                        </h3>
+                        <span class="text-[10px] text-gray-400">Tỷ giá: 1U = 26.000 VNĐ</span>
+                    </div>
+
+                    <div id="plans-container" class="space-y-7"></div>
+                </div>
+
+            </section>
+
+            <!-- 2. NHIỆM VỤ -->
+            <section id="tab-tasks" class="tab-pane hidden space-y-4">
+                <h3 class="font-bold text-lg mb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-list-check text-[#c0f135]"></i> Nhiệm vụ & Phần thưởng
+                </h3>
+
+                <div class="card-dark p-4 rounded-2xl space-y-3 border border-[#c0f135]/30">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="font-bold text-sm text-white">Điểm danh hàng ngày</p>
+                            <p class="text-xs text-gray-400 mt-0.5">Chuỗi liên tục: <span id="streak-days" class="neon-text font-bold">0</span> ngày</p>
+                        </div>
+                        <span class="text-xs bg-[#1a2b10] text-[#c0f135] border border-[#c0f135]/40 px-2.5 py-1 rounded-full font-bold">
+                            +0.01 USD / ngày
+                        </span>
+                    </div>
+                    
+                    <div class="flex items-center justify-between pt-2 border-t border-gray-800">
+                        <span id="checkin-status-msg" class="text-[11px] text-gray-400">Sẵn sàng điểm danh nhận thưởng</span>
+                        <button id="checkin-btn" onclick="doDailyCheckin()" class="neon-btn font-bold px-4 py-2 rounded-xl text-xs active:scale-95 transition cursor-pointer">
+                            Điểm danh ngay
+                        </button>
+                    </div>
+
+                    <div class="pt-3 border-t border-gray-800 space-y-2">
+                        <p class="text-xs font-bold text-[#c0f135]"><i class="fa-solid fa-award mr-1"></i> Thưởng chuỗi đăng nhập:</p>
+                        
+                        <div class="bg-gray-900/90 border border-gray-800 rounded-xl p-3 flex items-center justify-between text-xs">
+                            <div>
+                                <p class="font-bold text-white">Đạt chuỗi 3 ngày</p>
+                                <p class="text-[10px] text-gray-400">Nhận ngay +0.1 USD vào số dư</p>
+                            </div>
+                            <div id="streak-reward-3-container">
+                                <button onclick="claimStreakReward(3)" id="streak-btn-3" class="bg-gray-800 text-gray-500 font-bold px-3 py-1.5 rounded-lg text-[11px] cursor-not-allowed" disabled>Chưa đạt</button>
+                            </div>
+                        </div>
+
+                        <div class="bg-gray-900/90 border border-gray-800 rounded-xl p-3 flex items-center justify-between text-xs">
+                            <div>
+                                <p class="font-bold text-white">Đạt chuỗi 10 ngày</p>
+                                <p class="text-[10px] text-gray-400">Nhận ngay +0.5 USD vào số dư</p>
+                            </div>
+                            <div id="streak-reward-10-container">
+                                <button onclick="claimStreakReward(10)" id="streak-btn-10" class="bg-gray-800 text-gray-500 font-bold px-3 py-1.5 rounded-lg text-[11px] cursor-not-allowed" disabled>Chưa đạt</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. NHÓM -->
+            <section id="tab-group" class="tab-pane hidden space-y-3">
+                <div onclick="showGroupDevelopingNotice()" class="card-dark rounded-2xl p-4 border border-[#c0f135]/40 space-y-2 bg-gradient-to-br from-[#121929] to-[#1a2b10]/30 cursor-pointer hover:border-[#c0f135] transition">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-[#c0f135]"><i class="fa-solid fa-link mr-1"></i> Link mời bạn bè của bạn</span>
+                        <span class="text-[10px] bg-[#c0f135]/20 text-[#c0f135] px-2 py-0.5 rounded font-bold">Hoa hồng 15%</span>
+                    </div>
+                    <div class="flex items-center gap-2 pt-1">
+                        <input type="text" readonly class="w-full bg-[#0b0f19] border border-gray-800 rounded-xl p-2.5 text-[11px] text-gray-400 focus:outline-none pointer-events-none" value="Mục nhóm đang phát triển...">
+                        <button onclick="showGroupDevelopingNotice()" class="neon-btn font-bold px-4 py-2.5 rounded-xl text-xs shrink-0 flex items-center gap-1 active:scale-95 transition shadow cursor-pointer">
+                            <i class="fa-regular fa-copy"></i> Sao chép
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card-dark rounded-2xl p-4 relative overflow-hidden border border-[#c0f135]/30">
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-[#c0f135] animate-pulse"></span>
+                                <h3 class="text-sm font-bold text-white">Hệ sinh thái Đối tác & Hoa hồng</h3>
+                            </div>
+                            <div class="flex items-center gap-2 pt-1">
+                                <span class="text-xs bg-[#1a2b10] text-[#c0f135] border border-[#c0f135]/40 px-2.5 py-1 rounded-full font-semibold">
+                                    <i class="fa-solid fa-gift mr-1"></i> F1: 15% · F2: 3% · F3: 2%
+                                </span>
+                            </div>
+                        </div>
+                        <div class="w-12 h-12 rounded-2xl bg-[#c0f135]/10 border border-[#c0f135]/30 flex items-center justify-center text-[#c0f135] text-xl shadow-inner">
+                            <i class="fa-solid fa-sack-dollar"></i>
+                        </div>
+                    </div>
+
+                    <div class="pt-3 border-t border-gray-800/80 mt-3">
+                        <p class="text-xs text-gray-400 mb-1">Tổng hoa hồng hệ thống đã nhận</p>
+                        <h2 class="text-2xl font-black text-white">+<span class="neon-text" id="total-group-commission">$0,00</span> <span class="text-xs text-gray-400 font-normal">USD</span></h2>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="card-dark rounded-2xl p-3 border border-gray-800 text-center">
+                        <p class="text-[10px] text-gray-400">Tổng thành viên (F1+F2+F3)</p>
+                        <p class="text-base font-black text-white mt-1"><span id="total-network-members">0</span> người</p>
+                    </div>
+                    <div class="card-dark rounded-2xl p-3 border border-gray-800 text-center">
+                        <p class="text-[10px] text-gray-400">Doanh số nhóm</p>
+                        <p class="text-base font-black text-[#c0f135] mt-1" id="total-group-sales">$0.00</p>
+                    </div>
+                </div>
+
+                <div class="space-y-1 pt-1">
+                    <p class="text-xs font-bold text-gray-300 px-1"><i class="fa-solid fa-network-wired text-[#c0f135] mr-1"></i> Chi tiết các cấp hoa hồng:</p>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2">
+                    <div onclick="openGroupDetailModal('F1')" class="card-dark rounded-2xl p-3 text-center cursor-pointer hover:border-[#c0f135] transition relative overflow-hidden flex flex-col justify-between">
+                        <div>
+                            <span class="text-[10px] bg-[#c0f135]/20 text-[#c0f135] px-2 py-0.5 rounded-full font-bold">F1 (15%)</span>
+                            <p class="text-sm font-black text-white mt-2" id="f1-commission-val">$0.00</p>
+                        </div>
+                        <p class="text-[10px] text-gray-400 mt-2 underline">Xem chi tiết</p>
+                    </div>
+
+                    <div onclick="openGroupDetailModal('F2')" class="card-dark rounded-2xl p-3 text-center cursor-pointer hover:border-[#c0f135] transition relative overflow-hidden flex flex-col justify-between">
+                        <div>
+                            <span class="text-[10px] bg-[#c0f135]/20 text-[#c0f135] px-2 py-0.5 rounded-full font-bold">F2 (3%)</span>
+                            <p class="text-sm font-black text-white mt-2" id="f2-commission-val">$0.00</p>
+                        </div>
+                        <p class="text-[10px] text-gray-400 mt-2 underline">Xem chi tiết</p>
+                    </div>
+
+                    <div onclick="openGroupDetailModal('F3')" class="card-dark rounded-2xl p-3 text-center cursor-pointer hover:border-[#c0f135] transition relative overflow-hidden flex flex-col justify-between">
+                        <div>
+                            <span class="text-[10px] bg-[#c0f135]/20 text-[#c0f135] px-2 py-0.5 rounded-full font-bold">F3 (2%)</span>
+                            <p class="text-sm font-black text-white mt-2" id="f3-commission-val">$0.00</p>
+                        </div>
+                        <p class="text-[10px] text-gray-400 mt-2 underline">Xem chi tiết</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. TÔI -->
+            <section id="tab-profile" class="tab-pane hidden space-y-4">
+                <div class="bg-gradient-to-r from-emerald-900 via-gray-900 to-[#122b10] border border-[#c0f135]/30 rounded-3xl p-6 text-center shadow-xl space-y-3">
+                    <div class="w-20 h-20 bg-[#c0f135] text-gray-950 font-extrabold text-2xl rounded-full flex items-center justify-center mx-auto shadow-md shadow-lime-500/20" id="profile-avatar-text">
+                        HD
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-black text-white tracking-wide" id="profile-name">HA TRUNG DUC</h2>
+                        <div class="flex items-center justify-center gap-2 mt-1">
+                            <span class="text-xs text-gray-300" id="profile-username">ID: 21503092007</span>
+                            <span class="text-[10px] bg-[#c0f135] text-gray-950 font-bold px-2 py-0.5 rounded-full">VIP 1</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="card-dark rounded-2xl p-4 text-center">
+                        <p class="text-xs text-gray-400">Số Dư Ví</p>
+                        <p class="text-lg font-black text-[#c0f135] mt-1" id="profile-balance">$0.00</p>
+                    </div>
+                    <div class="card-dark rounded-2xl p-4 text-center">
+                        <p class="text-xs text-gray-400">Tổng Hoa Hồng</p>
+                        <p class="text-lg font-black text-[#c0f135] mt-1" id="profile-commission">$0.00</p>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <div class="flex items-center gap-2 text-xs font-bold text-gray-300 px-1">
+                        <i class="fa-solid fa-wallet text-[#c0f135]"></i>
+                        <span>Quản Lý Số Dư</span>
+                    </div>
+                    <div onclick="openDepositModal()" class="card-dark rounded-2xl p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/60 transition">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-[#c0f135]/10 border border-[#c0f135]/30 text-[#c0f135] flex items-center justify-center">
+                                <i class="fa-solid fa-arrow-up-from-bracket"></i>
+                            </div>
+                            <span class="text-sm font-bold text-white">Nạp Tiền VND</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-xs text-gray-500"></i>
+                    </div>
+                    <div onclick="openWithdrawModal()" class="card-dark rounded-2xl p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/60 transition">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-[#c0f135]/10 border border-[#c0f135]/30 text-[#c0f135] flex items-center justify-center">
+                                <i class="fa-solid fa-money-bill-transfer"></i>
+                            </div>
+                            <span class="text-sm font-bold text-white">Rút Tiền Về Ngân Hàng</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-xs text-gray-500"></i>
+                    </div>
+
+                    <div onclick="openCashFlowModal()" class="card-dark rounded-2xl p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/60 transition">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-[#c0f135]/10 border border-[#c0f135]/30 text-[#c0f135] flex items-center justify-center">
+                                <i class="fa-solid fa-receipt"></i>
+                            </div>
+                            <span class="text-sm font-bold text-white">Lịch Sử Dòng Tiền</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-xs text-gray-500"></i>
+                    </div>
+
+                    <div onclick="openUsdHistoryModal()" class="card-dark rounded-2xl p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/60 transition">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-[#c0f135]/10 border border-[#c0f135]/30 text-[#c0f135] flex items-center justify-center">
+                                <i class="fa-solid fa-dollar-sign"></i>
+                            </div>
+                            <span class="text-sm font-bold text-white">Lịch Sử USD</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-xs text-gray-500"></i>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <div class="flex items-center gap-2 text-xs font-bold text-gray-300 px-1">
+                        <i class="fa-solid fa-user-gear text-[#c0f135]"></i>
+                        <span>Cài Đặt & Tiện Ích</span>
+                    </div>
+
+                    <div class="space-y-2">
+                        <a href="https://t.me/winusdsupport" target="_blank" class="card-dark rounded-2xl p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/60 transition block">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-[#c0f135]/10 border border-[#c0f135]/30 text-[#c0f135] flex items-center justify-center">
+                                    <i class="fa-solid fa-headset"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-bold text-white">Telegram Hỗ Trợ</p>
+                                    <p class="text-[11px] text-gray-400">t.me/winusdsupport</p>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-xs text-gray-500"></i>
+                        </a>
+
+                        <a href="https://t.me/winusdbox" target="_blank" class="card-dark rounded-2xl p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/60 transition block">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-[#c0f135]/10 border border-[#c0f135]/30 text-[#c0f135] flex items-center justify-center">
+                                    <i class="fa-solid fa-users-rectangle"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-bold text-white">Nhóm Telegram</p>
+                                    <p class="text-[11px] text-gray-400">t.me/winusdbox</p>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-xs text-gray-500"></i>
+                        </a>
+
+                        <div onclick="handleLogout()" class="card-dark rounded-2xl p-3.5 flex items-center justify-between cursor-pointer hover:bg-red-950/30 transition border-red-500/20">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-red-950/60 border border-red-500/20 text-red-400 flex items-center justify-center">
+                                    <i class="fa-solid fa-right-from-bracket"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-bold text-red-400">Đăng Xuất</p>
+                                    <p class="text-[11px] text-gray-400">Thoát phiên đăng nhập hiện tại</p>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-xs text-gray-500"></i>
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+
+        </main>
+
+        <!-- MODALS -->
+        <div id="group-detail-modal" class="modal-overlay absolute inset-0 bg-[#090d16]/95 z-50 flex flex-col overflow-y-auto">
+            <div class="modal-content card-dark rounded-none p-4 space-y-4 border-b border-[#c0f135]/30 w-full min-h-screen">
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between py-2 border-b border-gray-800">
+                        <button onclick="closeGroupDetailModal()" class="w-8 h-8 rounded-lg bg-gray-900 border border-gray-700 flex items-center justify-center text-gray-300 hover:text-white cursor-pointer">
+                            <i class="fa-solid fa-chevron-left text-sm"></i>
+                        </button>
+                        <h2 id="group-modal-title" class="text-base font-bold text-[#c0f135] tracking-wide">Chi tiết Nhóm</h2>
+                        <div class="w-8"></div>
+                    </div>
+                    
+                    <div id="f1-search-container" class="space-y-2">
+                        <div class="relative">
+                            <input type="text" id="f1-search-input" oninput="filterF1Members()" placeholder="Tìm kiếm số điện thoại F1..." class="w-full bg-[#121929] border border-gray-800 rounded-xl p-3 pl-9 text-xs text-gray-200 focus:outline-none focus:border-[#c0f135]">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-3.5 text-gray-500 text-xs"></i>
+                        </div>
+                    </div>
+
+                    <div id="group-modal-content" class="space-y-3 pt-1"></div>
+                </div>
+                <button onclick="closeGroupDetailModal()" class="w-full bg-gray-800 border border-gray-700 text-white font-bold py-3 rounded-xl text-xs active:scale-95 transition mt-6 cursor-pointer">
+                    Đóng
+                </button>
             </div>
         </div>
+
+        <div id="invite-tasks-modal" class="modal-overlay absolute inset-0 bg-[#090d16]/95 z-50 flex flex-col overflow-y-auto">
+            <div class="modal-content card-dark rounded-none p-4 space-y-4 border-b border-[#c0f135]/30 w-full min-h-screen">
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between py-2 border-b border-gray-800">
+                        <button onclick="closeInviteTasksModal()" class="w-8 h-8 rounded-lg bg-gray-900 border border-gray-700 flex items-center justify-center text-gray-300 hover:text-white cursor-pointer">
+                            <i class="fa-solid fa-chevron-left text-sm"></i>
+                        </button>
+                        <h2 class="text-base font-bold text-[#c0f135] tracking-wide">Nhiệm Vụ Mời F1 Nạp Tiền</h2>
+                        <div class="w-8"></div>
+                    </div>
+                    <div class="bg-[#c0f135]/10 border border-[#c0f135]/30 rounded-xl p-3 text-xs space-y-1">
+                        <p class="text-[#c0f135] font-bold"><i class="fa-solid fa-circle-info mr-1"></i> Điều kiện tính nhiệm vụ:</p>
+                        <p class="text-gray-300 text-[11px] leading-relaxed">
+                            Chỉ áp dụng cho bạn bè cấp F1 tải app qua đường link giới thiệu của bạn và tiến hành nạp tiền thành công!
+                        </p>
+                    </div>
+                    <div id="invite-tasks-list" class="space-y-3 pt-1"></div>
+                </div>
+                <button onclick="closeInviteTasksModal()" class="w-full bg-gray-800 border border-gray-700 text-white font-bold py-3 rounded-xl text-xs active:scale-95 transition mt-6 cursor-pointer">
+                    Đóng
+                </button>
+            </div>
+        </div>
+
+        <!-- MODAL THÔNG BÁO -->
+        <div id="notification-modal" class="modal-overlay absolute inset-0 bg-[#090d16]/95 z-[80] flex flex-col overflow-y-auto">
+            <div class="modal-content card-dark rounded-none p-4 space-y-4 border-b border-[#c0f135]/30 w-full min-h-screen">
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between py-2 border-b border-gray-800">
+                        <button onclick="closeNotificationModal()" class="w-8 h-8 rounded-lg bg-gray-900 border border-gray-700 flex items-center justify-center text-gray-300 hover:text-white cursor-pointer">
+                            <i class="fa-solid fa-chevron-left text-sm"></i>
+                        </button>
+                        <h2 class="text-base font-bold text-[#c0f135] tracking-wide">Hệ thống thông báo</h2>
+                        <div class="w-8"></div>
+                    </div>
+                    <div id="notification-list" class="space-y-3"></div>
+                </div>
+                <button onclick="closeNotificationModal()" class="w-full bg-gray-800 border border-gray-700 text-white font-bold py-3 rounded-xl text-xs active:scale-95 transition mt-6 cursor-pointer">
+                    Đóng
+                </button>
+            </div>
+        </div>
+
+        <div id="cash-flow-modal" class="modal-overlay absolute inset-0 bg-[#090d16]/95 z-[70] flex flex-col overflow-y-auto">
+            <div class="modal-content card-dark rounded-none p-4 space-y-4 border-b border-[#c0f135]/30 w-full min-h-screen">
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between py-2 border-b border-gray-800">
+                        <button onclick="closeCashFlowModal()" class="w-8 h-8 rounded-lg bg-gray-900 border border-gray-700 flex items-center justify-center text-gray-300 hover:text-white cursor-pointer">
+                            <i class="fa-solid fa-chevron-left text-sm"></i>
+                        </button>
+                        <h2 class="text-base font-bold text-[#c0f135] tracking-wide">Lịch sử dòng tiền</h2>
+                        <div class="w-8"></div>
+                    </div>
+                    <div id="cash-flow-list" class="space-y-3"></div>
+                </div>
+                <button onclick="closeCashFlowModal()" class="w-full bg-gray-800 border border-gray-700 text-white font-bold py-3 rounded-xl text-xs active:scale-95 transition mt-6 cursor-pointer">
+                    Đóng
+                </button>
+            </div>
+        </div>
+
+        <div id="usd-history-modal" class="modal-overlay absolute inset-0 bg-[#090d16]/95 z-[70] flex flex-col overflow-y-auto">
+            <div class="modal-content card-dark rounded-none p-4 space-y-4 border-b border-[#c0f135]/30 w-full min-h-screen">
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between py-2 border-b border-gray-800">
+                        <button onclick="closeUsdHistoryModal()" class="w-8 h-8 rounded-lg bg-gray-900 border border-gray-700 flex items-center justify-center text-gray-300 hover:text-white cursor-pointer">
+                            <i class="fa-solid fa-chevron-left text-sm"></i>
+                        </button>
+                        <h2 class="text-base font-bold text-[#c0f135] tracking-wide">Lịch sử USD</h2>
+                        <div class="w-8"></div>
+                    </div>
+                    <div id="usd-history-list" class="space-y-3"></div>
+                </div>
+                <button onclick="closeUsdHistoryModal()" class="w-full bg-gray-800 border border-gray-700 text-white font-bold py-3 rounded-xl text-xs active:scale-95 transition mt-6 cursor-pointer">
+                    Đóng
+                </button>
+            </div>
+        </div>
+
+        <div id="deposit-modal" class="modal-overlay absolute inset-0 bg-[#090d16]/95 z-50 flex flex-col overflow-y-auto">
+            <div class="modal-content card-dark rounded-none p-4 space-y-4 border-b border-[#c0f135]/30 w-full min-h-screen">
+                <div class="flex items-center justify-between py-2 border-b border-gray-800">
+                    <button onclick="closeDepositModal()" class="w-8 h-8 rounded-lg bg-gray-900 border border-gray-700 flex items-center justify-center text-gray-300 hover:text-white cursor-pointer">
+                        <i class="fa-solid fa-chevron-left text-sm"></i>
+                    </button>
+                    <h2 class="text-base font-bold text-[#c0f135] tracking-wide">Nạp tiền VND</h2>
+                    <button onclick="openDepositHistoryModal()" class="text-xs bg-gray-900 border border-[#c0f135]/30 text-[#c0f135] px-2.5 py-1.5 rounded-lg flex items-center gap-1 cursor-pointer">
+                        <i class="fa-solid fa-clock-rotate-left"></i> Lịch sử
+                    </button>
+                </div>
+                
+                <div class="bg-[#1a2b10] border border-[#c0f135]/30 rounded-xl p-3 text-[11px] flex justify-between items-center">
+                    <span class="text-[#c0f135] font-semibold"><i class="fa-solid fa-circle-info mr-1"></i> Tỷ giá quy đổi:</span>
+                    <span class="font-bold text-white">1 USD = 26.000 VNĐ (Min: 3$)</span>
+                </div>
+
+                <div class="space-y-3">
+                    <label class="text-xs font-bold text-gray-200">Nhập số tiền nạp (VNĐ)</label>
+                    <input type="number" id="deposit-vnd-input" oninput="calculateDeposit()" placeholder="VD: 78000" class="w-full bg-[#121929] border border-gray-800 rounded-xl p-3 text-xs text-gray-200 focus:outline-none focus:border-[#c0f135]">
+                    <p id="deposit-calc-text" class="text-[11px] text-gray-400">Quy đổi nhận được: <span class="neon-text font-bold">0.00 U</span></p>
+
+                    <div class="grid grid-cols-3 gap-2 pt-1">
+                        <button onclick="setDepositAmount(78000)" class="bg-gray-900 hover:bg-gray-800 border border-gray-800 text-gray-300 py-2 rounded-xl text-xs font-semibold transition cursor-pointer">78K ($3)</button>
+                        <button onclick="setDepositAmount(182000)" class="bg-gray-900 hover:bg-gray-800 border border-gray-800 text-gray-300 py-2 rounded-xl text-xs font-semibold transition cursor-pointer">182K ($7)</button>
+                        <button onclick="setDepositAmount(390000)" class="bg-gray-900 hover:bg-gray-800 border border-gray-800 text-gray-300 py-2 rounded-xl text-xs font-semibold transition cursor-pointer">390K ($15)</button>
+                        <button onclick="setDepositAmount(520000)" class="bg-gray-900 hover:bg-gray-800 border border-gray-800 text-gray-300 py-2 rounded-xl text-xs font-semibold transition cursor-pointer">520K ($20)</button>
+                        <button onclick="setDepositAmount(1300000)" class="bg-gray-900 hover:bg-gray-800 border border-gray-800 text-[#c0f135] py-2 rounded-xl text-xs font-bold transition cursor-pointer">1.3M ($50)</button>
+                        <button onclick="setDepositAmount(2600000)" class="bg-gray-900 hover:bg-gray-800 border border-gray-800 text-[#c0f135] py-2 rounded-xl text-xs font-bold transition cursor-pointer">2.6M ($100)</button>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div class="flex flex-col items-center justify-center bg-white p-3 rounded-2xl shadow-inner">
+                            <img id="dynamic-qr-img" src="" alt="QR Chuyen Khoan" class="w-48 h-48 object-contain rounded-xl">
+                            <p class="text-[10px] text-gray-600 mt-1 font-semibold">Quét mã QR bằng App Ngân hàng bất kỳ</p>
+                        </div>
+
+                        <div class="bg-gray-900/90 border border-gray-800 rounded-2xl p-3.5 space-y-1.5 text-xs text-gray-300">
+                            <div class="flex justify-between items-center border-b border-gray-800 pb-1.5 mb-1">
+                                <span class="font-bold text-gray-300">Thông tin chuyển khoản</span>
+                                <span class="text-[10px] text-[#c0f135] bg-[#1a2b10] border border-[#c0f135]/40 px-2 py-0.5 rounded-full font-bold">Tự động 24/7</span>
+                            </div>
+                            <p>Ngân hàng: <strong class="text-white">VietinBank</strong></p>
+                            <p>Số tài khoản: <strong class="text-[#c0f135] select-all">11557000</strong></p>
+                            <p>Chủ TK: <strong class="text-white">WIN USDBOX</strong></p>
+                            <p>Số tiền: <strong class="text-[#c0f135]" id="qr-display-amount">0 VNĐ</strong></p>
+                            <p>Nội dung CK: <strong class="text-amber-300 select-all font-bold" id="deposit-memo">WIN1234</strong></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-4">
+                    <button onclick="submitDeposit()" class="w-full neon-btn font-extrabold py-3.5 rounded-xl text-sm shadow-lg shadow-lime-500/20 active:scale-95 transition cursor-pointer">
+                        Đã chuyển khoản xong
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="deposit-history-modal" class="modal-overlay absolute inset-0 bg-[#090d16]/95 z-[60] flex flex-col overflow-y-auto">
+            <div class="modal-content card-dark rounded-none p-4 space-y-4 border-b border-[#c0f135]/30 w-full min-h-screen">
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between py-2 border-b border-gray-800">
+                        <button onclick="closeDepositHistoryModal()" class="w-8 h-8 rounded-lg bg-gray-900 border border-gray-700 flex items-center justify-center text-gray-300 hover:text-white cursor-pointer">
+                            <i class="fa-solid fa-chevron-left text-sm"></i>
+                        </button>
+                        <h2 class="text-base font-bold text-[#c0f135] tracking-wide">Lịch sử nạp tiền</h2>
+                        <div class="w-8"></div>
+                    </div>
+                    <div id="deposit-history-list" class="space-y-3"></div>
+                </div>
+                <button onclick="closeDepositHistoryModal()" class="w-full bg-gray-800 border border-gray-700 text-white font-bold py-3 rounded-xl text-xs active:scale-95 transition mt-6 cursor-pointer">
+                    Đóng
+                </button>
+            </div>
+        </div>
+
+        <div id="withdraw-modal" class="modal-overlay absolute inset-0 bg-[#090d16]/95 z-50 flex flex-col overflow-y-auto">
+            <div class="modal-content card-dark rounded-none p-4 space-y-4 border-b border-[#c0f135]/30 w-full min-h-screen">
+                <div class="flex items-center justify-between py-2 border-b border-gray-800">
+                    <button onclick="closeWithdrawModal()" class="w-8 h-8 rounded-lg bg-gray-900 border border-gray-700 flex items-center justify-center text-gray-300 hover:text-white cursor-pointer">
+                        <i class="fa-solid fa-chevron-left text-sm"></i>
+                    </button>
+                    <h2 class="text-base font-bold text-[#c0f135] tracking-wide">Rút tiền về ngân hàng</h2>
+                    <button onclick="openHistoryModal()" class="text-xs bg-gray-900 border border-[#c0f135]/30 text-[#c0f135] px-2.5 py-1.5 rounded-lg flex items-center gap-1 cursor-pointer">
+                        <i class="fa-solid fa-clock-rotate-left"></i> Lịch sử
+                    </button>
+                </div>
+
+                <div class="bg-[#1a2b10] border border-[#c0f135]/30 rounded-xl p-3 text-[11px] flex justify-between items-center">
+                    <span class="text-[#c0f135] font-semibold"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Điều kiện rút:</span>
+                    <span class="font-bold text-white">Min 0.4 USD | Phí giao dịch 5%</span>
+                </div>
+
+                <div class="space-y-3">
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-gray-200">Số tiền rút (U) - Min 0.4U</label>
+                        <input type="number" id="withdraw-amount" oninput="calculateFee()" placeholder="Nhập số U muốn rút..." class="w-full bg-[#121929] border border-gray-800 rounded-xl p-3 text-xs text-gray-200 focus:outline-none focus:border-[#c0f135]">
+                        <p id="fee-calc-text" class="text-[11px] text-gray-400 mt-0.5">Phí 5%: 0.00 U | Thực nhận: <span class="neon-text font-bold">0.00 U</span></p>
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-gray-200">Chọn ngân hàng</label>
+                        <select id="withdraw-bank" class="w-full bg-[#121929] border border-gray-800 rounded-xl p-3 text-xs text-gray-200 focus:outline-none focus:border-[#c0f135]">
+                            <option>MB - MBBANK</option>
+                            <option>VCB - VIETCOMBANK</option>
+                            <option>TCB - TECHCOMBANK</option>
+                            <option>ACB - ACB</option>
+                        </select>
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-gray-200">Số tài khoản nhận</label>
+                        <input type="text" id="withdraw-acc" placeholder="Nhập số tài khoản ngân hàng..." class="w-full bg-[#121929] border border-gray-800 rounded-xl p-3 text-xs text-gray-200 focus:outline-none focus:border-[#c0f135]">
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-gray-200">Tên chủ tài khoản</label>
+                        <input type="text" id="withdraw-name" placeholder="Nhập họ tên không dấu..." class="w-full bg-[#121929] border border-gray-800 rounded-xl p-3 text-xs text-gray-200 focus:outline-none focus:border-[#c0f135]">
+                    </div>
+                </div>
+
+                <div class="pt-4">
+                    <button onclick="submitWithdraw()" class="w-full neon-btn font-extrabold py-3.5 rounded-xl text-sm shadow-lg shadow-lime-500/20 active:scale-95 transition cursor-pointer">
+                        Gửi lệnh rút tiền
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="history-modal" class="modal-overlay absolute inset-0 bg-[#090d16]/95 z-[60] flex flex-col overflow-y-auto">
+            <div class="modal-content card-dark rounded-none p-4 space-y-4 border-b border-[#c0f135]/30 w-full min-h-screen">
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between py-2 border-b border-gray-800">
+                        <button onclick="closeHistoryModal()" class="w-8 h-8 rounded-lg bg-gray-900 border border-gray-700 flex items-center justify-center text-gray-300 hover:text-white cursor-pointer">
+                            <i class="fa-solid fa-chevron-left text-sm"></i>
+                        </button>
+                        <h2 class="text-base font-bold text-[#c0f135] tracking-wide">Lịch sử rút tiền</h2>
+                        <div class="w-8"></div>
+                    </div>
+                    <div id="history-list" class="space-y-3"></div>
+                </div>
+                <button onclick="closeHistoryModal()" class="w-full bg-gray-800 border border-gray-700 text-white font-bold py-3 rounded-xl text-xs active:scale-95 transition mt-6 cursor-pointer">
+                    Đóng
+                </button>
+            </div>
+        </div>
+
+        <!-- REWARD / NOTIFICATION POPUP -->
+        <div id="reward-modal" class="fixed inset-0 bg-black/80 z-[110] hidden items-center justify-center p-4">
+            <div class="bg-[#121929] border border-[#c0f135]/40 rounded-3xl p-6 w-full max-w-xs text-center shadow-2xl relative space-y-4 animate-popup">
+                <div class="w-16 h-16 bg-[#c0f135] rounded-2xl mx-auto flex items-center justify-center text-gray-950 text-2xl shadow-lg shadow-lime-500/20">
+                    <i id="reward-modal-icon" class="fa-solid fa-gift"></i>
+                </div>
+                <div class="space-y-2">
+                    <h3 class="text-base font-bold text-gray-200" id="reward-modal-title">Thông báo hệ thống</h3>
+                    <div class="bg-gray-900/80 border border-[#c0f135]/30 py-2.5 px-4 rounded-xl inline-block w-full">
+                        <span id="reward-modal-amount" class="text-xs font-bold text-white tracking-wide">Nội dung thông báo</span>
+                    </div>
+                </div>
+                <button onclick="closeRewardModal()" class="w-full neon-btn font-extrabold py-3 rounded-xl text-xs tracking-wider shadow-lg shadow-lime-500/20 active:scale-95 transition cursor-pointer">
+                    XÁC NHẬN
+                </button>
+            </div>
+        </div>
+
+        <!-- BOTTOM NAVIGATION -->
+        <nav class="fixed bottom-0 w-full max-w-md bg-[#0b0f19]/95 border-t border-gray-800 py-2 px-4 grid grid-cols-4 z-20">
+            <button onclick="switchTab('home')" class="nav-item flex flex-col items-center justify-center gap-1 text-xs text-gray-500 transition cursor-pointer" data-target="home">
+                <i class="fa-solid fa-house-chimney text-base"></i>
+                <span>Home</span>
+            </button>
+            <button onclick="switchTab('tasks')" class="nav-item flex flex-col items-center justify-center gap-1 text-xs text-gray-500 transition cursor-pointer" data-target="tasks">
+                <i class="fa-solid fa-list-check text-base"></i>
+                <span>Nhiệm vụ</span>
+            </button>
+            <button onclick="switchTab('group')" class="nav-item flex flex-col items-center justify-center gap-1 text-xs text-gray-500 transition cursor-pointer" data-target="group">
+                <i class="fa-solid fa-user-group text-base"></i>
+                <span>Nhóm</span>
+            </button>
+            <button onclick="switchTab('profile')" class="nav-item flex flex-col items-center justify-center gap-1 text-xs text-gray-500 transition cursor-pointer" data-target="profile">
+                <i class="fa-solid fa-user text-base"></i>
+                <span>Tôi</span>
+            </button>
+        </nav>
 
     </div>
 
+    <!-- JAVASCRIPT CORE LOGIC -->
     <script>
-        let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
+        const USD_TO_VND = 26000;
+        const minThreshold = 0.01;
+        const ringMaxGoal = 0.10; 
+        const MIN_WITHDRAW_USD = 0.40; 
 
-        // Tự động nhận mã ref từ URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const refUrl = urlParams.get('ref');
-        if (refUrl) localStorage.setItem('pendingRef', refUrl);
+        const BANK_ID = "ICB"; 
+        const ACCOUNT_NO = "11557000"; 
+        const ACCOUNT_NAME = "WIN USDBOX";
+
+        const investmentPlans = [
+            { id: 0, priceUsd: 0, ratePerSec: 0.000000200, title: "Gói Khai Thác Free", roiDays: "Free" },
+            { id: 1, priceUsd: 3, ratePerSec: 0.000003858, title: "Gói Khai Thác 3 USD", roiDays: "9 ngày" },
+            { id: 2, priceUsd: 7, ratePerSec: 0.000009002, title: "Gói Khai Thác 7 USD", roiDays: "9 ngày" },
+            { id: 3, priceUsd: 15, ratePerSec: 0.000019290, title: "Gói Khai Thác 15 USD", roiDays: "9 ngày" },
+            { id: 4, priceUsd: 20, ratePerSec: 0.000025720, title: "Gói Khai Thác 20 USD", roiDays: "9 ngày" },
+            { id: 5, priceUsd: 50, ratePerSec: 0.000057870, title: "Gói VIP 50 USD", roiDays: "10 ngày" },
+            { id: 6, priceUsd: 100, ratePerSec: 0.000115740, title: "Gói VIP 100 USD", roiDays: "10 ngày" }
+        ];
+
+        const inviteTasksList = [
+            { id: 1, reqF1: 5, rewardVnd: 20000, title: "Mời 5 bạn F1 nạp tiền" },
+            { id: 2, reqF1: 10, rewardVnd: 50000, title: "Mời 10 bạn F1 nạp tiền" },
+            { id: 3, reqF1: 20, rewardVnd: 100000, title: "Mời 20 bạn F1 nạp tiền" },
+            { id: 4, reqF1: 50, rewardVnd: 300000, title: "Mời 50 bạn F1 nạp tiền" },
+            { id: 5, reqF1: 100, rewardVnd: 1000000, title: "Mời 100 bạn F1 nạp tiền" }
+        ];
+
+        let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
+        let allUsersDatabase = JSON.parse(localStorage.getItem('registeredUsers')) || [];
+
+        let currentF1DepositedCount = parseInt(localStorage.getItem('currentF1DepositedCount')) || 0;
+        let claimedInviteTasks = JSON.parse(localStorage.getItem('claimedInviteTasks')) || [];
+
+        let groupMembersF1 = JSON.parse(localStorage.getItem('groupMembersF1')) || [];
+        let groupMembersF2 = JSON.parse(localStorage.getItem('groupMembersF2')) || [];
+        let groupMembersF3 = JSON.parse(localStorage.getItem('groupMembersF3')) || [];
+
+        let totalF2CommissionUsd = parseFloat(localStorage.getItem('totalF2CommissionUsd')) || 0.00;
+        let totalF3CommissionUsd = parseFloat(localStorage.getItem('totalF3CommissionUsd')) || 0.00;
+        let totalGroupSalesVnd = parseFloat(localStorage.getItem('totalGroupSalesVnd')) || 0;
+
+        let activePlanId = parseInt(localStorage.getItem('activePlanId')) || 0;
+        let activePlan = investmentPlans.find(p => p.id === activePlanId) || investmentPlans[0];
+
+        let pendingPlanToActivate = null;
+        let currentUnclaimedProfit = parseFloat(localStorage.getItem('currentUnclaimedProfit')) || 0.0000000;
+        let availableBalance = parseFloat(localStorage.getItem('availableBalance')) || 0.00;
+        let totalClaimed = parseFloat(localStorage.getItem('totalClaimed')) || 0.00;
+
+        let lastActiveTimestamp = parseInt(localStorage.getItem('lastActiveTimestamp')) || Date.now();
+        let nowTime = Date.now();
+        let elapsedSeconds = Math.floor((nowTime - lastActiveTimestamp) / 1000);
+        if (elapsedSeconds > 0 && elapsedSeconds < 7 * 24 * 3600) {
+            currentUnclaimedProfit += elapsedSeconds * activePlan.ratePerSec;
+        }
+
+        let streakDays = parseInt(localStorage.getItem('streakDays')) || 0;
+        let lastCheckinTime = parseInt(localStorage.getItem('lastCheckinTime')) || 0;
+        let claimedStreak3 = localStorage.getItem('claimedStreak3') === 'true';
+        let claimedStreak10 = localStorage.getItem('claimedStreak10') === 'true';
+
+        let pendingActionAfterModal = null;
+        let withdrawHistory = JSON.parse(localStorage.getItem('withdrawHistory')) || [];
+        let depositHistory = JSON.parse(localStorage.getItem('depositHistory')) || [];
+        
+        let appNotifications = JSON.parse(localStorage.getItem('appNotifications')) || [];
+        let hasUnreadNotif = localStorage.getItem('hasUnreadNotif') === 'true';
+
+        const COOLDOWN_TIME = 24 * 60 * 60 * 1000; 
+
+        function openModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if(!modal) return;
+            modal.classList.add('active');
+            modal.scrollTop = 0;
+        }
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if(!modal) return;
+            modal.classList.remove('active');
+        }
+
+        function showGroupDevelopingNotice() {
+            showRewardModal(
+                "Thông báo", 
+                "NHÓM ĐANG ĐƯỢC PHÁT TRIỂN", 
+                "fa-solid fa-code"
+            );
+        }
+
+        function openNotificationModal() {
+            hasUnreadNotif = false;
+            localStorage.setItem('hasUnreadNotif', 'false');
+            updateNotificationBadgeUI();
+            renderNotificationList();
+            openModal('notification-modal');
+        }
+        function closeNotificationModal() { closeModal('notification-modal'); }
+
+        function updateNotificationBadgeUI() {
+            const badge = document.getElementById('notif-badge');
+            const badgeSolid = document.getElementById('notif-badge-solid');
+            if (!badge || !badgeSolid) return;
+
+            if (hasUnreadNotif) {
+                badge.classList.remove('hidden');
+                badgeSolid.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+                badgeSolid.classList.add('hidden');
+            }
+        }
+
+        function pushNotification(title, content) {
+            const now = new Date();
+            const timeString = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} - ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            
+            appNotifications.unshift({ title, content, time: timeString });
+            localStorage.setItem('appNotifications', JSON.stringify(appNotifications));
+
+            hasUnreadNotif = true;
+            localStorage.setItem('hasUnreadNotif', 'true');
+            updateNotificationBadgeUI();
+        }
+
+        function renderNotificationList() {
+            const container = document.getElementById('notification-list');
+            if(!container) return;
+            container.innerHTML = "";
+
+            if (appNotifications.length === 0) {
+                container.innerHTML = `<p class="text-center text-xs text-gray-500 py-6">Chưa có thông báo nào.</p>`;
+                return;
+            }
+
+            appNotifications.forEach(item => {
+                container.innerHTML += `
+                    <div class="card-dark rounded-2xl p-3.5 space-y-1.5 border border-gray-800 text-xs">
+                        <div class="flex justify-between items-center text-gray-400">
+                            <span class="font-bold text-[#c0f135]">${item.title}</span>
+                            <span>${item.time}</span>
+                        </div>
+                        <p class="text-white font-medium">${item.content}</p>
+                    </div>
+                `;
+            });
+        }
+
+        function openInviteTasksModal() {
+            renderInviteTasksUI();
+            openModal('invite-tasks-modal');
+        }
+        function closeInviteTasksModal() { closeModal('invite-tasks-modal'); }
+
+        function openCashFlowModal() {
+            renderCashFlowList();
+            openModal('cash-flow-modal');
+        }
+        function closeCashFlowModal() { closeModal('cash-flow-modal'); }
+
+        function openUsdHistoryModal() {
+            renderUsdHistoryList();
+            openModal('usd-history-modal');
+        }
+        function closeUsdHistoryModal() { closeModal('usd-history-modal'); }
+
+        function openGroupDetailModal(level) {
+            const titleElem = document.getElementById('group-modal-title');
+            const searchContainer = document.getElementById('f1-search-container');
+            const contentElem = document.getElementById('group-modal-content');
+            contentElem.innerHTML = "";
+
+            if (level === 'F1') {
+                titleElem.innerText = "Chi tiết Hoa hồng F1 (15%)";
+                if(searchContainer) searchContainer.classList.remove('hidden');
+                renderF1MembersList(groupMembersF1);
+            } else {
+                if(searchContainer) searchContainer.classList.add('hidden');
+                if (level === 'F2') {
+                    titleElem.innerText = "Chi tiết Hoa hồng F2 (3%)";
+                    if (groupMembersF2.length === 0) {
+                        contentElem.innerHTML = `<p class="text-center text-xs text-gray-500 py-6">Chưa có thành viên F2 nào.</p>`;
+                    } else {
+                        groupMembersF2.forEach(m => {
+                            contentElem.innerHTML += `
+                                <div class="card-dark rounded-2xl p-3.5 flex items-center justify-between border border-gray-800">
+                                    <span class="text-xs font-bold text-white">${m.phone}</span>
+                                    <span class="text-xs font-black neon-text">+${m.commissionUsd.toFixed(2)} USD</span>
+                                </div>
+                            `;
+                        });
+                    }
+                } else if (level === 'F3') {
+                    titleElem.innerText = "Chi tiết Hoa hồng F3 (2%)";
+                    if (groupMembersF3.length === 0) {
+                        contentElem.innerHTML = `<p class="text-center text-xs text-gray-500 py-6">Chưa có thành viên F3 nào.</p>`;
+                    } else {
+                        groupMembersF3.forEach(m => {
+                            contentElem.innerHTML += `
+                                <div class="card-dark rounded-2xl p-3.5 flex items-center justify-between border border-gray-800">
+                                    <span class="text-xs font-bold text-white">${m.phone}</span>
+                                    <span class="text-xs font-black neon-text">+${m.commissionUsd.toFixed(2)} USD</span>
+                                </div>
+                            `;
+                        });
+                    }
+                }
+            }
+            openModal('group-detail-modal');
+        }
+        function closeGroupDetailModal() { closeModal('group-detail-modal'); }
+
+        function renderF1MembersList(list) {
+            const contentElem = document.getElementById('group-modal-content');
+            contentElem.innerHTML = "";
+            if (list.length === 0) {
+                contentElem.innerHTML = `<p class="text-center text-xs text-gray-500 py-6">Chưa có thành viên F1 nào.</p>`;
+                return;
+            }
+            list.forEach(member => {
+                contentElem.innerHTML += `
+                    <div class="card-dark rounded-2xl p-3.5 flex items-center justify-between border border-gray-800">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-xl bg-[#c0f135]/10 text-[#c0f135] flex items-center justify-center font-bold text-xs">
+                                <i class="fa-solid fa-user"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs font-bold text-white">${member.phone}</p>
+                                <p class="text-[10px] text-gray-400">Thành viên trực tiếp F1</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-xs font-black neon-text">+$${member.commissionUsd.toFixed(2)} USD</p>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function filterF1Members() {
+            const keyword = document.getElementById('f1-search-input').value.trim().toLowerCase();
+            const filtered = groupMembersF1.filter(m => m.phone.toLowerCase().includes(keyword));
+            renderF1MembersList(filtered);
+        }
+
+        function openDepositModal() { 
+            document.getElementById('deposit-modal').classList.add('active');
+            generateNewDepositMemo();
+            document.getElementById('deposit-vnd-input').value = '';
+            calculateDeposit();
+        }
+        function closeDepositModal() { closeModal('deposit-modal'); }
+
+        function generateNewDepositMemo() {
+            const randomCode = Math.floor(1000 + Math.random() * 9000);
+            const userPrefix = currentUser && currentUser.username ? currentUser.username.replace(/[^0-9]/g, '').slice(-4) : '1234';
+            const memoEl = document.getElementById('deposit-memo');
+            if(memoEl) {
+                memoEl.innerText = "WIN" + userPrefix + randomCode;
+            }
+            updateQrCodeImage();
+        }
+
+        function calculateDeposit() {
+            const vndVal = parseFloat(document.getElementById('deposit-vnd-input').value) || 0;
+            const usdVal = vndVal / USD_TO_VND;
+            document.getElementById('deposit-calc-text').innerHTML = `Quy đổi nhận được: <span class="neon-text font-bold">${usdVal.toFixed(2)} U</span>`;
+            
+            const amountEl = document.getElementById('qr-display-amount');
+            if(amountEl) {
+                amountEl.innerText = vndVal.toLocaleString() + " VNĐ";
+            }
+            
+            updateQrCodeImage();
+        }
+
+        function updateQrCodeImage() {
+            const vndVal = parseFloat(document.getElementById('deposit-vnd-input').value) || 0;
+            const memoEl = document.getElementById('deposit-memo');
+            const memo = memoEl ? memoEl.innerText : "WINUSDBOX";
+            
+            const qrImg = document.getElementById('dynamic-qr-img');
+            if (qrImg) {
+                const qrUrl = `https://img.vietqr.io/image/${BANK_ID}-${ACCOUNT_NO}-compact2.png?amount=${vndVal}&addInfo=${encodeURIComponent(memo)}&accountName=${encodeURIComponent(ACCOUNT_NAME)}`;
+                qrImg.src = qrUrl;
+            }
+        }
+
+        function openDepositHistoryModal() {
+            renderDepositHistoryList();
+            openModal('deposit-history-modal');
+        }
+        function closeDepositHistoryModal() { closeModal('deposit-history-modal'); }
+
+        function openWithdrawModal() { openModal('withdraw-modal'); }
+        function closeWithdrawModal() { closeModal('withdraw-modal'); }
+
+        function openHistoryModal() {
+            renderHistoryList();
+            openModal('history-modal');
+        }
+        function closeHistoryModal() { closeModal('history-modal'); }
+
+        function renderInviteTasksUI() {
+            const container = document.getElementById('invite-tasks-list');
+            if(!container) return;
+            container.innerHTML = "";
+
+            inviteTasksList.forEach(task => {
+                const rewardUsd = task.rewardVnd / USD_TO_VND;
+                const isClaimed = claimedInviteTasks.includes(task.id);
+                const isReached = currentF1DepositedCount >= task.reqF1;
+
+                let btnHtml = "";
+                if (isClaimed) {
+                    btnHtml = `<button class="bg-gray-800 text-gray-500 font-bold px-3 py-2 rounded-xl text-xs cursor-not-allowed" disabled>Đã nhận</button>`;
+                } else if (isReached) {
+                    btnHtml = `<button onclick="claimInviteTaskReward(${task.id})" class="neon-btn font-extrabold px-3 py-2 rounded-xl text-xs active:scale-95 transition shadow-md shadow-lime-500/20 cursor-pointer">Nhận ngay</button>`;
+                } else {
+                    btnHtml = `<button class="bg-gray-800/80 text-gray-500 border border-gray-700 font-semibold px-3 py-2 rounded-xl text-xs cursor-not-allowed" disabled>Chưa đạt (${currentF1DepositedCount}/${task.reqF1})</button>`;
+                }
+
+                container.innerHTML += `
+                    <div class="card-dark rounded-2xl p-4 flex items-center justify-between border border-gray-800 space-x-3">
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <span class="font-extrabold text-xs text-white">${task.title}</span>
+                                ${isClaimed ? '<span class="text-[9px] bg-[#1a2b10] text-[#c0f135] px-2 py-0.5 rounded-full font-bold">Đã xong</span>' : ''}
+                            </div>
+                            <p class="text-[11px] text-gray-300">
+                                Thưởng: <span class="neon-text font-bold">+${task.rewardVnd.toLocaleString()} VNĐ</span> <span class="text-gray-400">($${rewardUsd.toFixed(2)} USD)</span>
+                            </p>
+                            <p class="text-[10px] text-gray-500">Tiến độ F1 nạp tiền: ${currentF1DepositedCount}/${task.reqF1} người</p>
+                        </div>
+                        <div>${btnHtml}</div>
+                    </div>
+                `;
+            });
+        }
+
+        function claimInviteTaskReward(taskId) {
+            const task = inviteTasksList.find(t => t.id === taskId);
+            if (!task || claimedInviteTasks.includes(task.id) || currentF1DepositedCount < task.reqF1) return;
+
+            const rewardUsd = task.rewardVnd / USD_TO_VND;
+            availableBalance += rewardUsd;
+            totalClaimed += rewardUsd;
+            claimedInviteTasks.push(task.id);
+            localStorage.setItem('claimedInviteTasks', JSON.stringify(claimedInviteTasks));
+            localStorage.setItem('availableBalance', availableBalance);
+            localStorage.setItem('totalClaimed', totalClaimed);
+
+            updateDisplay();
+            renderInviteTasksUI();
+            showRewardModal("Nhận thưởng thành công", `Đã nhận +${task.rewardVnd.toLocaleString()} VNĐ ($${rewardUsd.toFixed(2)} USD) vào số dư!`, "fa-solid fa-gift");
+        }
+
+        function renderPlansUI() {
+            const container = document.getElementById('plans-container');
+            if(!container) return;
+            container.innerHTML = "";
+
+            investmentPlans.forEach(plan => {
+                const vndPrice = plan.priceUsd * USD_TO_VND;
+                const isActive = plan.id === activePlan.id;
+
+                container.innerHTML += `
+                    <div class="card-dark rounded-2xl p-3.5 flex items-center justify-between border ${isActive ? 'border-[#c0f135] bg-[#1a2b10]/20' : 'border-gray-800'} transition">
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold text-xs text-white">${plan.title}</span>
+                                ${isActive ? '<span class="text-[9px] bg-[#c0f135]/20 text-[#c0f135] font-bold px-1.5 py-0.5 rounded border border-[#c0f135]/40">Đang chạy</span>' : `<span class="text-[9px] bg-[#c0f135]/10 text-[#c0f135] font-bold px-1.5 py-0.5 rounded">Hoàn vốn: ${plan.roiDays}</span>`}
+                            </div>
+                            <p class="text-[11px] text-gray-400">Lãi: <span class="neon-text font-semibold">+${plan.ratePerSec.toFixed(7)} U/s</span></p>
+                            <p class="text-[10px] text-gray-500">${plan.priceUsd === 0 ? 'Miễn phí trải nghiệm' : 'Giá: ' + plan.priceUsd + ' USD (' + vndPrice.toLocaleString() + ' VNĐ)'}</p>
+                        </div>
+                        <div>
+                            <button onclick="handleSelectPlan(${plan.id})" class="${isActive ? 'bg-gray-800 text-gray-400 cursor-default' : 'neon-btn active:scale-95 cursor-pointer'} font-bold px-3 py-2 rounded-xl text-xs shadow transition">
+                                ${isActive ? 'Đang chọn' : (plan.priceUsd === 0 ? 'Kích hoạt' : 'Nạp & Kích hoạt')}
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function handleSelectPlan(planId) {
+            const found = investmentPlans.find(p => p.id === planId);
+            if(!found || found.id === activePlan.id) return;
+
+            if (found.priceUsd === 0) {
+                activePlan = found;
+                activePlanId = found.id;
+                localStorage.setItem('activePlanId', activePlanId);
+                updatePlanStatsUI();
+                renderPlansUI();
+                showRewardModal("Kích hoạt gói thành công", `Đã chọn: ${found.title}`, "fa-solid fa-circle-check");
+            } else {
+                pendingPlanToActivate = found;
+                const vndPrice = found.priceUsd * USD_TO_VND;
+                openDepositModal();
+                setDepositAmount(vndPrice);
+                showRewardModal("Nạp tiền kích hoạt gói", `Thanh toán ${vndPrice.toLocaleString()} VNĐ (${found.priceUsd} USD) để kích hoạt ngay ${found.title}!`, "fa-solid fa-credit-card");
+            }
+        }
+
+        function updatePlanStatsUI() {
+            document.getElementById('active-plan-badge').innerHTML = `<i class="fa-solid fa-chart-line text-[10px]"></i> ${activePlan.priceUsd === 0 ? 'Gói Free' : 'Gói ' + activePlan.priceUsd + ' USD'}`;
+            document.getElementById('active-plan-usd').innerText = activePlan.priceUsd === 0 ? 'Free' : `$${activePlan.priceUsd}.00`;
+            document.getElementById('active-plan-rate').innerText = `${activePlan.ratePerSec.toFixed(7)}U/s`;
+            document.getElementById('stat-rate-sec').innerText = `+${activePlan.ratePerSec.toFixed(7)}U`;
+            document.getElementById('stat-rate-hour').innerText = `+${(activePlan.ratePerSec * 3600).toFixed(5)}U`;
+            document.getElementById('stat-rate-day').innerText = `+${(activePlan.ratePerSec * 86400).toFixed(5)}U`;
+        }
+
+        function scrollToPlans() {
+            document.getElementById('investment-plans-section').scrollIntoView({ behavior: 'smooth' });
+        }
 
         function switchAuthMode(mode) {
-            if(mode === 'register') {
-                document.getElementById('login-form').classList.add('hidden');
-                document.getElementById('register-form').classList.remove('hidden');
-                const pRef = localStorage.getItem('pendingRef');
-                if(pRef) document.getElementById('reg-refcode').value = pRef;
+            const loginForm = document.getElementById('login-form');
+            const registerForm = document.getElementById('register-form');
+            if (mode === 'register') {
+                loginForm.classList.add('hidden');
+                registerForm.classList.remove('hidden');
             } else {
-                document.getElementById('register-form').classList.add('hidden');
-                document.getElementById('login-form').classList.remove('hidden');
+                registerForm.classList.add('hidden');
+                loginForm.classList.remove('hidden');
             }
         }
 
         function handleRegister() {
-            const fullname = document.getElementById('reg-fullname').value;
-            const username = document.getElementById('reg-username').value;
-            if(!fullname || !username) { alert('Vui lòng điền đủ thông tin!'); return; }
-            alert('Đăng ký thành công! Hãy đăng nhập.');
+            const fullname = document.getElementById('reg-fullname').value.trim();
+            const username = document.getElementById('reg-username').value.trim();
+            const password = document.getElementById('reg-password').value.trim();
+
+            if (!fullname || !username || !password) {
+                showRewardModal("Thông báo", "Vui lòng nhập đầy đủ thông tin đăng ký!", "fa-solid fa-triangle-exclamation");
+                return;
+            }
+
+            let registeredUsers = JSON.parse(localStorage.getItem('registeredUsers')) || [];
+            const exists = registeredUsers.some(u => u.username.toLowerCase() === username.toLowerCase());
+            if (exists) {
+                showRewardModal("Đăng ký thất bại", "Số điện thoại hoặc email này đã được đăng ký tài khoản trước đó!", "fa-solid fa-triangle-exclamation");
+                return;
+            }
+
+            const newUser = { fullname, username, password, upline: "", hasDeposited: false };
+            registeredUsers.push(newUser);
+            localStorage.setItem('registeredUsers', JSON.stringify(registeredUsers));
+
+            showRewardModal("Đăng ký thành công", "Tài khoản đã được tạo thành công! Hãy đăng nhập.", "fa-solid fa-circle-check");
             switchAuthMode('login');
         }
 
         function handleLogin() {
-            const username = document.getElementById('login-username').value;
-            if(!username) { alert('Vui lòng nhập tài khoản!'); return; }
-            currentUser = { username, fullname: "Thành viên" };
+            const username = document.getElementById('login-username').value.trim();
+            const password = document.getElementById('login-password').value.trim();
+
+            if (!username || !password) {
+                showRewardModal("Thông báo", "Vui lòng điền tài khoản và mật khẩu!", "fa-solid fa-triangle-exclamation");
+                return;
+            }
+
+            let registeredUsers = JSON.parse(localStorage.getItem('registeredUsers')) || [];
+            let foundUser = registeredUsers.find(u => u.username.toLowerCase() === username.toLowerCase() && u.password === password);
+
+            if (!foundUser) {
+                showRewardModal("Đăng nhập thất bại", "Sai tài khoản hoặc mật khẩu, vui lòng kiểm tra lại!", "fa-solid fa-triangle-exclamation");
+                return;
+            }
+
+            currentUser = foundUser;
             localStorage.setItem('currentUser', JSON.stringify(currentUser));
-            location.reload();
+            
+            loadUserGroupData();
+            updateUserProfileUI();
+            
+            showRewardModal("Đăng nhập thành công", `Chào mừng trở lại, ${currentUser.fullname}!`, "fa-solid fa-shield-halved", () => {
+                document.getElementById('auth-screen').classList.add('hidden');
+                document.getElementById('auth-screen').classList.remove('flex');
+            });
         }
 
-        function logout() {
-            localStorage.removeItem('currentUser');
-            location.reload();
+        function handleLogout() {
+            showRewardModal("Xác nhận đăng xuất", "Bạn có chắc chắn muốn thoát phiên làm việc?", "fa-solid fa-right-from-bracket", () => {
+                localStorage.removeItem('currentUser');
+                currentUser = null;
+                document.getElementById('auth-screen').classList.remove('hidden');
+                document.getElementById('auth-screen').classList.add('flex');
+            });
+        }
+
+        function updateUserProfileUI() {
+            if (currentUser) {
+                document.getElementById('profile-name').innerText = currentUser.fullname || "USER";
+                document.getElementById('profile-username').innerText = "ID: " + (currentUser.username || "21503092007");
+                const initials = currentUser.fullname ? currentUser.fullname.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase() : "US";
+                document.getElementById('profile-avatar-text').innerText = initials;
+            }
+        }
+
+        function loadUserGroupData() {
+            if (!currentUser) return;
+            const prefix = currentUser.username || "default";
+            groupMembersF1 = JSON.parse(localStorage.getItem(`groupMembersF1_${prefix}`)) || [];
+            groupMembersF2 = JSON.parse(localStorage.getItem(`groupMembersF2_${prefix}`)) || [];
+            groupMembersF3 = JSON.parse(localStorage.getItem(`groupMembersF3_${prefix}`)) || [];
+            totalF2CommissionUsd = parseFloat(localStorage.getItem(`totalF2CommissionUsd_${prefix}`)) || 0.00;
+            totalF3CommissionUsd = parseFloat(localStorage.getItem(`totalF3CommissionUsd_${prefix}`)) || 0.00;
+            totalGroupSalesVnd = parseFloat(localStorage.getItem(`totalGroupSalesVnd_${prefix}`)) || 0;
+            currentF1DepositedCount = parseInt(localStorage.getItem(`currentF1DepositedCount_${prefix}`)) || 0;
+            claimedInviteTasks = JSON.parse(localStorage.getItem(`claimedInviteTasks_${prefix}`)) || [];
+            availableBalance = parseFloat(localStorage.getItem(`availableBalance_${prefix}`)) || 0.00;
+            totalClaimed = parseFloat(localStorage.getItem(`totalClaimed_${prefix}`)) || 0.00;
+        }
+
+        function saveUserGroupData() {
+            if (!currentUser) return;
+            const prefix = currentUser.username || "default";
+            localStorage.setItem(`groupMembersF1_${prefix}`, JSON.stringify(groupMembersF1));
+            localStorage.setItem(`groupMembersF2_${prefix}`, JSON.stringify(groupMembersF2));
+            localStorage.setItem(`groupMembersF3_${prefix}`, JSON.stringify(groupMembersF3));
+            localStorage.setItem(`totalF2CommissionUsd_${prefix}`, totalF2CommissionUsd);
+            localStorage.setItem(`totalF3CommissionUsd_${prefix}`, totalF3CommissionUsd);
+            localStorage.setItem(`totalGroupSalesVnd_${prefix}`, totalGroupSalesVnd);
+            localStorage.setItem(`currentF1DepositedCount_${prefix}`, currentF1DepositedCount);
+            localStorage.setItem(`claimedInviteTasks_${prefix}`, JSON.stringify(claimedInviteTasks));
+            localStorage.setItem(`availableBalance_${prefix}`, availableBalance);
+            localStorage.setItem(`totalClaimed_${prefix}`, totalClaimed);
+        }
+
+        function showRewardModal(title, message, iconClass, callback = null) {
+            document.getElementById('reward-modal-title').innerText = title;
+            document.getElementById('reward-modal-amount').innerText = message;
+            document.getElementById('reward-modal-icon').className = iconClass;
+            pendingActionAfterModal = callback;
+            document.getElementById('reward-modal').classList.remove('hidden');
+            document.getElementById('reward-modal').classList.add('flex');
+        }
+
+        function closeRewardModal() {
+            document.getElementById('reward-modal').classList.add('hidden');
+            document.getElementById('reward-modal').classList.remove('flex');
+            if (pendingActionAfterModal) {
+                pendingActionAfterModal();
+                pendingActionAfterModal = null;
+            }
+        }
+
+        function setDepositAmount(amount) {
+            document.getElementById('deposit-vnd-input').value = amount;
+            calculateDeposit();
+        }
+
+        function submitDeposit() {
+            const vndVal = parseFloat(document.getElementById('deposit-vnd-input').value) || 0;
+            const minVnd = 3 * USD_TO_VND;
+
+            if (vndVal < minVnd) {
+                showRewardModal("Thông báo", `Số tiền nạp tối thiểu là 3 USD (${minVnd.toLocaleString()} VNĐ)!`, "fa-solid fa-triangle-exclamation");
+                return;
+            }
+
+            const usdVal = vndVal / USD_TO_VND;
+            const now = new Date();
+            const timeString = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} - ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+            depositHistory.unshift({ 
+                time: timeString, 
+                vnd: vndVal, 
+                usd: usdVal, 
+                status: "Đang chờ duyệt" 
+            });
+            localStorage.setItem('depositHistory', JSON.stringify(depositHistory));
+
+            closeDepositModal();
+
+            showRewardModal(
+                "Đang xử lý giao dịch", 
+                "Vui lòng chờ trong giây lát...", 
+                "fa-solid fa-spinner fa-spin", 
+                () => {
+                    updateDisplay();
+                }
+            );
+        }
+
+        function submitWithdraw() {
+            const amountInput = parseFloat(document.getElementById('withdraw-amount').value);
+            const bankVal = document.getElementById('withdraw-bank').value;
+            const acc = document.getElementById('withdraw-acc').value;
+            const name = document.getElementById('withdraw-name').value;
+
+            if (!amountInput || amountInput < MIN_WITHDRAW_USD) {
+                showRewardModal("Thông báo", `Số tiền rút tối thiểu là ${MIN_WITHDRAW_USD} USD!`, "fa-solid fa-triangle-exclamation");
+                return;
+            }
+            if (!acc || !name) {
+                showRewardModal("Thông báo", "Vui lòng nhập đầy đủ thông tin tài khoản ngân hàng!", "fa-solid fa-triangle-exclamation");
+                return;
+            }
+            if (amountInput > availableBalance) {
+                showRewardModal("Thông báo", "Số dư khả dụng không đủ để rút!", "fa-solid fa-triangle-exclamation");
+                return;
+            }
+
+            const fee = amountInput * 0.05;
+            const net = amountInput - fee;
+            const now = new Date();
+            const timeString = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} - ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+            withdrawHistory.unshift({ 
+                time: timeString, 
+                bank: bankVal.split(' - ')[0], 
+                acc: acc, 
+                name: name, 
+                amount: amountInput, 
+                fee: fee, 
+                net: net, 
+                status: "Đang chờ duyệt" 
+            });
+            localStorage.setItem('withdrawHistory', JSON.stringify(withdrawHistory));
+
+            closeWithdrawModal();
+
+            showRewardModal(
+                "Đang xử lý lệnh rút", 
+                "Vui lòng chờ trong giây lát...", 
+                "fa-solid fa-spinner fa-spin", 
+                () => {
+                    updateDisplay();
+                }
+            );
+        }
+
+        function approveDeposit(index = 0) {
+            if (!depositHistory[index] || depositHistory[index].status !== "Đang chờ duyệt") return;
+
+            const item = depositHistory[index];
+            item.status = "Thành công";
+            localStorage.setItem('depositHistory', JSON.stringify(depositHistory));
+
+            let matchedPlan = investmentPlans.find(p => p.priceUsd === Math.round(item.usd));
+            if (!matchedPlan) {
+                matchedPlan = investmentPlans.find(p => p.priceUsd >= 3) || investmentPlans[1];
+            }
+
+            activePlan = matchedPlan;
+            activePlanId = matchedPlan.id;
+            localStorage.setItem('activePlanId', activePlanId);
+            updatePlanStatsUI();
+            renderPlansUI();
+
+            pushNotification("Nạp tiền thành công", `Lệnh nạp ${item.usd.toFixed(2)} USD đã được admin duyệt. Đã kích hoạt gói ${matchedPlan.title}.`);
+            showRewardModal("Nạp tiền thành công", `Admin đã duyệt lệnh nạp! Đã kích hoạt gói ${matchedPlan.title}.`, "fa-solid fa-circle-check");
+            updateDisplay();
+        }
+
+        function approveWithdraw(index = 0) {
+            if (!withdrawHistory[index] || withdrawHistory[index].status !== "Đang chờ duyệt") return;
+
+            const item = withdrawHistory[index];
+            if (availableBalance < item.amount) {
+                showRewardModal("Lỗi duyệt lệnh", "Số dư khả dụng của người dùng không đủ để duyệt lệnh rút này!", "fa-solid fa-triangle-exclamation");
+                return;
+            }
+
+            item.status = "Thành công";
+            localStorage.setItem('withdrawHistory', JSON.stringify(withdrawHistory));
+
+            availableBalance -= item.amount;
+            saveUserGroupData();
+
+            pushNotification("Rút tiền thành công", `Lệnh rút ${item.amount.toFixed(2)} USD đã được admin duyệt chuyển về ngân hàng ${item.bank}.`);
+            showRewardModal("Rút tiền thành công", `Đã duyệt lệnh rút ${item.amount.toFixed(2)} USD về tài khoản ngân hàng!`, "fa-solid fa-circle-check");
+            updateDisplay();
+        }
+
+        function renderDepositHistoryList() {
+            const container = document.getElementById('deposit-history-list');
+            if(!container) return;
+            container.innerHTML = depositHistory.length === 0 ? `<p class="text-center text-xs text-gray-500 py-6">Chưa có lịch sử nạp tiền.</p>` : "";
+            depositHistory.forEach(item => {
+                container.innerHTML += `
+                    <div class="card-dark rounded-2xl p-3.5 space-y-2 border border-gray-800 text-xs">
+                        <div class="flex justify-between items-center text-gray-400">
+                            <span>${item.time}</span>
+                            <span class="text-amber-400 font-semibold">${item.status}</span>
+                        </div>
+                        <div class="flex justify-between items-center pt-1 border-t border-gray-800">
+                            <span>Nạp: ${item.vnd.toLocaleString()} VNĐ</span>
+                            <span class="font-black neon-text">+${item.usd.toFixed(2)} U</span>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function renderHistoryList() {
+            const container = document.getElementById('history-list');
+            if(!container) return;
+            container.innerHTML = withdrawHistory.length === 0 ? `<p class="text-center text-xs text-gray-500 py-6">Chưa có lịch sử rút tiền.</p>` : "";
+            withdrawHistory.forEach(item => {
+                container.innerHTML += `
+                    <div class="card-dark rounded-2xl p-3.5 space-y-2 border border-gray-800 text-xs">
+                        <div class="flex justify-between items-center text-gray-400">
+                            <span>${item.time}</span>
+                            <span class="text-amber-400 font-semibold">${item.status}</span>
+                        </div>
+                        <div class="flex justify-between items-center pt-1 border-t border-gray-800">
+                            <span>${item.bank} - ${item.acc}</span>
+                            <span class="font-black text-amber-400">-${item.amount.toFixed(2)} U</span>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function renderCashFlowList() {
+            const container = document.getElementById('cash-flow-list');
+            if(!container) return;
+            container.innerHTML = "";
+
+            let allFlows = [];
+            depositHistory.forEach(d => {
+                allFlows.push({ time: d.time, type: 'Nạp tiền', desc: `Nạp ${d.vnd.toLocaleString()} VNĐ`, amount: `+${d.usd.toFixed(2)} USD`, isPositive: true });
+            });
+            withdrawHistory.forEach(w => {
+                allFlows.push({ time: w.time, type: 'Rút tiền', desc: `Rút về ${w.bank} (${w.acc})`, amount: `-${w.amount.toFixed(2)} USD`, isPositive: false });
+            });
+
+            if (allFlows.length === 0) {
+                container.innerHTML = `<p class="text-center text-xs text-gray-500 py-6">Chưa có giao dịch dòng tiền nào.</p>`;
+                return;
+            }
+
+            allFlows.forEach(item => {
+                container.innerHTML += `
+                    <div class="card-dark rounded-2xl p-3.5 space-y-2 border border-gray-800 text-xs">
+                        <div class="flex justify-between items-center text-gray-400">
+                            <span>${item.time}</span>
+                            <span class="font-bold ${item.isPositive ? 'text-[#c0f135]' : 'text-amber-400'}">${item.type}</span>
+                        </div>
+                        <div class="flex justify-between items-center pt-1 border-t border-gray-800">
+                            <span class="text-gray-300">${item.desc}</span>
+                            <span class="font-black ${item.isPositive ? 'neon-text' : 'text-amber-400'}">${item.amount}</span>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function renderUsdHistoryList() {
+            const container = document.getElementById('usd-history-list');
+            if(!container) return;
+            container.innerHTML = "";
+
+            let usdFlows = [];
+            depositHistory.forEach(d => {
+                usdFlows.push({ time: d.time, title: 'Nạp tiền USD', amount: `+${d.usd.toFixed(2)} USD`, note: `Quy đổi từ ${d.vnd.toLocaleString()} VNĐ` });
+            });
+            withdrawHistory.forEach(w => {
+                usdFlows.push({ time: w.time, title: 'Rút tiền USD', amount: `-${w.amount.toFixed(2)} USD`, note: `Rút về ngân hàng ${w.bank}` });
+            });
+
+            if (usdFlows.length === 0) {
+                container.innerHTML = `<p class="text-center text-xs text-gray-500 py-6">Chưa có lịch sử giao dịch USD nào.</p>`;
+                return;
+            }
+
+            usdFlows.forEach(item => {
+                container.innerHTML += `
+                    <div class="card-dark rounded-2xl p-3.5 space-y-2 border border-gray-800 text-xs">
+                        <div class="flex justify-between items-center text-gray-400">
+                            <span>${item.time}</span>
+                            <span class="text-[#c0f135] font-semibold">${item.title}</span>
+                        </div>
+                        <div class="flex justify-between items-center pt-1 border-t border-gray-800">
+                            <span class="text-gray-300">${item.note}</span>
+                            <span class="font-black neon-text">${item.amount}</span>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.add('hidden'));
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+
+            document.querySelectorAll('.nav-item').forEach(item => {
+                if(item.getAttribute('data-target') === tabId) {
+                    item.className = "nav-item flex flex-col items-center justify-center gap-1 text-xs neon-text font-semibold transition cursor-pointer";
+                } else {
+                    item.className = "nav-item flex flex-col items-center justify-center gap-1 text-xs text-gray-500 hover:text-gray-300 transition cursor-pointer";
+                }
+            });
+        }
+
+        function startMiningTimer() {
+            setInterval(() => {
+                currentUnclaimedProfit += activePlan.ratePerSec;
+                localStorage.setItem('currentUnclaimedProfit', currentUnclaimedProfit);
+                localStorage.setItem('lastActiveTimestamp', Date.now());
+                updateDisplay();
+                checkCooldowns();
+            }, 1000); 
+        }
+
+        window.addEventListener('beforeunload', () => {
+            localStorage.setItem('currentUnclaimedProfit', currentUnclaimedProfit);
+            localStorage.setItem('lastActiveTimestamp', Date.now());
+        });
+
+        function updateDisplay() {
+            if (currentUser) loadUserGroupData();
+
+            const formatted = currentUnclaimedProfit.toFixed(7);
+            const parts = formatted.split('.');
+            document.getElementById('unclaimed-profit-int').innerText = parts[0] + '.';
+            document.getElementById('unclaimed-profit-dec').innerText = parts[1];
+
+            let ringPercentage = (currentUnclaimedProfit / ringMaxGoal) * 100;
+            if (ringPercentage > 100) ringPercentage = 100;
+
+            const circle = document.getElementById('mining-progress-circle');
+            if (circle) {
+                const circumference = 2 * Math.PI * 50; 
+                circle.style.strokeDashoffset = circumference - (ringPercentage / 100) * circumference;
+            }
+
+            document.getElementById('ring-percent-text').innerText = `${ringPercentage.toFixed(1)}% / 0.1U`;
+
+            const statusText = document.getElementById('profit-status');
+            const claimBtn = document.getElementById('claim-btn');
+
+            if (currentUnclaimedProfit >= minThreshold) {
+                statusText.innerText = "Đủ điều kiện nhận!";
+                statusText.className = "neon-text font-bold";
+                claimBtn.className = "neon-btn font-bold py-3 rounded-2xl text-xs flex items-center justify-center gap-2 transition active:scale-95 cursor-pointer shadow-lg shadow-lime-500/20";
+                claimBtn.disabled = false;
+            } else {
+                statusText.innerText = "Chưa đủ tối thiểu (0.01U)";
+                statusText.className = "text-gray-500 font-medium";
+                claimBtn.className = "bg-gray-800 text-gray-500 font-bold py-3 rounded-2xl text-xs flex items-center justify-center gap-2 transition cursor-not-allowed";
+                claimBtn.disabled = true;
+            }
+
+            const formattedBalance = '$' + availableBalance.toFixed(2);
+            document.getElementById('available-balance').innerText = formattedBalance;
+            document.getElementById('profile-balance').innerText = formattedBalance;
+
+            const f1Total = groupMembersF1.reduce((sum, m) => sum + m.commissionUsd, 0);
+            const totalGroupComm = f1Total + totalF2CommissionUsd + totalF3CommissionUsd;
+            const totalMembers = groupMembersF1.length + groupMembersF2.length + groupMembersF3.length;
+
+            document.getElementById('total-network-members').innerText = totalMembers;
+            document.getElementById('total-group-sales').innerText = `$${(totalGroupSalesVnd / USD_TO_VND).toFixed(2)}`;
+            document.getElementById('f1-commission-val').innerText = `$${f1Total.toFixed(2)}`;
+            document.getElementById('f2-commission-val').innerText = `$${totalF2CommissionUsd.toFixed(2)}`;
+            document.getElementById('f3-commission-val').innerText = `$${totalF3CommissionUsd.toFixed(2)}`;
+            document.getElementById('total-group-commission').innerText = `$${totalGroupComm.toFixed(2)}`;
+            document.getElementById('profile-commission').innerText = `$${totalGroupComm.toFixed(2)}`;
+
+            document.getElementById('total-claimed').innerText = '+$' + totalClaimed.toFixed(2) + ' U';
+            document.getElementById('streak-days').innerText = streakDays;
+            document.getElementById('invited-f1-count').innerText = currentF1DepositedCount;
+
+            updateStreakButtonsUI();
+            updateNotificationBadgeUI();
+        }
+
+        function updateStreakButtonsUI() {
+            const btn3 = document.getElementById('streak-btn-3');
+            const btn10 = document.getElementById('streak-btn-10');
+
+            if (btn3) {
+                if (claimedStreak3) {
+                    btn3.innerText = "Đã nhận";
+                    btn3.className = "bg-gray-800 text-gray-500 font-bold px-3 py-1.5 rounded-lg text-[11px] cursor-not-allowed";
+                    btn3.disabled = true;
+                } else if (streakDays >= 3) {
+                    btn3.innerText = "Nhận 0.1U";
+                    btn3.className = "neon-btn font-extrabold px-3 py-1.5 rounded-lg text-[11px] active:scale-95 cursor-pointer shadow";
+                    btn3.disabled = false;
+                } else {
+                    btn3.innerText = `Chưa đạt (${streakDays}/3)`;
+                    btn3.className = "bg-gray-800/80 text-gray-500 font-semibold px-3 py-1.5 rounded-lg text-[11px] cursor-not-allowed";
+                    btn3.disabled = true;
+                }
+            }
+
+            if (btn10) {
+                if (claimedStreak10) {
+                    btn10.innerText = "Đã nhận";
+                    btn10.className = "bg-gray-800 text-gray-500 font-bold px-3 py-1.5 rounded-lg text-[11px] cursor-not-allowed";
+                    btn10.disabled = true;
+                } else if (streakDays >= 10) {
+                    btn10.innerText = "Nhận 0.5U";
+                    btn10.className = "neon-btn font-extrabold px-3 py-1.5 rounded-lg text-[11px] active:scale-95 cursor-pointer shadow";
+                    btn10.disabled = false;
+                } else {
+                    btn10.innerText = `Chưa đạt (${streakDays}/10)`;
+                    btn10.className = "bg-gray-800/80 text-gray-500 font-semibold px-3 py-1.5 rounded-lg text-[11px] cursor-not-allowed";
+                    btn10.disabled = true;
+                }
+            }
+        }
+
+        function claimStreakReward(days) {
+            if (days === 3 && streakDays >= 3 && !claimedStreak3) {
+                claimedStreak3 = true;
+                localStorage.setItem('claimedStreak3', 'true');
+                availableBalance += 0.10;
+                totalClaimed += 0.10;
+                saveUserGroupData();
+                updateDisplay();
+                showRewardModal("Thưởng chuỗi 3 ngày", "Chúc mừng bạn nhận được +0.1 USD vào số dư!", "fa-solid fa-gift");
+            } else if (days === 10 && streakDays >= 10 && !claimedStreak10) {
+                claimedStreak10 = true;
+                localStorage.setItem('claimedStreak10', 'true');
+                availableBalance += 0.50;
+                totalClaimed += 0.50;
+                saveUserGroupData();
+                updateDisplay();
+                showRewardModal("Thưởng chuỗi 10 ngày", "Chúc mừng bạn nhận được +0.5 USD vào số dư!", "fa-solid fa-gift");
+            }
+        }
+
+        function checkCooldowns() {
+            const now = Date.now();
+            const checkinBtn = document.getElementById('checkin-btn');
+            const checkinMsg = document.getElementById('checkin-status-msg');
+            const timeSinceCheckin = now - lastCheckinTime;
+
+            if (timeSinceCheckin < COOLDOWN_TIME && lastCheckinTime > 0) {
+                const timeLeft = COOLDOWN_TIME - timeSinceCheckin;
+                const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+                const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+                checkinBtn.innerText = "Đã điểm danh";
+                checkinBtn.className = "bg-gray-800 text-gray-500 font-bold px-4 py-2 rounded-xl text-xs cursor-not-allowed";
+                checkinMsg.innerText = `Điểm danh lại sau: ${hours}h ${minutes}m ${seconds}s`;
+            } else {
+                checkinBtn.innerText = "Điểm danh ngay";
+                checkinBtn.className = "neon-btn font-bold px-4 py-2 rounded-xl text-xs active:scale-95 transition cursor-pointer";
+                checkinMsg.innerText = "Sẵn sàng điểm danh nhận thưởng";
+            }
+        }
+
+        function doDailyCheckin() {
+            const now = Date.now();
+            if (now - lastCheckinTime < COOLDOWN_TIME && lastCheckinTime > 0) return;
+
+            lastCheckinTime = now;
+            streakDays++;
+            availableBalance += 0.01;
+            totalClaimed += 0.01;
+
+            localStorage.setItem('lastCheckinTime', lastCheckinTime);
+            localStorage.setItem('streakDays', streakDays);
+            saveUserGroupData();
+
+            updateDisplay();
+            checkCooldowns();
+            showRewardModal("Điểm danh thành công", "Chúc mừng bạn đã nhận được: +0.01 USD", "fa-solid fa-gift");
+        }
+
+        function claimProfit() {
+            if (currentUnclaimedProfit >= minThreshold) {
+                const claimedAmount = currentUnclaimedProfit;
+                availableBalance += claimedAmount;
+                totalClaimed += claimedAmount;
+                currentUnclaimedProfit = 0.0000000;
+                
+                saveUserGroupData();
+                localStorage.setItem('currentUnclaimedProfit', currentUnclaimedProfit);
+
+                updateDisplay();
+                showRewardModal("Nhận lãi thành công", `Chúc mừng bạn đã nhận được: +${claimedAmount.toFixed(6)} USD`, "fa-solid fa-wand-magic-sparkles");
+            }
+        }
+
+        function calculateFee() {
+            const inputVal = parseFloat(document.getElementById('withdraw-amount').value) || 0;
+            const fee = inputVal * 0.05;
+            const netAmount = inputVal - fee;
+            const feeText = document.getElementById('fee-calc-text');
+            if(feeText) {
+                feeText.innerHTML = `Phí 5%: ${fee.toFixed(2)} U | Thực nhận: <span class="neon-text font-bold">${netAmount.toFixed(2)} U</span>`;
+            }
         }
 
         document.addEventListener("DOMContentLoaded", () => {
-            if(currentUser) {
+            if (currentUser) {
                 document.getElementById('auth-screen').classList.add('hidden');
-                document.getElementById('user-display').innerText = currentUser.username;
+                document.getElementById('auth-screen').classList.remove('flex');
+                loadUserGroupData();
+                updateUserProfileUI();
             } else {
                 document.getElementById('auth-screen').classList.remove('hidden');
+                document.getElementById('auth-screen').classList.add('flex');
             }
+
+            switchTab('home');
+            updatePlanStatsUI();
+            renderPlansUI();
+            startMiningTimer();
+            checkCooldowns();
+            updateNotificationBadgeUI();
         });
     </script>
 </body>
