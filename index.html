@@ -170,7 +170,7 @@
                             <span class="text-xs font-semibold text-gray-300">Lãi khai thác tích lũy</span>
                         </div>
                         <span id="active-plan-badge" class="text-xs bg-[#122112] text-[#c0f135] border border-[#c0f135]/40 px-3 py-1 rounded-full font-bold flex items-center gap-1.5">
-                            <i class="fa-solid fa-chart-line text-[11px]"></i> Gói 26k (1 USD)
+                            <i class="fa-solid fa-chart-line text-[11px]"></i> Chưa kích hoạt gói
                         </span>
                     </div>
 
@@ -210,15 +210,15 @@
                     <div class="grid grid-cols-3 gap-2">
                         <div class="bg-gray-900/80 p-2.5 rounded-2xl border border-gray-800 text-center">
                             <p class="text-[10px] text-gray-400 font-medium">Tốc độ / giây</p>
-                            <p id="stat-rate-sec" class="text-xs font-extrabold text-white mt-0.5">+0.0000023U</p>
+                            <p id="stat-rate-sec" class="text-xs font-extrabold text-white mt-0.5">+0.0000000U</p>
                         </div>
                         <div class="bg-gray-900/80 p-2.5 rounded-2xl border border-gray-800 text-center">
                             <p class="text-[10px] text-gray-400 font-medium">Ước tính / giờ</p>
-                            <p id="stat-rate-hour" class="text-xs font-extrabold text-white mt-0.5">+0.00833U</p>
+                            <p id="stat-rate-hour" class="text-xs font-extrabold text-white mt-0.5">+0.00000U</p>
                         </div>
                         <div class="bg-gray-900/80 p-2.5 rounded-2xl border border-gray-800 text-center">
                             <p class="text-[10px] text-gray-400 font-medium">Ước tính / ngày</p>
-                            <p id="stat-rate-day" class="text-xs font-extrabold text-[#c0f135] mt-0.5">+0.20000U</p>
+                            <p id="stat-rate-day" class="text-xs font-extrabold text-[#c0f135] mt-0.5">+0.00000U</p>
                         </div>
                     </div>
 
@@ -255,9 +255,9 @@
                                     <i class="fa-solid fa-lock"></i>
                                 </div>
                             </div>
-                            <p id="active-plan-usd" class="text-lg font-black text-[#c0f135]">Gói 1$</p>
+                            <p id="active-plan-usd" class="text-lg font-black text-gray-400">Chưa có</p>
                             <div class="mt-2 pt-1.5 border-t border-gray-800/80 flex justify-between items-center text-[9px]">
-                                <span class="text-[#c0f135] font-bold" id="active-plan-rate">0.0000023U/s</span>
+                                <span class="text-[#c0f135] font-bold" id="active-plan-rate">0.0000000U/s</span>
                                 <span class="text-gray-400">24/7</span>
                             </div>
                         </div>
@@ -684,7 +684,7 @@
                 
                 <div class="bg-[#1a2b10] border border-[#c0f135]/30 rounded-xl p-3 text-[11px] flex justify-between items-center">
                     <span class="text-[#c0f135] font-semibold"><i class="fa-solid fa-circle-info mr-1"></i> Tỷ giá quy đổi:</span>
-                    <span class="font-bold text-white">1 USD = 26.000 VNĐ (Min: 1$ / 26k)</span>
+                    <span class="font-bold text-white">1 USD = 26.000 VNĐ (Min: 26.000 VNĐ / 1$)</span>
                 </div>
 
                 <div class="space-y-3">
@@ -869,7 +869,7 @@
         const ACCOUNT_NO = "11557000"; 
         const ACCOUNT_NAME = "WIN USDBOX";
 
-        // Cấu hình danh sách gói (Đã thay thế gói Free 0$ bằng gói 1 USD / 26k hoàn vốn 5 ngày)
+        // Danh sách các gói đầu tư (Không có gói free, bắt đầu từ gói 1 USD / 26k)
         const investmentPlans = [
             { id: 1, priceUsd: 1, ratePerSec: 0.000002315, title: "Gói Khai Thác 1 USD (26k)", roiDays: "5 ngày" },
             { id: 2, priceUsd: 3, ratePerSec: 0.000003858, title: "Gói Khai Thác 3 USD", roiDays: "9 ngày" },
@@ -902,9 +902,9 @@
         let totalF3CommissionUsd = parseFloat(localStorage.getItem('totalF3CommissionUsd')) || 0.00;
         let totalGroupSalesVnd = parseFloat(localStorage.getItem('totalGroupSalesVnd')) || 0;
 
-        // Mặc định gói ban đầu là gói 1 (1 USD)
-        let activePlanId = parseInt(localStorage.getItem('activePlanId')) || 1;
-        let activePlan = investmentPlans.find(p => p.id === activePlanId) || investmentPlans[0];
+        // Mặc định tài khoản mới chưa có gói nào chạy (activePlanId = 0)
+        let activePlanId = parseInt(localStorage.getItem('activePlanId')) || 0;
+        let activePlan = investmentPlans.find(p => p.id === activePlanId) || { id: 0, priceUsd: 0, ratePerSec: 0, title: "Chưa kích hoạt", roiDays: "-" };
 
         let pendingPlanToActivate = null;
         let currentUnclaimedProfit = parseFloat(localStorage.getItem('currentUnclaimedProfit')) || 0.0000000;
@@ -914,7 +914,7 @@
         let lastActiveTimestamp = parseInt(localStorage.getItem('lastActiveTimestamp')) || Date.now();
         let nowTime = Date.now();
         let elapsedSeconds = Math.floor((nowTime - lastActiveTimestamp) / 1000);
-        if (elapsedSeconds > 0 && elapsedSeconds < 7 * 24 * 3600) {
+        if (elapsedSeconds > 0 && elapsedSeconds < 7 * 24 * 3600 && activePlan.ratePerSec > 0) {
             currentUnclaimedProfit += elapsedSeconds * activePlan.ratePerSec;
         }
 
@@ -1111,7 +1111,7 @@
         function openDepositModal() { 
             document.getElementById('deposit-modal').classList.add('active');
             generateNewDepositMemo();
-            document.getElementById('deposit-vnd-input').value = '';
+            document.getElementById('deposit-vnd-input').value = '26000';
             calculateDeposit();
         }
         function closeDepositModal() { closeModal('deposit-modal'); }
@@ -1261,12 +1261,21 @@
         }
 
         function updatePlanStatsUI() {
-            document.getElementById('active-plan-badge').innerHTML = `<i class="fa-solid fa-chart-line text-[10px]"></i> Gói ${activePlan.priceUsd} USD`;
-            document.getElementById('active-plan-usd').innerText = `$${activePlan.priceUsd}.00`;
-            document.getElementById('active-plan-rate').innerText = `${activePlan.ratePerSec.toFixed(7)}U/s`;
-            document.getElementById('stat-rate-sec').innerText = `+${activePlan.ratePerSec.toFixed(7)}U`;
-            document.getElementById('stat-rate-hour').innerText = `+${(activePlan.ratePerSec * 3600).toFixed(5)}U`;
-            document.getElementById('stat-rate-day').innerText = `+${(activePlan.ratePerSec * 86400).toFixed(5)}U`;
+            if (activePlan.priceUsd > 0) {
+                document.getElementById('active-plan-badge').innerHTML = `<i class="fa-solid fa-chart-line text-[10px]"></i> Gói ${activePlan.priceUsd} USD`;
+                document.getElementById('active-plan-usd').innerText = `$${activePlan.priceUsd}.00`;
+                document.getElementById('active-plan-rate').innerText = `${activePlan.ratePerSec.toFixed(7)}U/s`;
+                document.getElementById('stat-rate-sec').innerText = `+${activePlan.ratePerSec.toFixed(7)}U`;
+                document.getElementById('stat-rate-hour').innerText = `+${(activePlan.ratePerSec * 3600).toFixed(5)}U`;
+                document.getElementById('stat-rate-day').innerText = `+${(activePlan.ratePerSec * 86400).toFixed(5)}U`;
+            } else {
+                document.getElementById('active-plan-badge').innerHTML = `<i class="fa-solid fa-triangle-exclamation text-[10px]"></i> Chưa kích hoạt gói`;
+                document.getElementById('active-plan-usd').innerText = `Chưa có`;
+                document.getElementById('active-plan-rate').innerText = `0.0000000U/s`;
+                document.getElementById('stat-rate-sec').innerText = `+0.0000000U`;
+                document.getElementById('stat-rate-hour').innerText = `+0.00000U`;
+                document.getElementById('stat-rate-day').innerText = `+0.00000U`;
+            }
         }
 
         function scrollToPlans() {
@@ -1412,10 +1421,10 @@
 
         function submitDeposit() {
             const vndVal = parseFloat(document.getElementById('deposit-vnd-input').value) || 0;
-            const minVnd = 1 * USD_TO_VND; // Mức nạp tối thiểu 26k (1 USD)
+            const minVnd = 26000; // Mức nạp tối thiểu 26k (1 USD)
 
             if (vndVal < minVnd) {
-                showRewardModal("Thông báo", `Số tiền nạp tối thiểu là 1 USD (${minVnd.toLocaleString()} VNĐ)!`, "fa-solid fa-triangle-exclamation");
+                showRewardModal("Thông báo", `Số tiền nạp tối thiểu là 26.000 VNĐ (1 USD)!`, "fa-solid fa-triangle-exclamation");
                 return;
             }
 
@@ -1491,7 +1500,7 @@
             );
         }
 
-        // Tự động kích hoạt gói tương ứng khi nạp tiền thành công
+        // Tự động kích hoạt gói tương ứng khi Admin duyệt nạp thành công
         function approveDeposit(index = 0) {
             if (!depositHistory[index] || depositHistory[index].status !== "Đang chờ duyệt") return;
 
@@ -1499,7 +1508,6 @@
             item.status = "Thành công";
             localStorage.setItem('depositHistory', JSON.stringify(depositHistory));
 
-            // Tự động tìm gói tương ứng với số USD nạp
             let matchedPlan = investmentPlans.find(p => p.priceUsd === Math.round(item.usd));
             if (!matchedPlan) {
                 matchedPlan = investmentPlans.find(p => p.priceUsd >= 1) || investmentPlans[0];
@@ -1659,10 +1667,12 @@
 
         function startMiningTimer() {
             setInterval(() => {
-                currentUnclaimedProfit += activePlan.ratePerSec;
-                localStorage.setItem('currentUnclaimedProfit', currentUnclaimedProfit);
-                localStorage.setItem('lastActiveTimestamp', Date.now());
-                updateDisplay();
+                if (activePlan.ratePerSec > 0) {
+                    currentUnclaimedProfit += activePlan.ratePerSec;
+                    localStorage.setItem('currentUnclaimedProfit', currentUnclaimedProfit);
+                    localStorage.setItem('lastActiveTimestamp', Date.now());
+                    updateDisplay();
+                }
                 checkCooldowns();
             }, 1000); 
         }
