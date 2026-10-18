@@ -170,7 +170,7 @@
                             <span class="text-xs font-semibold text-gray-300">Lãi khai thác tích lũy</span>
                         </div>
                         <span id="active-plan-badge" class="text-xs bg-[#122112] text-[#c0f135] border border-[#c0f135]/40 px-3 py-1 rounded-full font-bold flex items-center gap-1.5">
-                            <i class="fa-solid fa-chart-line text-[11px]"></i> Gói Free
+                            <i class="fa-solid fa-chart-line text-[11px]"></i> Gói 26k (1 USD)
                         </span>
                     </div>
 
@@ -210,15 +210,15 @@
                     <div class="grid grid-cols-3 gap-2">
                         <div class="bg-gray-900/80 p-2.5 rounded-2xl border border-gray-800 text-center">
                             <p class="text-[10px] text-gray-400 font-medium">Tốc độ / giây</p>
-                            <p id="stat-rate-sec" class="text-xs font-extrabold text-white mt-0.5">+0.0000002U</p>
+                            <p id="stat-rate-sec" class="text-xs font-extrabold text-white mt-0.5">+0.0000023U</p>
                         </div>
                         <div class="bg-gray-900/80 p-2.5 rounded-2xl border border-gray-800 text-center">
-                            <p class="text-[10px] text-gray-400 font-medium">Ưước tính / giờ</p>
-                            <p id="stat-rate-hour" class="text-xs font-extrabold text-white mt-0.5">+0.00072U</p>
+                            <p class="text-[10px] text-gray-400 font-medium">Ước tính / giờ</p>
+                            <p id="stat-rate-hour" class="text-xs font-extrabold text-white mt-0.5">+0.00833U</p>
                         </div>
                         <div class="bg-gray-900/80 p-2.5 rounded-2xl border border-gray-800 text-center">
                             <p class="text-[10px] text-gray-400 font-medium">Ước tính / ngày</p>
-                            <p id="stat-rate-day" class="text-xs font-extrabold text-[#c0f135] mt-0.5">+0.01728U</p>
+                            <p id="stat-rate-day" class="text-xs font-extrabold text-[#c0f135] mt-0.5">+0.20000U</p>
                         </div>
                     </div>
 
@@ -255,9 +255,9 @@
                                     <i class="fa-solid fa-lock"></i>
                                 </div>
                             </div>
-                            <p id="active-plan-usd" class="text-lg font-black text-[#c0f135]">Free</p>
+                            <p id="active-plan-usd" class="text-lg font-black text-[#c0f135]">Gói 1$</p>
                             <div class="mt-2 pt-1.5 border-t border-gray-800/80 flex justify-between items-center text-[9px]">
-                                <span class="text-[#c0f135] font-bold" id="active-plan-rate">0.0000002U/s</span>
+                                <span class="text-[#c0f135] font-bold" id="active-plan-rate">0.0000023U/s</span>
                                 <span class="text-gray-400">24/7</span>
                             </div>
                         </div>
@@ -684,21 +684,21 @@
                 
                 <div class="bg-[#1a2b10] border border-[#c0f135]/30 rounded-xl p-3 text-[11px] flex justify-between items-center">
                     <span class="text-[#c0f135] font-semibold"><i class="fa-solid fa-circle-info mr-1"></i> Tỷ giá quy đổi:</span>
-                    <span class="font-bold text-white">1 USD = 26.000 VNĐ (Min: 3$)</span>
+                    <span class="font-bold text-white">1 USD = 26.000 VNĐ (Min: 1$ / 26k)</span>
                 </div>
 
                 <div class="space-y-3">
                     <label class="text-xs font-bold text-gray-200">Nhập số tiền nạp (VNĐ)</label>
-                    <input type="number" id="deposit-vnd-input" oninput="calculateDeposit()" placeholder="VD: 78000" class="w-full bg-[#121929] border border-gray-800 rounded-xl p-3 text-xs text-gray-200 focus:outline-none focus:border-[#c0f135]">
+                    <input type="number" id="deposit-vnd-input" oninput="calculateDeposit()" placeholder="VD: 26000" class="w-full bg-[#121929] border border-gray-800 rounded-xl p-3 text-xs text-gray-200 focus:outline-none focus:border-[#c0f135]">
                     <p id="deposit-calc-text" class="text-[11px] text-gray-400">Quy đổi nhận được: <span class="neon-text font-bold">0.00 U</span></p>
 
                     <div class="grid grid-cols-3 gap-2 pt-1">
+                        <button onclick="setDepositAmount(26000)" class="bg-gray-900 hover:bg-gray-800 border border-gray-800 text-[#c0f135] py-2 rounded-xl text-xs font-bold transition cursor-pointer">26K ($1)</button>
                         <button onclick="setDepositAmount(78000)" class="bg-gray-900 hover:bg-gray-800 border border-gray-800 text-gray-300 py-2 rounded-xl text-xs font-semibold transition cursor-pointer">78K ($3)</button>
                         <button onclick="setDepositAmount(182000)" class="bg-gray-900 hover:bg-gray-800 border border-gray-800 text-gray-300 py-2 rounded-xl text-xs font-semibold transition cursor-pointer">182K ($7)</button>
                         <button onclick="setDepositAmount(390000)" class="bg-gray-900 hover:bg-gray-800 border border-gray-800 text-gray-300 py-2 rounded-xl text-xs font-semibold transition cursor-pointer">390K ($15)</button>
                         <button onclick="setDepositAmount(520000)" class="bg-gray-900 hover:bg-gray-800 border border-gray-800 text-gray-300 py-2 rounded-xl text-xs font-semibold transition cursor-pointer">520K ($20)</button>
                         <button onclick="setDepositAmount(1300000)" class="bg-gray-900 hover:bg-gray-800 border border-gray-800 text-[#c0f135] py-2 rounded-xl text-xs font-bold transition cursor-pointer">1.3M ($50)</button>
-                        <button onclick="setDepositAmount(2600000)" class="bg-gray-900 hover:bg-gray-800 border border-gray-800 text-[#c0f135] py-2 rounded-xl text-xs font-bold transition cursor-pointer">2.6M ($100)</button>
                     </div>
 
                     <div class="space-y-3">
@@ -869,14 +869,15 @@
         const ACCOUNT_NO = "11557000"; 
         const ACCOUNT_NAME = "WIN USDBOX";
 
+        // Cấu hình danh sách gói (Đã thay thế gói Free 0$ bằng gói 1 USD / 26k hoàn vốn 5 ngày)
         const investmentPlans = [
-            { id: 0, priceUsd: 0, ratePerSec: 0.000000200, title: "Gói Khai Thác Free", roiDays: "Free" },
-            { id: 1, priceUsd: 3, ratePerSec: 0.000003858, title: "Gói Khai Thác 3 USD", roiDays: "9 ngày" },
-            { id: 2, priceUsd: 7, ratePerSec: 0.000009002, title: "Gói Khai Thác 7 USD", roiDays: "9 ngày" },
-            { id: 3, priceUsd: 15, ratePerSec: 0.000019290, title: "Gói Khai Thác 15 USD", roiDays: "9 ngày" },
-            { id: 4, priceUsd: 20, ratePerSec: 0.000025720, title: "Gói Khai Thác 20 USD", roiDays: "9 ngày" },
-            { id: 5, priceUsd: 50, ratePerSec: 0.000057870, title: "Gói VIP 50 USD", roiDays: "10 ngày" },
-            { id: 6, priceUsd: 100, ratePerSec: 0.000115740, title: "Gói VIP 100 USD", roiDays: "10 ngày" }
+            { id: 1, priceUsd: 1, ratePerSec: 0.000002315, title: "Gói Khai Thác 1 USD (26k)", roiDays: "5 ngày" },
+            { id: 2, priceUsd: 3, ratePerSec: 0.000003858, title: "Gói Khai Thác 3 USD", roiDays: "9 ngày" },
+            { id: 3, priceUsd: 7, ratePerSec: 0.000009002, title: "Gói Khai Thác 7 USD", roiDays: "9 ngày" },
+            { id: 4, priceUsd: 15, ratePerSec: 0.000019290, title: "Gói Khai Thác 15 USD", roiDays: "9 ngày" },
+            { id: 5, priceUsd: 20, ratePerSec: 0.000025720, title: "Gói Khai Thác 20 USD", roiDays: "9 ngày" },
+            { id: 6, priceUsd: 50, ratePerSec: 0.000057870, title: "Gói VIP 50 USD", roiDays: "10 ngày" },
+            { id: 7, priceUsd: 100, ratePerSec: 0.000115740, title: "Gói VIP 100 USD", roiDays: "10 ngày" }
         ];
 
         const inviteTasksList = [
@@ -901,7 +902,8 @@
         let totalF3CommissionUsd = parseFloat(localStorage.getItem('totalF3CommissionUsd')) || 0.00;
         let totalGroupSalesVnd = parseFloat(localStorage.getItem('totalGroupSalesVnd')) || 0;
 
-        let activePlanId = parseInt(localStorage.getItem('activePlanId')) || 0;
+        // Mặc định gói ban đầu là gói 1 (1 USD)
+        let activePlanId = parseInt(localStorage.getItem('activePlanId')) || 1;
         let activePlan = investmentPlans.find(p => p.id === activePlanId) || investmentPlans[0];
 
         let pendingPlanToActivate = null;
@@ -1235,11 +1237,11 @@
                                 ${isActive ? '<span class="text-[9px] bg-[#c0f135]/20 text-[#c0f135] font-bold px-1.5 py-0.5 rounded border border-[#c0f135]/40">Đang chạy</span>' : `<span class="text-[9px] bg-[#c0f135]/10 text-[#c0f135] font-bold px-1.5 py-0.5 rounded">Hoàn vốn: ${plan.roiDays}</span>`}
                             </div>
                             <p class="text-[11px] text-gray-400">Lãi: <span class="neon-text font-semibold">+${plan.ratePerSec.toFixed(7)} U/s</span></p>
-                            <p class="text-[10px] text-gray-500">${plan.priceUsd === 0 ? 'Miễn phí trải nghiệm' : 'Giá: ' + plan.priceUsd + ' USD (' + vndPrice.toLocaleString() + ' VNĐ)'}</p>
+                            <p class="text-[10px] text-gray-500">Giá: ${plan.priceUsd} USD (${vndPrice.toLocaleString()} VNĐ)</p>
                         </div>
                         <div>
                             <button onclick="handleSelectPlan(${plan.id})" class="${isActive ? 'bg-gray-800 text-gray-400 cursor-default' : 'neon-btn active:scale-95 cursor-pointer'} font-bold px-3 py-2 rounded-xl text-xs shadow transition">
-                                ${isActive ? 'Đang chọn' : (plan.priceUsd === 0 ? 'Kích hoạt' : 'Nạp & Kích hoạt')}
+                                ${isActive ? 'Đang chọn' : 'Nạp & Kích hoạt'}
                             </button>
                         </div>
                     </div>
@@ -1251,25 +1253,16 @@
             const found = investmentPlans.find(p => p.id === planId);
             if(!found || found.id === activePlan.id) return;
 
-            if (found.priceUsd === 0) {
-                activePlan = found;
-                activePlanId = found.id;
-                localStorage.setItem('activePlanId', activePlanId);
-                updatePlanStatsUI();
-                renderPlansUI();
-                showRewardModal("Kích hoạt gói thành công", `Đã chọn: ${found.title}`, "fa-solid fa-circle-check");
-            } else {
-                pendingPlanToActivate = found;
-                const vndPrice = found.priceUsd * USD_TO_VND;
-                openDepositModal();
-                setDepositAmount(vndPrice);
-                showRewardModal("Nạp tiền kích hoạt gói", `Thanh toán ${vndPrice.toLocaleString()} VNĐ (${found.priceUsd} USD) để kích hoạt ngay ${found.title}!`, "fa-solid fa-credit-card");
-            }
+            pendingPlanToActivate = found;
+            const vndPrice = found.priceUsd * USD_TO_VND;
+            openDepositModal();
+            setDepositAmount(vndPrice);
+            showRewardModal("Nạp tiền kích hoạt gói", `Thanh toán ${vndPrice.toLocaleString()} VNĐ (${found.priceUsd} USD) để kích hoạt ngay ${found.title}!`, "fa-solid fa-credit-card");
         }
 
         function updatePlanStatsUI() {
-            document.getElementById('active-plan-badge').innerHTML = `<i class="fa-solid fa-chart-line text-[10px]"></i> ${activePlan.priceUsd === 0 ? 'Gói Free' : 'Gói ' + activePlan.priceUsd + ' USD'}`;
-            document.getElementById('active-plan-usd').innerText = activePlan.priceUsd === 0 ? 'Free' : `$${activePlan.priceUsd}.00`;
+            document.getElementById('active-plan-badge').innerHTML = `<i class="fa-solid fa-chart-line text-[10px]"></i> Gói ${activePlan.priceUsd} USD`;
+            document.getElementById('active-plan-usd').innerText = `$${activePlan.priceUsd}.00`;
             document.getElementById('active-plan-rate').innerText = `${activePlan.ratePerSec.toFixed(7)}U/s`;
             document.getElementById('stat-rate-sec').innerText = `+${activePlan.ratePerSec.toFixed(7)}U`;
             document.getElementById('stat-rate-hour').innerText = `+${(activePlan.ratePerSec * 3600).toFixed(5)}U`;
@@ -1419,10 +1412,10 @@
 
         function submitDeposit() {
             const vndVal = parseFloat(document.getElementById('deposit-vnd-input').value) || 0;
-            const minVnd = 3 * USD_TO_VND;
+            const minVnd = 1 * USD_TO_VND; // Mức nạp tối thiểu 26k (1 USD)
 
             if (vndVal < minVnd) {
-                showRewardModal("Thông báo", `Số tiền nạp tối thiểu là 3 USD (${minVnd.toLocaleString()} VNĐ)!`, "fa-solid fa-triangle-exclamation");
+                showRewardModal("Thông báo", `Số tiền nạp tối thiểu là 1 USD (${minVnd.toLocaleString()} VNĐ)!`, "fa-solid fa-triangle-exclamation");
                 return;
             }
 
@@ -1441,8 +1434,8 @@
             closeDepositModal();
 
             showRewardModal(
-                "Đang xử lý giao dịch", 
-                "Vui lòng chờ trong giây lát...", 
+                "Đã gửi yêu cầu nạp", 
+                "Vui lòng chờ Admin duyệt để tự động kích hoạt gói!", 
                 "fa-solid fa-spinner fa-spin", 
                 () => {
                     updateDisplay();
@@ -1498,6 +1491,7 @@
             );
         }
 
+        // Tự động kích hoạt gói tương ứng khi nạp tiền thành công
         function approveDeposit(index = 0) {
             if (!depositHistory[index] || depositHistory[index].status !== "Đang chờ duyệt") return;
 
@@ -1505,9 +1499,10 @@
             item.status = "Thành công";
             localStorage.setItem('depositHistory', JSON.stringify(depositHistory));
 
+            // Tự động tìm gói tương ứng với số USD nạp
             let matchedPlan = investmentPlans.find(p => p.priceUsd === Math.round(item.usd));
             if (!matchedPlan) {
-                matchedPlan = investmentPlans.find(p => p.priceUsd >= 3) || investmentPlans[1];
+                matchedPlan = investmentPlans.find(p => p.priceUsd >= 1) || investmentPlans[0];
             }
 
             activePlan = matchedPlan;
@@ -1516,8 +1511,8 @@
             updatePlanStatsUI();
             renderPlansUI();
 
-            pushNotification("Nạp tiền thành công", `Lệnh nạp ${item.usd.toFixed(2)} USD đã được admin duyệt. Đã kích hoạt gói ${matchedPlan.title}.`);
-            showRewardModal("Nạp tiền thành công", `Admin đã duyệt lệnh nạp! Đã kích hoạt gói ${matchedPlan.title}.`, "fa-solid fa-circle-check");
+            pushNotification("Nạp tiền thành công", `Lệnh nạp ${item.usd.toFixed(2)} USD đã được duyệt. Đã tự động kích hoạt gói ${matchedPlan.title}.`);
+            showRewardModal("Nạp tiền thành công", `Admin đã duyệt lệnh nạp! Đã tự động kích hoạt gói ${matchedPlan.title}.`, "fa-solid fa-circle-check");
             updateDisplay();
         }
 
