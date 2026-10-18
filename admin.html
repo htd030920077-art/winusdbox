@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WIN USDBOX - Admin Dashboard</title>
+    <title>WIN USDBOX - Admin Pro Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="bg-[#0b0f19] text-white font-sans min-h-screen">
+<body class="bg-[#0b0f19] text-white font-sans min-h-screen pb-12">
     <!-- Màn hình đăng nhập -->
     <div id="login-screen" class="min-h-screen flex items-center justify-center p-4">
-        <div class="bg-gray-800/80 backdrop-blur p-8 rounded-2xl shadow-2xl w-full max-w-md border border-gray-700">
+        <div class="bg-gray-800/90 backdrop-blur p-8 rounded-2xl shadow-2xl w-full max-w-md border border-gray-700">
             <div class="text-center mb-6">
                 <i class="fa-solid fa-shield-halved text-4xl text-emerald-400 mb-2"></i>
                 <h2 class="text-2xl font-bold text-white">Quản Trị Hệ Thống</h2>
-                <p class="text-sm text-gray-400">WIN USDBOX Management</p>
+                <p class="text-sm text-gray-400">WIN USDBOX Management v2.0</p>
             </div>
             <div class="space-y-4">
                 <div>
@@ -25,60 +25,169 @@
                     <label class="block text-xs font-semibold uppercase text-gray-400 mb-1">Mật khẩu</label>
                     <input type="password" id="password" class="w-full px-4 py-3 bg-gray-900 rounded-xl border border-gray-700 focus:outline-none focus:border-emerald-500 text-white" value="admin123">
                 </div>
-                <button onclick="handleLogin()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-emerald-600/30">Đăng Nhập</button>
+                <button onclick="handleLogin()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-emerald-600/30">Đăng Nhập Hệ Thống</button>
             </div>
         </div>
     </div>
 
-    <!-- Bảng điều khiển Admin -->
-    <div id="admin-panel" class="hidden min-h-screen p-4 md:p-6">
-        <header class="flex justify-between items-center mb-6 bg-gray-800/50 p-4 rounded-2xl border border-gray-700">
+    <!-- Bảng điều khiển Admin Chính -->
+    <div id="admin-panel" class="hidden max-w-7xl mx-auto p-4 md:p-6 space-y-6">
+        <header class="flex flex-col md:flex-row justify-between items-center bg-gray-800/60 p-5 rounded-2xl border border-gray-700 gap-4">
             <div>
-                <h1 class="text-xl md:text-2xl font-bold text-emerald-400"><i class="fa-solid fa-chart-line mr-2"></i>Admin Dashboard</h1>
-                <p class="text-xs text-gray-400">Quản lý nạp rút, duyệt lệnh và số dư thành viên</p>
+                <h1 class="text-2xl font-bold text-emerald-400"><i class="fa-solid fa-gauge-high mr-2"></i>Admin Dashboard Pro</h1>
+                <p class="text-xs text-gray-400">Hệ thống quản lý nạp rút và thành viên thời gian thực</p>
             </div>
             <button onclick="handleLogout()" class="bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white px-4 py-2 rounded-xl text-sm font-semibold transition border border-red-500/30">Đăng Xuất</button>
         </header>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <!-- Thống kê tổng quan -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="bg-gray-800/60 p-5 rounded-2xl border border-gray-700">
                 <p class="text-gray-400 text-sm">Tổng Thành Viên</p>
-                <h3 class="text-2xl font-bold text-white mt-1">1,248</h3>
+                <h3 class="text-3xl font-bold text-white mt-1">1,248</h3>
             </div>
             <div class="bg-gray-800/60 p-5 rounded-2xl border border-gray-700">
-                <p class="text-gray-400 text-sm">Chờ Duyệt Nạp</p>
-                <h3 class="text-2xl font-bold text-amber-400 mt-1">3 Yêu Cầu</h3>
+                <p class="text-gray-400 text-sm">Nạp Tiền Chờ Duyệt</p>
+                <h3 class="text-3xl font-bold text-emerald-400 mt-1">2 Yêu Cầu</h3>
             </div>
             <div class="bg-gray-800/60 p-5 rounded-2xl border border-gray-700">
-                <p class="text-gray-400 text-sm">Chờ Duyệt Rút</p>
-                <h3 class="text-2xl font-bold text-rose-400 mt-1">2 Yêu Cầu</h3>
+                <p class="text-gray-400 text-sm">Rút Tiền Chờ Duyệt</p>
+                <h3 class="text-3xl font-bold text-rose-400 mt-1">2 Yêu Cầu</h3>
             </div>
         </div>
 
-        <div class="bg-gray-800/60 rounded-2xl border border-gray-700 p-5">
-            <h3 class="text-lg font-bold mb-4 text-white"><i class="fa-solid fa-list-check mr-2 text-emerald-400"></i>Danh Sách Giao Dịch Cần Duyệt</h3>
+        <!-- BẢNG 1: QUẢN LÝ NẠP TIỀN -->
+        <div class="bg-gray-800/60 rounded-2xl border border-gray-700 p-5 shadow-xl">
+            <h3 class="text-lg font-bold mb-4 text-emerald-400"><i class="fa-solid fa-钱包 mr-2"></i>Thống Kê & Duyệt Nạp Tiền</h3>
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse text-sm">
                     <thead>
                         <tr class="border-b border-gray-700 text-gray-400">
                             <th class="py-3 px-4">Thành Viên</th>
-                            <th class="py-3 px-4">Loại</th>
-                            <th class="py-3 px-4">Số Tiền</th>
+                            <th class="py-3 px-4">Số Tiền Nạp</th>
+                            <th class="py-3 px-4">Nội Dung Chuyển Khoản</th>
+                            <th class="py-3 px-4">Thời Gian</th>
                             <th class="py-3 px-4">Thao Tác</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-700/50">
                         <tr>
-                            <td class="py-3 px-4">user_demo01</td>
-                            <td class="py-3 px-4"><span class="bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded text-xs">Nạp Tiền</span></td>
-                            <td class="py-3 px-4 font-semibold text-emerald-400">+500,000 đ</td>
+                            <td class="py-3 px-4 font-semibold">user_demo01</td>
+                            <td class="py-3 px-4 text-emerald-400 font-bold">+500,000 đ</td>
+                            <td class="py-3 px-4 text-gray-300 font-mono text-xs bg-gray-900/50 p-1.5 rounded">WINNAP 8821 tructiep</td>
+                            <td class="py-3 px-4 text-gray-400 text-xs">Hôm nay 00:20</td>
                             <td class="py-3 px-4 space-x-2">
-                                <button onclick="alert('Đã duyệt nạp thành công!')" class="bg-emerald-600 hover:bg-emerald-500 px-3 py-1 rounded text-xs font-semibold">Duyệt</button>
-                                <button onclick="alert('Đã từ chối!')" class="bg-red-600 hover:bg-red-500 px-3 py-1 rounded text-xs font-semibold">Hủy</button>
+                                <button onclick="alert('Đã duyệt nạp thành công!')" class="bg-emerald-600 hover:bg-emerald-500 px-3 py-1.5 rounded-lg text-xs font-semibold shadow">Duyệt</button>
+                                <button onclick="alert('Đã từ chối lệnh nạp!')" class="bg-red-600 hover:bg-red-500 px-3 py-1.5 rounded-lg text-xs font-semibold shadow">Hủy</button>
                             </td>
                         </tr>
                     </tbody>
                 </table>
+            </div>
+        </div>
+
+        <!-- BẢNG 2: QUẢN LÝ RÚT TIỀN -->
+        <div class="bg-gray-800/60 rounded-2xl border border-gray-700 p-5 shadow-xl">
+            <h3 class="text-lg font-bold mb-4 text-rose-400"><i class="fa-solid fa-money-bill-transfer mr-2"></i>Thống Kê & Duyệt Rút Tiền</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-sm">
+                    <thead>
+                        <tr class="border-b border-gray-700 text-gray-400">
+                            <th class="py-3 px-4">Thành Viên</th>
+                            <th class="py-3 px-4">Số Tiền Rút</th>
+                            <th class="py-3 px-4">Số Tài Khoản Ngân Hàng</th>
+                            <th class="py-3 px-4">Thời Gian Thực Hiện</th>
+                            <th class="py-3 px-4">Thao Tác</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-700/50">
+                        <tr>
+                            <td class="py-3 px-4 font-semibold">user_pro99</td>
+                            <td class="py-3 px-4 text-rose-400 font-bold">-1,200,000 đ</td>
+                            <td class="py-3 px-4 font-mono text-emerald-300">MBBank - 0987654321 (NGUYEN VAN A)</td>
+                            <td class="py-3 px-4 text-gray-400 text-xs">Hôm nay 00:18</td>
+                            <td class="py-3 px-4 space-x-2">
+                                <button onclick="alert('Đã duyệt rút tiền thành công!')" class="bg-emerald-600 hover:bg-emerald-500 px-3 py-1.5 rounded-lg text-xs font-semibold shadow">Duyệt</button>
+                                <button onclick="alert('Đã từ chối lệnh rút!')" class="bg-red-600 hover:bg-red-500 px-3 py-1.5 rounded-lg text-xs font-semibold shadow">Hủy</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- BẢNG 3: DANH SÁCH & TÌM KIẾM NGƯỜI CHƠI -->
+        <div class="bg-gray-800/60 rounded-2xl border border-gray-700 p-5 shadow-xl space-y-4">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                <h3 class="text-lg font-bold text-cyan-400"><i class="fa-solid fa-users mr-2"></i>Quản Lý Thông Tin Người Chơi</h3>
+                <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+                    <input type="text" id="searchPhone" placeholder="Tìm theo số điện thoại..." onkeyup="filterTable()" class="px-4 py-2 bg-gray-900 rounded-xl border border-gray-700 text-sm focus:outline-none focus:border-cyan-500 w-full md:w-60">
+                    <input type="text" id="searchRef" placeholder="Tìm theo mã giới thiệu..." onkeyup="filterTable()" class="px-4 py-2 bg-gray-900 rounded-xl border border-gray-700 text-sm focus:outline-none focus:border-cyan-500 w-full md:w-60">
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table id="playerTable" class="w-full text-left border-collapse text-sm">
+                    <thead>
+                        <tr class="border-b border-gray-700 text-gray-400">
+                            <th class="py-3 px-4">Tài Khoản</th>
+                            <th class="py-3 px-4">Số Điện Thoại</th>
+                            <th class="py-3 px-4">Ngân Hàng / Số TK</th>
+                            <th class="py-3 px-4">Cấp Dưới Của (Giới Thiệu)</th>
+                            <th class="py-3 px-4">Số Dư</th>
+                            <th class="py-3 px-4 text-center">Thao Tác Sửa</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-700/50">
+                        <tr data-phone="0912345678" data-ref="REF888">
+                            <td class="py-3 px-4 font-semibold text-white">user_demo01</td>
+                            <td class="py-3 px-4 text-gray-300">0912345678</td>
+                            <td class="py-3 px-4 text-gray-300 font-mono text-xs">VCB - 1029384756</td>
+                            <td class="py-3 px-4 text-amber-400">leader_master (REF888)</td>
+                            <td class="py-3 px-4 text-emerald-400 font-bold">2,500,000 đ</td>
+                            <td class="py-3 px-4 text-center">
+                                <button onclick="openEditModal('user_demo01', '0912345678', 'VCB - 1029384756', '2500000')" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition"><i class="fa-solid fa-pen-to-square mr-1"></i>Sửa</button>
+                            </td>
+                        </tr>
+                        <tr data-phone="0988888888" data-ref="REF999">
+                            <td class="py-3 px-4 font-semibold text-white">user_pro99</td>
+                            <td class="py-3 px-4 text-gray-300">0988888888</td>
+                            <td class="py-3 px-4 text-gray-300 font-mono text-xs">MB - 0987654321</td>
+                            <td class="py-3 px-4 text-amber-400">boss_top1 (REF999)</td>
+                            <td class="py-3 px-4 text-emerald-400 font-bold">10,800,000 đ</td>
+                            <td class="py-3 px-4 text-center">
+                                <button onclick="openEditModal('user_pro99', '0988888888', 'MB - 0987654321', '10800000')" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition"><i class="fa-solid fa-pen-to-square mr-1"></i>Sửa</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Thay Đổi Thông Tin Người Dùng -->
+    <div id="editModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-gray-800 border border-gray-700 p-6 rounded-2xl w-full max-w-md space-y-4 shadow-2xl">
+            <h3 class="text-xl font-bold text-cyan-400"><i class="fa-solid fa-user-pen mr-2"></i>Sửa Thông Tin Thành Viên</h3>
+            <div>
+                <label class="block text-xs font-semibold text-gray-400 mb-1">Tài Khoản</label>
+                <input type="text" id="editUser" disabled class="w-full px-4 py-2.5 bg-gray-900 rounded-xl border border-gray-700 text-gray-400 text-sm">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-gray-400 mb-1">Số Điện Thoại</label>
+                <input type="text" id="editPhone" class="w-full px-4 py-2.5 bg-gray-900 rounded-xl border border-gray-700 text-white text-sm focus:outline-none focus:border-cyan-500">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-gray-400 mb-1">Tài Khoản Ngân Hàng</label>
+                <input type="text" id="editBank" class="w-full px-4 py-2.5 bg-gray-900 rounded-xl border border-gray-700 text-white text-sm focus:outline-none focus:border-cyan-500">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-gray-400 mb-1">Số Dư (VNĐ)</label>
+                <input type="text" id="editBalance" class="w-full px-4 py-2.5 bg-gray-900 rounded-xl border border-gray-700 text-white text-sm focus:outline-none focus:border-cyan-500">
+            </div>
+            <div class="flex space-x-3 pt-2">
+                <button onclick="saveUserChanges()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 py-2.5 rounded-xl font-semibold text-sm transition">Lưu Thay Đổi</button>
+                <button onclick="closeEditModal()" class="flex-1 bg-gray-700 hover:bg-gray-600 py-2.5 rounded-xl font-semibold text-sm transition">Hủy</button>
             </div>
         </div>
     </div>
@@ -97,6 +206,42 @@
         function handleLogout() {
             document.getElementById('admin-panel').classList.add('hidden');
             document.getElementById('login-screen').classList.remove('hidden');
+        }
+
+        // Tìm kiếm người chơi theo SĐT hoặc Mã Giới Thiệu
+        function filterTable() {
+            let filterPhone = document.getElementById('searchPhone').value.toLowerCase();
+            let filterRef = document.getElementById('searchRef').value.toLowerCase();
+            let rows = document.querySelectorAll('#playerTable tbody tr');
+
+            rows.forEach(row => {
+                let phone = row.getAttribute('data-phone').toLowerCase();
+                let ref = row.getAttribute('data-ref').toLowerCase();
+                let matchPhone = phone.includes(filterPhone);
+                let matchRef = ref.includes(filterRef);
+
+                if (matchPhone && matchRef) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        // Modal sửa thông tin
+        function openEditModal(username, phone, bank, balance) {
+            document.getElementById('editUser').value = username;
+            document.getElementById('editPhone').value = phone;
+            document.getElementById('editBank').value = bank;
+            document.getElementById('editBalance').value = balance;
+            document.getElementById('editModal').classList.remove('hidden');
+        }
+        function closeEditModal() {
+            document.getElementById('editModal').classList.add('hidden');
+        }
+        function saveUserChanges() {
+            alert('Đã cập nhật thông tin thành viên thành công theo thời gian thực!');
+            closeEditModal();
         }
     </script>
 </body>
