@@ -519,6 +519,17 @@
                     </div>
 
                     <div class="space-y-2">
+                        <!-- MỤC NHẬP GIFTCODE MỚI THÊM -->
+                        <div onclick="openGiftcodeModal()" class="card-dark rounded-2xl p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/60 transition">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-[#c0f135]/10 border border-[#c0f135]/30 text-[#c0f135] flex items-center justify-center">
+                                    <i class="fa-solid fa-ticket"></i>
+                                </div>
+                                <span class="text-sm font-bold text-white">Nhập Mã Giftcode</span>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-xs text-gray-500"></i>
+                        </div>
+
                         <a href="https://t.me/winusdsupport" target="_blank" class="card-dark rounded-2xl p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/60 transition block">
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-xl bg-[#c0f135]/10 border border-[#c0f135]/30 text-[#c0f135] flex items-center justify-center">
@@ -565,6 +576,41 @@
         </main>
 
         <!-- MODALS -->
+        <!-- MODAL NHẬP GIFTCODE -->
+        <div id="giftcode-modal" class="modal-overlay absolute inset-0 bg-[#090d16]/95 z-50 flex flex-col overflow-y-auto">
+            <div class="modal-content card-dark rounded-none p-4 space-y-4 border-b border-[#c0f135]/30 w-full min-h-screen flex flex-col justify-between">
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between py-2 border-b border-gray-800">
+                        <button onclick="closeGiftcodeModal()" class="w-8 h-8 rounded-lg bg-gray-900 border border-gray-700 flex items-center justify-center text-gray-300 hover:text-white cursor-pointer">
+                            <i class="fa-solid fa-chevron-left text-sm"></i>
+                        </button>
+                        <h2 class="text-base font-bold text-[#c0f135] tracking-wide">Nhập Mã Giftcode</h2>
+                        <div class="w-8"></div>
+                    </div>
+
+                    <div class="bg-[#1a2b10] border border-[#c0f135]/30 rounded-xl p-3 text-[11px] space-y-1">
+                        <p class="text-[#c0f135] font-semibold"><i class="fa-solid fa-circle-info mr-1"></i> Hướng dẫn:</p>
+                        <p class="text-gray-300 leading-relaxed">Nhập mã quà tặng từ sự kiện hoặc từ kênh Telegram để nhận thưởng trực tiếp vào số dư ví.</p>
+                    </div>
+
+                    <div class="space-y-3 pt-2">
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-gray-200">Mã Giftcode</label>
+                            <input type="text" id="giftcode-input" placeholder="Nhập mã code của bạn..." class="w-full bg-[#121929] border border-gray-800 rounded-xl p-3 text-xs text-gray-200 focus:outline-none focus:border-[#c0f135] uppercase">
+                        </div>
+
+                        <button onclick="submitGiftcode()" class="w-full neon-btn font-extrabold py-3.5 rounded-xl text-sm shadow-lg shadow-lime-500/20 active:scale-95 transition cursor-pointer">
+                            Nhận Quà
+                        </button>
+                    </div>
+                </div>
+
+                <button onclick="closeGiftcodeModal()" class="w-full bg-gray-800 border border-gray-700 text-white font-bold py-3 rounded-xl text-xs active:scale-95 transition cursor-pointer">
+                    Đóng
+                </button>
+            </div>
+        </div>
+
         <div id="group-detail-modal" class="modal-overlay absolute inset-0 bg-[#090d16]/95 z-50 flex flex-col overflow-y-auto">
             <div class="modal-content card-dark rounded-none p-4 space-y-4 border-b border-[#c0f135]/30 w-full min-h-screen">
                 <div class="space-y-4">
@@ -869,7 +915,7 @@
         const ACCOUNT_NO = "11557000"; 
         const ACCOUNT_NAME = "WIN USDBOX";
 
-        // Danh sách các gói đầu tư (Không có gói free, bắt đầu từ gói 1 USD / 26k)
+        // Danh sách các gói đầu tư
         const investmentPlans = [
             { id: 1, priceUsd: 1, ratePerSec: 0.000002315, title: "Gói Khai Thác 1 USD (26k)", roiDays: "5 ngày" },
             { id: 2, priceUsd: 3, ratePerSec: 0.000003858, title: "Gói Khai Thác 3 USD", roiDays: "9 ngày" },
@@ -879,6 +925,16 @@
             { id: 6, priceUsd: 50, ratePerSec: 0.000057870, title: "Gói VIP 50 USD", roiDays: "10 ngày" },
             { id: 7, priceUsd: 100, ratePerSec: 0.000115740, title: "Gói VIP 100 USD", roiDays: "10 ngày" }
         ];
+
+        // Kho dữ liệu mã Giftcode mẫu (Mã code -> Số tiền USD thưởng)
+        const giftcodeDatabase = {
+            "WIN2026": 1.00,
+            "VIP5U": 5.00,
+            "FREE10K": 0.38, // tương đương ~10k vnđ
+            "WELCOME": 0.50
+        };
+        // Lưu trữ các code người dùng đã nhập thành công để chống nhập lại
+        let usedGiftcodes = JSON.parse(localStorage.getItem('usedGiftcodes')) || [];
 
         const inviteTasksList = [
             { id: 1, reqF1: 5, rewardVnd: 20000, title: "Mời 5 bạn F1 nạp tiền" },
@@ -902,7 +958,6 @@
         let totalF3CommissionUsd = parseFloat(localStorage.getItem('totalF3CommissionUsd')) || 0.00;
         let totalGroupSalesVnd = parseFloat(localStorage.getItem('totalGroupSalesVnd')) || 0;
 
-        // Mặc định tài khoản mới chưa có gói nào chạy (activePlanId = 0)
         let activePlanId = parseInt(localStorage.getItem('activePlanId')) || 0;
         let activePlan = investmentPlans.find(p => p.id === activePlanId) || { id: 0, priceUsd: 0, ratePerSec: 0, title: "Chưa kích hoạt", roiDays: "-" };
 
@@ -951,6 +1006,57 @@
                 "NHÓM ĐANG ĐƯỢC PHÁT TRIỂN", 
                 "fa-solid fa-code"
             );
+        }
+
+        // HÀM QUẢN LÝ GIFTCODE
+        function openGiftcodeModal() {
+            document.getElementById('giftcode-input').value = '';
+            openModal('giftcode-modal');
+        }
+        function closeGiftcodeModal() { closeModal('giftcode-modal'); }
+
+        function submitGiftcode() {
+            const codeInput = document.getElementById('giftcode-input').value.trim().toUpperCase();
+            if (!codeInput) {
+                showRewardModal("Thông báo", "Vui lòng nhập mã Giftcode!", "fa-solid fa-triangle-exclamation");
+                return;
+            }
+
+            // Kiểm tra xem code có tồn tại trong hệ thống không
+            if (giftcodeDatabase.hasOwnProperty(codeInput)) {
+                // Kiểm tra xem user đã dùng code này chưa
+                if (usedGiftcodes.includes(codeInput)) {
+                    showRewardModal("Thông báo", "Mã Giftcode này đã được sử dụng trước đó!", "fa-solid fa-triangle-exclamation");
+                    return;
+                }
+
+                const rewardAmountUsd = giftcodeDatabase[codeInput];
+                const rewardVnd = Math.round(rewardAmountUsd * USD_TO_VND);
+
+                // Cộng tiền vào số dư ví
+                availableBalance += rewardAmountUsd;
+                totalClaimed += rewardAmountUsd;
+                usedGiftcodes.push(codeInput);
+
+                localStorage.setItem('usedGiftcodes', JSON.stringify(usedGiftcodes));
+                saveUserGroupData();
+                updateDisplay();
+                closeGiftcodeModal();
+
+                // Hiển thị thông báo thành công đúng yêu cầu
+                showRewardModal(
+                    "NHẬP CODE THÀNH CÔNG", 
+                    `Nhận thành công +$${rewardAmountUsd.toFixed(2)} USD (~${rewardVnd.toLocaleString()} VNĐ) từ mã ${codeInput}!`, 
+                    "fa-solid fa-circle-check"
+                );
+            } else {
+                // Trường hợp code không tồn tại đúng yêu cầu
+                showRewardModal(
+                    "Lỗi Giftcode", 
+                    "CODE KHÔNG TỒN TẠI", 
+                    "fa-solid fa-triangle-exclamation"
+                );
+            }
         }
 
         function openNotificationModal() {
@@ -1421,7 +1527,7 @@
 
         function submitDeposit() {
             const vndVal = parseFloat(document.getElementById('deposit-vnd-input').value) || 0;
-            const minVnd = 26000; // Mức nạp tối thiểu 26k (1 USD)
+            const minVnd = 26000;
 
             if (vndVal < minVnd) {
                 showRewardModal("Thông báo", `Số tiền nạp tối thiểu là 26.000 VNĐ (1 USD)!`, "fa-solid fa-triangle-exclamation");
@@ -1500,7 +1606,6 @@
             );
         }
 
-        // Tự động kích hoạt gói tương ứng khi Admin duyệt nạp thành công
         function approveDeposit(index = 0) {
             if (!depositHistory[index] || depositHistory[index].status !== "Đang chờ duyệt") return;
 
