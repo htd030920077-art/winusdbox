@@ -288,12 +288,10 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-3 pt-1">
-                    <button onclick="openDepositModal()" class="neon-btn font-extrabold py-3.5 rounded-2xl text-sm flex items-center justify-center gap-2 shadow-lg shadow-lime-500/20 transition active:scale-95 cursor-pointer">
-                        <i class="fa-solid fa-arrow-up-from-bracket"></i> Nạp tiền VND
-                    </button>
-                    <button onclick="openWithdrawModal()" class="bg-gray-800 border border-[#c0f135]/40 text-[#c0f135] font-extrabold py-3.5 rounded-2xl text-sm flex items-center justify-center gap-2 shadow-lg transition active:scale-95 cursor-pointer hover:bg-gray-700">
-                        <i class="fa-solid fa-arrow-down-to-bracket"></i> Rút tiền
+                <!-- Đã xóa nút nạp tiền VND ở trang chủ, nút rút tiền mở rộng toàn bộ -->
+                <div class="pt-1">
+                    <button onclick="openWithdrawModal()" class="w-full bg-gray-800 border border-[#c0f135]/40 text-[#c0f135] font-extrabold py-3.5 rounded-2xl text-sm flex items-center justify-center gap-2 shadow-lg transition active:scale-95 cursor-pointer hover:bg-gray-700">
+                        <i class="fa-solid fa-arrow-down-to-bracket"></i> Rút tiền về ngân hàng
                     </button>
                 </div>
 
@@ -472,15 +470,7 @@
                         <i class="fa-solid fa-wallet text-[#c0f135]"></i>
                         <span>Quản Lý Số Dư</span>
                     </div>
-                    <div onclick="openDepositModal()" class="card-dark rounded-2xl p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/60 transition">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-[#c0f135]/10 border border-[#c0f135]/30 text-[#c0f135] flex items-center justify-center">
-                                <i class="fa-solid fa-arrow-up-from-bracket"></i>
-                            </div>
-                            <span class="text-sm font-bold text-white">Nạp Tiền VND</span>
-                        </div>
-                        <i class="fa-solid fa-chevron-right text-xs text-gray-500"></i>
-                    </div>
+                    <!-- Đã xóa mục Nạp Tiền VND ở phần Tôi -->
                     <div onclick="openWithdrawModal()" class="card-dark rounded-2xl p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/60 transition">
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 rounded-xl bg-[#c0f135]/10 border border-[#c0f135]/30 text-[#c0f135] flex items-center justify-center">
@@ -519,7 +509,6 @@
                     </div>
 
                     <div class="space-y-2">
-                        <!-- MỤC NHẬP GIFTCODE MỚI THÊM -->
                         <div onclick="openGiftcodeModal()" class="card-dark rounded-2xl p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/60 transition">
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-xl bg-[#c0f135]/10 border border-[#c0f135]/30 text-[#c0f135] flex items-center justify-center">
@@ -722,7 +711,7 @@
                     <button onclick="closeDepositModal()" class="w-8 h-8 rounded-lg bg-gray-900 border border-gray-700 flex items-center justify-center text-gray-300 hover:text-white cursor-pointer">
                         <i class="fa-solid fa-chevron-left text-sm"></i>
                     </button>
-                    <h2 class="text-base font-bold text-[#c0f135] tracking-wide">Nạp tiền VND</h2>
+                    <h2 class="text-base font-bold text-[#c0f135] tracking-wide">Nạp tiền kích hoạt gói</h2>
                     <button onclick="openDepositHistoryModal()" class="text-xs bg-gray-900 border border-[#c0f135]/30 text-[#c0f135] px-2.5 py-1.5 rounded-lg flex items-center gap-1 cursor-pointer">
                         <i class="fa-solid fa-clock-rotate-left"></i> Lịch sử
                     </button>
@@ -730,22 +719,13 @@
                 
                 <div class="bg-[#1a2b10] border border-[#c0f135]/30 rounded-xl p-3 text-[11px] flex justify-between items-center">
                     <span class="text-[#c0f135] font-semibold"><i class="fa-solid fa-circle-info mr-1"></i> Tỷ giá quy đổi:</span>
-                    <span class="font-bold text-white">1 USD = 26.000 VNĐ (Min: 26.000 VNĐ / 1$)</span>
+                    <span class="font-bold text-white">1 USD = 26.000 VNĐ</span>
                 </div>
 
                 <div class="space-y-3">
-                    <label class="text-xs font-bold text-gray-200">Nhập số tiền nạp (VNĐ)</label>
-                    <input type="number" id="deposit-vnd-input" oninput="calculateDeposit()" placeholder="VD: 26000" class="w-full bg-[#121929] border border-gray-800 rounded-xl p-3 text-xs text-gray-200 focus:outline-none focus:border-[#c0f135]">
+                    <label class="text-xs font-bold text-gray-200">Số tiền nạp (VNĐ)</label>
+                    <input type="number" id="deposit-vnd-input" readonly class="w-full bg-[#121929] border border-gray-800 rounded-xl p-3 text-xs text-gray-200 focus:outline-none">
                     <p id="deposit-calc-text" class="text-[11px] text-gray-400">Quy đổi nhận được: <span class="neon-text font-bold">0.00 U</span></p>
-
-                    <div class="grid grid-cols-3 gap-2 pt-1">
-                        <button onclick="setDepositAmount(26000)" class="bg-gray-900 hover:bg-gray-800 border border-gray-800 text-[#c0f135] py-2 rounded-xl text-xs font-bold transition cursor-pointer">26K ($1)</button>
-                        <button onclick="setDepositAmount(78000)" class="bg-gray-900 hover:bg-gray-800 border border-gray-800 text-gray-300 py-2 rounded-xl text-xs font-semibold transition cursor-pointer">78K ($3)</button>
-                        <button onclick="setDepositAmount(182000)" class="bg-gray-900 hover:bg-gray-800 border border-gray-800 text-gray-300 py-2 rounded-xl text-xs font-semibold transition cursor-pointer">182K ($7)</button>
-                        <button onclick="setDepositAmount(390000)" class="bg-gray-900 hover:bg-gray-800 border border-gray-800 text-gray-300 py-2 rounded-xl text-xs font-semibold transition cursor-pointer">390K ($15)</button>
-                        <button onclick="setDepositAmount(520000)" class="bg-gray-900 hover:bg-gray-800 border border-gray-800 text-gray-300 py-2 rounded-xl text-xs font-semibold transition cursor-pointer">520K ($20)</button>
-                        <button onclick="setDepositAmount(1300000)" class="bg-gray-900 hover:bg-gray-800 border border-gray-800 text-[#c0f135] py-2 rounded-xl text-xs font-bold transition cursor-pointer">1.3M ($50)</button>
-                    </div>
 
                     <div class="space-y-3">
                         <div class="flex flex-col items-center justify-center bg-white p-3 rounded-2xl shadow-inner">
@@ -926,14 +906,11 @@
             { id: 7, priceUsd: 100, ratePerSec: 0.000115740, title: "Gói VIP 100 USD", roiDays: "10 ngày" }
         ];
 
-        // Kho dữ liệu mã Giftcode mẫu (Mã code -> Số tiền USD thưởng)
-        const giftcodeDatabase = {
-            "WIN2026": 1.00,
-            "VIP5U": 5.00,
-            "FREE10K": 0.38, // tương đương ~10k vnđ
-            "WELCOME": 0.50
+        // Đồng bộ trực tiếp dữ liệu giftcode từ localStorage do Admin tạo
+        let giftcodeDatabase = JSON.parse(localStorage.getItem('giftcodeDatabase')) || {
+            "WIN2026": { usd: 1.00, limit: 100, usedCount: 0 },
+            "VIP5U": { usd: 5.00, limit: 10, usedCount: 0 }
         };
-        // Lưu trữ các code người dùng đã nhập thành công để chống nhập lại
         let usedGiftcodes = JSON.parse(localStorage.getItem('usedGiftcodes')) || [];
 
         const inviteTasksList = [
@@ -1008,7 +985,7 @@
             );
         }
 
-        // HÀM QUẢN LÝ GIFTCODE
+        // HÀM QUẢN LÝ GIFTCODE (ĐỒNG BỘ VỚI ADMIN & KIỂM TRA GIỚI HẠN)
         function openGiftcodeModal() {
             document.getElementById('giftcode-input').value = '';
             openModal('giftcode-modal');
@@ -1022,18 +999,27 @@
                 return;
             }
 
-            // Kiểm tra xem code có tồn tại trong hệ thống không
+            giftcodeDatabase = JSON.parse(localStorage.getItem('giftcodeDatabase')) || giftcodeDatabase;
+
             if (giftcodeDatabase.hasOwnProperty(codeInput)) {
-                // Kiểm tra xem user đã dùng code này chưa
+                let codeData = giftcodeDatabase[codeInput];
+
                 if (usedGiftcodes.includes(codeInput)) {
                     showRewardModal("Thông báo", "Mã Giftcode này đã được sử dụng trước đó!", "fa-solid fa-triangle-exclamation");
                     return;
                 }
 
-                const rewardAmountUsd = giftcodeDatabase[codeInput];
+                if (codeData.usedCount >= codeData.limit) {
+                    showRewardModal("Lỗi Giftcode", "Mã code này đã hết lượt sử dụng!", "fa-solid fa-triangle-exclamation");
+                    return;
+                }
+
+                const rewardAmountUsd = codeData.usd;
                 const rewardVnd = Math.round(rewardAmountUsd * USD_TO_VND);
 
-                // Cộng tiền vào số dư ví
+                codeData.usedCount++;
+                localStorage.setItem('giftcodeDatabase', JSON.stringify(giftcodeDatabase));
+
                 availableBalance += rewardAmountUsd;
                 totalClaimed += rewardAmountUsd;
                 usedGiftcodes.push(codeInput);
@@ -1043,14 +1029,12 @@
                 updateDisplay();
                 closeGiftcodeModal();
 
-                // Hiển thị thông báo thành công đúng yêu cầu
                 showRewardModal(
                     "NHẬP CODE THÀNH CÔNG", 
                     `Nhận thành công +$${rewardAmountUsd.toFixed(2)} USD (~${rewardVnd.toLocaleString()} VNĐ) từ mã ${codeInput}!`, 
                     "fa-solid fa-circle-check"
                 );
             } else {
-                // Trường hợp code không tồn tại đúng yêu cầu
                 showRewardModal(
                     "Lỗi Giftcode", 
                     "CODE KHÔNG TỒN TẠI", 
@@ -1216,9 +1200,6 @@
 
         function openDepositModal() { 
             document.getElementById('deposit-modal').classList.add('active');
-            generateNewDepositMemo();
-            document.getElementById('deposit-vnd-input').value = '26000';
-            calculateDeposit();
         }
         function closeDepositModal() { closeModal('deposit-modal'); }
 
@@ -1361,8 +1342,12 @@
 
             pendingPlanToActivate = found;
             const vndPrice = found.priceUsd * USD_TO_VND;
-            openDepositModal();
-            setDepositAmount(vndPrice);
+            
+            document.getElementById('deposit-vnd-input').value = vndPrice;
+            generateNewDepositMemo();
+            calculateDeposit();
+            openModal('deposit-modal');
+
             showRewardModal("Nạp tiền kích hoạt gói", `Thanh toán ${vndPrice.toLocaleString()} VNĐ (${found.priceUsd} USD) để kích hoạt ngay ${found.title}!`, "fa-solid fa-credit-card");
         }
 
@@ -1520,11 +1505,6 @@
             }
         }
 
-        function setDepositAmount(amount) {
-            document.getElementById('deposit-vnd-input').value = amount;
-            calculateDeposit();
-        }
-
         function submitDeposit() {
             const vndVal = parseFloat(document.getElementById('deposit-vnd-input').value) || 0;
             const minVnd = 26000;
@@ -1535,6 +1515,7 @@
             }
 
             const usdVal = vndVal / USD_TO_VND;
+            const memo = document.getElementById('deposit-memo').innerText;
             const now = new Date();
             const timeString = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} - ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
@@ -1542,6 +1523,7 @@
                 time: timeString, 
                 vnd: vndVal, 
                 usd: usdVal, 
+                memo: memo,
                 status: "Đang chờ duyệt" 
             });
             localStorage.setItem('depositHistory', JSON.stringify(depositHistory));
@@ -1604,49 +1586,6 @@
                     updateDisplay();
                 }
             );
-        }
-
-        function approveDeposit(index = 0) {
-            if (!depositHistory[index] || depositHistory[index].status !== "Đang chờ duyệt") return;
-
-            const item = depositHistory[index];
-            item.status = "Thành công";
-            localStorage.setItem('depositHistory', JSON.stringify(depositHistory));
-
-            let matchedPlan = investmentPlans.find(p => p.priceUsd === Math.round(item.usd));
-            if (!matchedPlan) {
-                matchedPlan = investmentPlans.find(p => p.priceUsd >= 1) || investmentPlans[0];
-            }
-
-            activePlan = matchedPlan;
-            activePlanId = matchedPlan.id;
-            localStorage.setItem('activePlanId', activePlanId);
-            updatePlanStatsUI();
-            renderPlansUI();
-
-            pushNotification("Nạp tiền thành công", `Lệnh nạp ${item.usd.toFixed(2)} USD đã được duyệt. Đã tự động kích hoạt gói ${matchedPlan.title}.`);
-            showRewardModal("Nạp tiền thành công", `Admin đã duyệt lệnh nạp! Đã tự động kích hoạt gói ${matchedPlan.title}.`, "fa-solid fa-circle-check");
-            updateDisplay();
-        }
-
-        function approveWithdraw(index = 0) {
-            if (!withdrawHistory[index] || withdrawHistory[index].status !== "Đang chờ duyệt") return;
-
-            const item = withdrawHistory[index];
-            if (availableBalance < item.amount) {
-                showRewardModal("Lỗi duyệt lệnh", "Số dư khả dụng của người dùng không đủ để duyệt lệnh rút này!", "fa-solid fa-triangle-exclamation");
-                return;
-            }
-
-            item.status = "Thành công";
-            localStorage.setItem('withdrawHistory', JSON.stringify(withdrawHistory));
-
-            availableBalance -= item.amount;
-            saveUserGroupData();
-
-            pushNotification("Rút tiền thành công", `Lệnh rút ${item.amount.toFixed(2)} USD đã được admin duyệt chuyển về ngân hàng ${item.bank}.`);
-            showRewardModal("Rút tiền thành công", `Đã duyệt lệnh rút ${item.amount.toFixed(2)} USD về tài khoản ngân hàng!`, "fa-solid fa-circle-check");
-            updateDisplay();
         }
 
         function renderDepositHistoryList() {
