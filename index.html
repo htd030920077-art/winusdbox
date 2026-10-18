@@ -125,6 +125,12 @@
                         <p class="text-xs text-gray-400">Đã có tài khoản? <span onclick="switchAuthMode('login')" class="neon-text font-bold cursor-pointer hover:underline">Đăng nhập</span></p>
                     </div>
                 </div>
+
+                <div class="pt-2 border-t border-gray-800">
+                    <a href="https://t.me/winusdsupport" target="_blank" class="w-full bg-[#121929] hover:bg-gray-800 border border-[#c0f135]/30 text-sky-400 font-bold py-3 rounded-xl text-xs flex items-center justify-center gap-2 transition">
+                        <i class="fa-brands fa-telegram text-base"></i> Liên hệ Hỗ Trợ Telegram 24/7
+                    </a>
+                </div>
             </div>
         </div>
 
@@ -137,12 +143,17 @@
                 <span class="font-black text-sm tracking-wider text-white">WINUSDBOX</span>
             </div>
             
-            <div class="relative">
-                <button onclick="openNotificationModal()" class="w-10 h-10 rounded-xl bg-gray-900 border border-gray-800 flex items-center justify-center text-gray-300 hover:text-white transition relative cursor-pointer">
-                    <i class="fa-solid fa-bell text-sm"></i>
-                    <span id="notif-badge" class="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full hidden"></span>
-                    <span id="notif-badge-solid" class="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full hidden"></span>
-                </button>
+            <div class="flex items-center gap-2">
+                <a href="https://t.me/winusdsupport" target="_blank" class="px-2.5 py-1.5 rounded-xl bg-sky-950/60 border border-sky-500/30 text-sky-400 text-xs font-semibold flex items-center gap-1.5 hover:bg-sky-900/60 transition">
+                    <i class="fa-brands fa-telegram"></i> <span>Hỗ trợ</span>
+                </a>
+                <div class="relative">
+                    <button onclick="openNotificationModal()" class="w-10 h-10 rounded-xl bg-gray-900 border border-gray-800 flex items-center justify-center text-gray-300 hover:text-white transition relative cursor-pointer">
+                        <i class="fa-solid fa-bell text-sm"></i>
+                        <span id="notif-badge" class="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full hidden"></span>
+                        <span id="notif-badge-solid" class="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full hidden"></span>
+                    </button>
+                </div>
             </div>
         </header>
 
