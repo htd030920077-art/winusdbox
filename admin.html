@@ -27,11 +27,11 @@
             <button onclick="handleLogout()" class="bg-red-600/20 hover:bg-red-600/40 text-red-400 px-4 py-2 rounded-xl text-sm font-semibold transition">Đăng Xuất</button>
         </header>
 
-        <!-- Tìm kiếm player & Quản lý -->
+        <!-- Tra cứu thành viên -->
         <div class="bg-gray-800/60 rounded-2xl border border-gray-700 p-5 space-y-4">
             <h3 class="text-lg font-bold text-cyan-400"><i class="fa-solid fa-magnifying-glass mr-2"></i>Tra Cứu Thành Viên</h3>
             <div class="flex gap-3">
-                <input type="text" id="search-input" placeholder="Nhập ID hoặc Tên tài khoản..." class="flex-1 px-4 py-2 bg-gray-900 rounded-xl border border-gray-700 text-sm">
+                <input type="text" id="search-input" placeholder="Nhập ID Cố Định hoặc Tên tài khoản..." class="flex-1 px-4 py-2 bg-gray-900 rounded-xl border border-gray-700 text-sm">
                 <button onclick="searchPlayer()" class="bg-cyan-600 hover:bg-cyan-500 px-6 py-2 rounded-xl font-bold text-sm transition">Tìm Kiếm</button>
             </div>
             <div id="search-result" class="text-sm text-gray-300"></div>
@@ -79,7 +79,7 @@
             </div>
         </div>
 
-        <!-- Lịch sử giao dịch đã duyệt -->
+        <!-- Lịch sử giao dịch -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="bg-gray-800/60 rounded-2xl border border-gray-700 p-5">
                 <h3 class="text-md font-bold mb-3 text-emerald-300">Lịch Sử Nạp Tiền</h3>
@@ -119,7 +119,7 @@
         function handleLogout() { location.reload(); }
 
         function initAdminRealtime() {
-            // Lắng nghe nạp tiền chờ duyệt
+            // Nạp tiền chờ duyệt
             db.ref('transactions/nap_pending').on('value', snap => {
                 let tbody = document.getElementById('table-nap-pending');
                 tbody.innerHTML = '';
@@ -128,13 +128,13 @@
                     Object.keys(data).forEach(key => {
                         let item = data[key];
                         tbody.innerHTML += `<tr class="border-b border-gray-700/50">
-                            <td class="py-3 px-4 font-bold text-white">${item.username}</td>
+                            <td class="py-3 px-4 font-bold text-white">${item.username} <br><span class="text-xs text-cyan-400 font-mono">(${item.fixedID || 'N/A'})</span></td>
                             <td class="py-3 px-4 text-emerald-400 font-semibold">+${item.amount.toLocaleString()} đ</td>
                             <td class="py-3 px-4 text-gray-300">${item.content}</td>
                             <td class="py-3 px-4 text-xs text-gray-400">${item.time}</td>
                             <td class="py-3 px-4 space-x-2">
-                                <button onclick="processTransaction('nap', '${key}', true, ${item.amount}, '${item.username}')" class="bg-emerald-600 hover:bg-emerald-500 px-3 py-1 rounded text-xs font-bold transition">Duyệt</button>
-                                <button onclick="processTransaction('nap', '${key}', false, 0, '${item.username}')" class="bg-red-600 hover:bg-red-500 px-3 py-1 rounded text-xs font-bold transition">Hủy</button>
+                                <button onclick="processTransaction('nap', '${key}', true)" class="bg-emerald-600 hover:bg-emerald-500 px-3 py-1 rounded text-xs font-bold transition">Duyệt</button>
+                                <button onclick="processTransaction('nap', '${key}', false)" class="bg-red-600 hover:bg-red-500 px-3 py-1 rounded text-xs font-bold transition">Hủy</button>
                             </td>
                         </tr>`;
                     });
@@ -143,7 +143,7 @@
                 }
             });
 
-            // Lắng nghe rút tiền chờ duyệt
+            // Rút tiền chờ duyệt
             db.ref('transactions/rut_pending').on('value', snap => {
                 let tbody = document.getElementById('table-rut-pending');
                 tbody.innerHTML = '';
@@ -152,13 +152,13 @@
                     Object.keys(data).forEach(key => {
                         let item = data[key];
                         tbody.innerHTML += `<tr class="border-b border-gray-700/50">
-                            <td class="py-3 px-4 font-bold text-white">${item.username}</td>
+                            <td class="py-3 px-4 font-bold text-white">${item.username} <br><span class="text-xs text-cyan-400 font-mono">(${item.fixedID || 'N/A'})</span></td>
                             <td class="py-3 px-4 text-rose-400 font-semibold">-${item.amount.toLocaleString()} đ</td>
                             <td class="py-3 px-4 text-cyan-300 font-mono">${item.bankInfo}</td>
                             <td class="py-3 px-4 text-xs text-gray-400">${item.time}</td>
                             <td class="py-3 px-4 space-x-2">
-                                <button onclick="processTransaction('rut', '${key}', true, ${item.amount}, '${item.username}')" class="bg-emerald-600 hover:bg-emerald-500 px-3 py-1 rounded text-xs font-bold transition">Duyệt</button>
-                                <button onclick="processTransaction('rut', '${key}', false, 0, '${item.username}')" class="bg-red-600 hover:bg-red-500 px-3 py-1 rounded text-xs font-bold transition">Hủy</button>
+                                <button onclick="processTransaction('rut', '${key}', true)" class="bg-emerald-600 hover:bg-emerald-500 px-3 py-1 rounded text-xs font-bold transition">Duyệt</button>
+                                <button onclick="processTransaction('rut', '${key}', false)" class="bg-red-600 hover:bg-red-500 px-3 py-1 rounded text-xs font-bold transition">Hủy</button>
                             </td>
                         </tr>`;
                     });
@@ -177,7 +177,7 @@
                     Object.values(data).forEach(item => {
                         let row = `<div class="bg-gray-900/60 p-2 rounded-lg flex justify-between items-center">
                             <span><b>${item.username}</b> - ${item.type === 'nap' ? 'Nạp' : 'Rút'}: ${item.amount.toLocaleString()}đ</span>
-                            <span class="text-emerald-400">${item.status}</span>
+                            <span class="${item.status === 'Thành công' ? 'text-emerald-400' : 'text-red-400'}">${item.status}</span>
                         </div>`;
                         if(item.type === 'nap') hNap.innerHTML += row;
                         else hRut.innerHTML += row;
@@ -189,7 +189,7 @@
             });
         }
 
-        function processTransaction(type, key, isSuccess, amount, username) {
+        function processTransaction(type, key, isSuccess) {
             let path = type === 'nap' ? `transactions/nap_pending/${key}` : `transactions/rut_pending/${key}`;
             db.ref(path).once('value', snap => {
                 let val = snap.val();
@@ -210,7 +210,7 @@
             let query = document.getElementById('search-input').value.trim();
             let resBox = document.getElementById('search-result');
             if(!query) { resBox.innerHTML = '<span class="text-red-400">Vui lòng nhập từ khóa tìm kiếm!</span>'; return; }
-            resBox.innerHTML = `<div class="p-3 bg-gray-900 rounded-xl">Đã tìm thấy thông tin thành viên khớp với: <b>${query}</b> (Trạng thái: Hoạt động bình thường)</div>`;
+            resBox.innerHTML = `<div class="p-3 bg-gray-900 rounded-xl">Thông tin thành viên khớp với từ khóa <b>${query}</b>: <span class="text-emerald-400">Đang hoạt động</span></div>`;
         }
     </script>
 </body>
