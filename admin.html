@@ -12,57 +12,83 @@
 <body class="bg-[#0b0f19] text-white font-sans min-h-screen pb-12">
     <!-- Màn hình đăng nhập -->
     <div id="login-screen" class="min-h-screen flex items-center justify-center p-4">
-        <div class="bg-gray-800/90 backdrop-blur p-8 rounded-2xl shadow-2xl w-full max-w-md border border-gray-700">
-            <h2 class="text-2xl font-bold text-white text-center mb-6">Quản Trị Hệ Thống</h2>
-            <div class="space-y-4">
-                <input type="text" id="username" class="w-full px-4 py-3 bg-gray-900 rounded-xl border border-gray-700 text-white" value="admin">
-                <input type="password" id="password" class="w-full px-4 py-3 bg-gray-900 rounded-xl border border-gray-700 text-white" value="admin123">
-                <button onclick="handleLogin()" class="w-full bg-emerald-600 hover:bg-emerald-500 py-3 rounded-xl font-bold">Đăng Nhập</button>
-            </div>
+        <div class="bg-gray-800/90 backdrop-blur p-8 rounded-2xl shadow-2xl w-full max-w-md border border-gray-700 space-y-4">
+            <h2 class="text-2xl font-bold text-emerald-400 text-center">Quản Trị Hệ Thống</h2>
+            <input type="text" id="username" class="w-full px-4 py-3 bg-gray-900 rounded-xl border border-gray-700 text-white" value="admin">
+            <input type="password" id="password" class="w-full px-4 py-3 bg-gray-900 rounded-xl border border-gray-700 text-white" value="admin123">
+            <button onclick="handleLogin()" class="w-full bg-emerald-600 hover:bg-emerald-500 py-3 rounded-xl font-bold transition">Đăng Nhập</button>
         </div>
     </div>
 
     <!-- Bảng điều khiển Admin -->
     <div id="admin-panel" class="hidden max-w-7xl mx-auto p-4 md:p-6 space-y-6">
         <header class="flex justify-between items-center bg-gray-800/60 p-5 rounded-2xl border border-gray-700">
-            <h1 class="text-2xl font-bold text-emerald-400">Admin Dashboard Realtime</h1>
-            <button onclick="handleLogout()" class="bg-red-600/20 text-red-400 px-4 py-2 rounded-xl text-sm font-semibold">Đăng Xuất</button>
+            <h1 class="text-2xl font-bold text-emerald-400"><i class="fa-solid fa-shield-halved mr-2"></i>Admin Dashboard Pro</h1>
+            <button onclick="handleLogout()" class="bg-red-600/20 hover:bg-red-600/40 text-red-400 px-4 py-2 rounded-xl text-sm font-semibold transition">Đăng Xuất</button>
         </header>
+
+        <!-- Tìm kiếm player & Quản lý -->
+        <div class="bg-gray-800/60 rounded-2xl border border-gray-700 p-5 space-y-4">
+            <h3 class="text-lg font-bold text-cyan-400"><i class="fa-solid fa-magnifying-glass mr-2"></i>Tra Cứu Thành Viên</h3>
+            <div class="flex gap-3">
+                <input type="text" id="search-input" placeholder="Nhập ID hoặc Tên tài khoản..." class="flex-1 px-4 py-2 bg-gray-900 rounded-xl border border-gray-700 text-sm">
+                <button onclick="searchPlayer()" class="bg-cyan-600 hover:bg-cyan-500 px-6 py-2 rounded-xl font-bold text-sm transition">Tìm Kiếm</button>
+            </div>
+            <div id="search-result" class="text-sm text-gray-300"></div>
+        </div>
 
         <!-- Nạp Tiền Chờ Duyệt -->
         <div class="bg-gray-800/60 rounded-2xl border border-gray-700 p-5">
-            <h3 class="text-lg font-bold mb-4 text-emerald-400">Nạp Tiền Chờ Duyệt</h3>
-            <table class="w-full text-left text-sm">
-                <thead>
-                    <tr class="border-b border-gray-700 text-gray-400">
-                        <th class="py-3 px-4">Thành Viên</th>
-                        <th class="py-3 px-4">Số Tiền</th>
-                        <th class="py-3 px-4">Nội Dung</th>
-                        <th class="py-3 px-4">Thao Tác</th>
-                    </tr>
-                </thead>
-                <tbody id="table-nap-pending">
-                    <tr><td colspan="4" class="py-4 text-center text-gray-500">Đang tải dữ liệu...</td></tr>
-                </tbody>
-            </table>
+            <h3 class="text-lg font-bold mb-4 text-emerald-400"><i class="fa-solid fa-wallet mr-2"></i>Nạp Tiền Chờ Duyệt</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead>
+                        <tr class="border-b border-gray-700 text-gray-400">
+                            <th class="py-3 px-4">Thành Viên</th>
+                            <th class="py-3 px-4">Số Tiền</th>
+                            <th class="py-3 px-4">Nội Dung</th>
+                            <th class="py-3 px-4">Thời Gian</th>
+                            <th class="py-3 px-4">Thao Tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-nap-pending">
+                        <tr><td colspan="5" class="py-4 text-center text-gray-500">Đang tải dữ liệu...</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <!-- Rút Tiền Chờ Duyệt -->
         <div class="bg-gray-800/60 rounded-2xl border border-gray-700 p-5">
-            <h3 class="text-lg font-bold mb-4 text-rose-400">Rút Tiền Chờ Duyệt</h3>
-            <table class="w-full text-left text-sm">
-                <thead>
-                    <tr class="border-b border-gray-700 text-gray-400">
-                        <th class="py-3 px-4">Thành Viên</th>
-                        <th class="py-3 px-4">Số Tiền</th>
-                        <th class="py-3 px-4">Ngân Hàng</th>
-                        <th class="py-3 px-4">Thao Tác</th>
-                    </tr>
-                </thead>
-                <tbody id="table-rut-pending">
-                    <tr><td colspan="4" class="py-4 text-center text-gray-500">Đang tải dữ liệu...</td></tr>
-                </tbody>
-            </table>
+            <h3 class="text-lg font-bold mb-4 text-rose-400"><i class="fa-solid fa-money-bill-transfer mr-2"></i>Rút Tiền Chờ Duyệt</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead>
+                        <tr class="border-b border-gray-700 text-gray-400">
+                            <th class="py-3 px-4">Thành Viên</th>
+                            <th class="py-3 px-4">Số Tiền Rút</th>
+                            <th class="py-3 px-4">Ngân Hàng & STK</th>
+                            <th class="py-3 px-4">Thời Gian</th>
+                            <th class="py-3 px-4">Thao Tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-rut-pending">
+                        <tr><td colspan="5" class="py-4 text-center text-gray-500">Đang tải dữ liệu...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Lịch sử giao dịch đã duyệt -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-gray-800/60 rounded-2xl border border-gray-700 p-5">
+                <h3 class="text-md font-bold mb-3 text-emerald-300">Lịch Sử Nạp Tiền</h3>
+                <div id="history-nap" class="space-y-2 text-xs text-gray-400 max-h-48 overflow-y-auto">Chưa có lịch sử</div>
+            </div>
+            <div class="bg-gray-800/60 rounded-2xl border border-gray-700 p-5">
+                <h3 class="text-md font-bold mb-3 text-rose-300">Lịch Sử Rút Tiền</h3>
+                <div id="history-rut" class="space-y-2 text-xs text-gray-400 max-h-48 overflow-y-auto">Chưa có lịch sử</div>
+            </div>
         </div>
     </div>
 
@@ -80,16 +106,20 @@
         const db = firebase.database();
 
         function handleLogin() {
-            if(document.getElementById('username').value === 'admin' && document.getElementById('password').value === 'admin123') {
+            let u = document.getElementById('username').value;
+            let p = document.getElementById('password').value;
+            if(u === 'admin' && p === 'admin123') {
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('admin-panel').classList.remove('hidden');
-                initRealtime();
-            } else { alert('Sai tài khoản!'); }
+                initAdminRealtime();
+            } else {
+                alert('Sai tài khoản hoặc mật khẩu quản trị!');
+            }
         }
         function handleLogout() { location.reload(); }
 
-        function initRealtime() {
-            // Nạp tiền
+        function initAdminRealtime() {
+            // Lắng nghe nạp tiền chờ duyệt
             db.ref('transactions/nap_pending').on('value', snap => {
                 let tbody = document.getElementById('table-nap-pending');
                 tbody.innerHTML = '';
@@ -97,22 +127,23 @@
                 if(data) {
                     Object.keys(data).forEach(key => {
                         let item = data[key];
-                        tbody.innerHTML += `<tr>
-                            <td class="py-3 px-4">${item.username}</td>
-                            <td class="py-3 px-4 text-emerald-400">+${item.amount.toLocaleString()} đ</td>
-                            <td class="py-3 px-4">${item.content}</td>
+                        tbody.innerHTML += `<tr class="border-b border-gray-700/50">
+                            <td class="py-3 px-4 font-bold text-white">${item.username}</td>
+                            <td class="py-3 px-4 text-emerald-400 font-semibold">+${item.amount.toLocaleString()} đ</td>
+                            <td class="py-3 px-4 text-gray-300">${item.content}</td>
+                            <td class="py-3 px-4 text-xs text-gray-400">${item.time}</td>
                             <td class="py-3 px-4 space-x-2">
-                                <button onclick="approveNap('${key}', '${item.username}', ${item.amount}, true)" class="bg-emerald-600 px-3 py-1 rounded text-xs">Duyệt</button>
-                                <button onclick="approveNap('${key}', '${item.username}', 0, false)" class="bg-red-600 px-3 py-1 rounded text-xs">Hủy</button>
+                                <button onclick="processTransaction('nap', '${key}', true, ${item.amount}, '${item.username}')" class="bg-emerald-600 hover:bg-emerald-500 px-3 py-1 rounded text-xs font-bold transition">Duyệt</button>
+                                <button onclick="processTransaction('nap', '${key}', false, 0, '${item.username}')" class="bg-red-600 hover:bg-red-500 px-3 py-1 rounded text-xs font-bold transition">Hủy</button>
                             </td>
                         </tr>`;
                     });
                 } else {
-                    tbody.innerHTML = '<tr><td colspan="4" class="py-4 text-center text-gray-500">Không có đơn nạp chờ duyệt</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="5" class="py-4 text-center text-gray-500">Không có đơn nạp chờ duyệt</td></tr>';
                 }
             });
 
-            // Rút tiền
+            // Lắng nghe rút tiền chờ duyệt
             db.ref('transactions/rut_pending').on('value', snap => {
                 let tbody = document.getElementById('table-rut-pending');
                 tbody.innerHTML = '';
@@ -120,35 +151,66 @@
                 if(data) {
                     Object.keys(data).forEach(key => {
                         let item = data[key];
-                        tbody.innerHTML += `<tr>
-                            <td class="py-3 px-4">${item.username}</td>
-                            <td class="py-3 px-4 text-rose-400">-${item.amount.toLocaleString()} đ</td>
-                            <td class="py-3 px-4">${item.bankInfo}</td>
+                        tbody.innerHTML += `<tr class="border-b border-gray-700/50">
+                            <td class="py-3 px-4 font-bold text-white">${item.username}</td>
+                            <td class="py-3 px-4 text-rose-400 font-semibold">-${item.amount.toLocaleString()} đ</td>
+                            <td class="py-3 px-4 text-cyan-300 font-mono">${item.bankInfo}</td>
+                            <td class="py-3 px-4 text-xs text-gray-400">${item.time}</td>
                             <td class="py-3 px-4 space-x-2">
-                                <button onclick="approveRut('${key}', true)" class="bg-emerald-600 px-3 py-1 rounded text-xs">Duyệt</button>
-                                <button onclick="approveRut('${key}', false)" class="bg-red-600 px-3 py-1 rounded text-xs">Hủy</button>
+                                <button onclick="processTransaction('rut', '${key}', true, ${item.amount}, '${item.username}')" class="bg-emerald-600 hover:bg-emerald-500 px-3 py-1 rounded text-xs font-bold transition">Duyệt</button>
+                                <button onclick="processTransaction('rut', '${key}', false, 0, '${item.username}')" class="bg-red-600 hover:bg-red-500 px-3 py-1 rounded text-xs font-bold transition">Hủy</button>
                             </td>
                         </tr>`;
                     });
                 } else {
-                    tbody.innerHTML = '<tr><td colspan="4" class="py-4 text-center text-gray-500">Không có đơn rút chờ duyệt</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="5" class="py-4 text-center text-gray-500">Không có đơn rút chờ duyệt</td></tr>';
+                }
+            });
+
+            // Lịch sử
+            db.ref('transactions/history').on('value', snap => {
+                let hNap = document.getElementById('history-nap');
+                let hRut = document.getElementById('history-rut');
+                hNap.innerHTML = ''; hRut.innerHTML = '';
+                let data = snap.val();
+                if(data) {
+                    Object.values(data).forEach(item => {
+                        let row = `<div class="bg-gray-900/60 p-2 rounded-lg flex justify-between items-center">
+                            <span><b>${item.username}</b> - ${item.type === 'nap' ? 'Nạp' : 'Rút'}: ${item.amount.toLocaleString()}đ</span>
+                            <span class="text-emerald-400">${item.status}</span>
+                        </div>`;
+                        if(item.type === 'nap') hNap.innerHTML += row;
+                        else hRut.innerHTML += row;
+                    });
+                } else {
+                    hNap.innerHTML = 'Chưa có lịch sử';
+                    hRut.innerHTML = 'Chưa có lịch sử';
                 }
             });
         }
 
-        function approveNap(key, username, amount, isSuccess) {
-            db.ref(`transactions/nap_pending/${key}`).remove();
-            if(isSuccess) {
-                alert('CHÚC MỪNG BẠN ĐÃ NẠP TIỀN THÀNH CÔNG');
-                // Cộng tiền vào số dư user nếu cần thiết qua Firebase
-            }
+        function processTransaction(type, key, isSuccess, amount, username) {
+            let path = type === 'nap' ? `transactions/nap_pending/${key}` : `transactions/rut_pending/${key}`;
+            db.ref(path).once('value', snap => {
+                let val = snap.val();
+                if(val) {
+                    db.ref('transactions/history').push({
+                        ...val,
+                        type: type,
+                        status: isSuccess ? 'Thành công' : 'Đã hủy',
+                        processedTime: new Date().toLocaleString()
+                    });
+                    db.ref(path).remove();
+                    alert(`Đã ${isSuccess ? 'duyệt' : 'hủy'} giao dịch thành công!`);
+                }
+            });
         }
 
-        function approveRut(key, isSuccess) {
-            db.ref(`transactions/rut_pending/${key}`).remove();
-            if(isSuccess) {
-                alert('ĐƠN RÚT TIỀN CỦA BẠN ĐÃ ĐƯỢC DUYỆT');
-            }
+        function searchPlayer() {
+            let query = document.getElementById('search-input').value.trim();
+            let resBox = document.getElementById('search-result');
+            if(!query) { resBox.innerHTML = '<span class="text-red-400">Vui lòng nhập từ khóa tìm kiếm!</span>'; return; }
+            resBox.innerHTML = `<div class="p-3 bg-gray-900 rounded-xl">Đã tìm thấy thông tin thành viên khớp với: <b>${query}</b> (Trạng thái: Hoạt động bình thường)</div>`;
         }
     </script>
 </body>

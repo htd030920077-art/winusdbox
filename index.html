@@ -17,7 +17,7 @@
         <div class="bg-gray-800 p-5 rounded-2xl border border-gray-700 space-y-2">
             <p class="text-sm text-gray-400">Tài khoản: <span id="lbl-user" class="text-white font-bold">user_demo01</span></p>
             <p class="text-sm text-gray-400">Số dư khả dụng: <span id="lbl-balance" class="text-emerald-400 font-bold text-lg">0 đ</span></p>
-            <p class="text-sm text-gray-400">ID Cố Định: <span id="lbl-id" class="font-mono text-cyan-400"></span></p>
+            <p class="text-sm text-gray-400">ID Cố Định: <span id="lbl-id" class="font-mono text-cyan-400 font-bold">WIN982341</span></p>
         </div>
 
         <!-- Mua gói VIP -->
@@ -72,15 +72,18 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        let currentUsername = "user_demo01"; // Có thể thay đổi theo tài khoản đăng nhập thực tế
+        let currentUsername = "user_demo01";
+        let fixedID = localStorage.getItem('user_fixed_id');
+        if(!fixedID) {
+            fixedID = 'WIN' + Math.floor(100000 + Math.random() * 900000);
+            localStorage.setItem('user_fixed_id', fixedID);
+        }
+        document.getElementById('lbl-id').innerText = fixedID;
 
         function submitNap() {
             let amount = document.getElementById('napAmount').value;
             let content = document.getElementById('napContent').value;
-            if(!amount || !content) {
-                alert('Vui lòng điền đầy đủ thông tin nạp!');
-                return;
-            }
+            if(!amount || !content) { alert('Vui lòng điền đầy đủ thông tin nạp!'); return; }
             db.ref('transactions/nap_pending').push({
                 username: currentUsername,
                 amount: Number(amount),
@@ -102,14 +105,8 @@
         function submitRut() {
             let amount = Number(document.getElementById('rutAmount').value);
             let bank = document.getElementById('bankName').value;
-            if(amount < 2600) {
-                alert('Mức rút tiền thấp nhất là 2.600đ (0.1$)!');
-                return;
-            }
-            if(!bank) {
-                alert('Vui lòng nhập thông tin ngân hàng!');
-                return;
-            }
+            if(amount < 2600) { alert('Mức rút tiền thấp nhất là 2.600đ (0.1$)!'); return; }
+            if(!bank) { alert('Vui lòng nhập thông tin ngân hàng!'); return; }
             db.ref('transactions/rut_pending').push({
                 username: currentUsername,
                 amount: amount,
@@ -121,7 +118,6 @@
         }
 
         function buyPackage() {
-            let pkg = document.getElementById('packageSelect').value;
             alert('Đã gửi yêu cầu kích hoạt gói VIP! Vui lòng chuyển khoản để Admin duyệt.');
         }
 
