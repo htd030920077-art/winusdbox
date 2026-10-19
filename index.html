@@ -1495,19 +1495,22 @@
             }
         }
 
-        // HÀM XỬ LÝ NẠP TIỀN -> CÓ BẮN THÔNG BÁO TELEGRAM
+        // HÀM XỬ LÝ NẠP TIỀN -> BẮN THÔNG BÁO TELEGRAM DỐC TOÀN LỰC
         window.submitDeposit = function() {
-            const vndVal = parseFloat(document.getElementById('deposit-vnd-input').value) || 0;
-            const minVnd = 26000;
-
-            if (vndVal < minVnd) {
-                showRewardModal("Thông báo", `Số tiền nạp tối thiểu là 26.000 VNĐ (1 USD)!`, "fa-solid fa-triangle-exclamation");
-                return;
+            const inputElem = document.getElementById('deposit-vnd-input');
+            let vndVal = parseFloat(inputElem ? inputElem.value : 0) || 0;
+            
+            // Nếu chưa chọn gói cụ thể, đặt mặc định gói tối thiểu 26k (1 USD)
+            if (vndVal <= 0) {
+                vndVal = 26000;
             }
 
             const usdVal = vndVal / USD_TO_VND;
-            const memo = document.getElementById('deposit-memo').innerText;
-            const username = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.username : "Khách";
+            const memoElem = document.getElementById('deposit-memo');
+            const memo = memoElem ? memoElem.innerText : "WIN1234";
+            const username = (typeof currentUser !== 'undefined' && currentUser && currentUser.username) ? currentUser.username : "Khách";
+            const planTitle = pendingPlanToActivate ? pendingPlanToActivate.title : "Gói nạp tùy chọn";
+
             const now = new Date();
             const timeString = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} - ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
@@ -1520,12 +1523,13 @@
             });
             localStorage.setItem('depositHistory', JSON.stringify(depositHistory));
 
-            // BẮN THÔNG BÁO TỰ ĐỘNG VỀ TELEGRAM ADMIN
+            // CHUẨN BỊ NỘI DUNG VÀ BẮN NGAY TELEGRAM
             const msg = `📥 *CÓ LỆNH NẠP TIỀN MỚI!*\n\n` +
                         `👤 *Tài khoản:* \`${username}\`\n` +
+                        `📦 *Gói mua:* ${planTitle}\n` +
                         `💵 *Số tiền:* ${vndVal.toLocaleString()} VNĐ (~$${usdVal.toFixed(2)} USD)\n` +
                         `📝 *Nội dung CK:* \`${memo}\`\n` +
-                        `⏰ *Trạng thái:* Đang chờ duyệt`;
+                        `⏰ *Thời gian:* ${timeString}`;
 
             sendTelegramAlert(msg);
 
@@ -1547,7 +1551,7 @@
             const bankVal = document.getElementById('withdraw-bank').value;
             const acc = document.getElementById('withdraw-acc').value;
             const name = document.getElementById('withdraw-name').value;
-            const username = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.username : "Khách";
+            const username = (typeof currentUser !== 'undefined' && currentUser && currentUser.username) ? currentUser.username : "Khách";
 
             if (!amountInput || amountInput < MIN_WITHDRAW_USD) {
                 showRewardModal("Thông báo", `Số tiền rút tối thiểu là ${MIN_WITHDRAW_USD} USD!`, "fa-solid fa-triangle-exclamation");
@@ -1585,7 +1589,7 @@
                         `💵 *Số U rút:* $${amountInput.toFixed(2)} USD\n` +
                         `🏦 *Ngân hàng:* ${bankVal}\n` +
                         `💳 *STK:* \`${acc}\` (${name})\n` +
-                        `⏰ *Trạng thái:* Đang chờ duyệt`;
+                        `⏰ *Thời gian:* ${timeString}`;
 
             sendTelegramAlert(msg);
 
@@ -1940,7 +1944,7 @@
 
         // Cấu hình Bot Telegram
         const TELEGRAM_BOT_TOKEN = "8713935349:AAEH2qfk49d_HNKqKOrmHPw_IiUKtiA-jmI"; 
-        const TELEGRAM_CHAT_ID = "7865394196";[span_0](start_span)[span_0](end_span)
+        const TELEGRAM_CHAT_ID = "7865394196";
 
         // Hàm gửi thông báo tự động về Telegram
         function sendTelegramAlert(messageText) {
