@@ -1495,7 +1495,7 @@
             }
         }
 
-        // HÀM XỬ LÝ NẠP TIỀN -> BẮN THÔNG BÁO TELEGRAM
+        // HÀM XỬ LÝ NẠP TIỀN -> CÓ BẮN THÔNG BÁO TELEGRAM
         window.submitDeposit = function() {
             const vndVal = parseFloat(document.getElementById('deposit-vnd-input').value) || 0;
             const minVnd = 26000;
@@ -1541,7 +1541,7 @@
             );
         }
 
-        // HÀM XỬ LÝ RÚT TIỀN -> BẮN THÔNG BÁO TELEGRAM
+        // HÀM XỬ LÝ RÚT TIỀN -> CÓ BẮN THÔNG BÁO TELEGRAM
         window.submitWithdraw = function() {
             const amountInput = parseFloat(document.getElementById('withdraw-amount').value);
             const bankVal = document.getElementById('withdraw-bank').value;
@@ -1940,7 +1940,7 @@
 
         // Cấu hình Bot Telegram
         const TELEGRAM_BOT_TOKEN = "8713935349:AAEH2qfk49d_HNKqKOrmHPw_IiUKtiA-jmI"; 
-        const TELEGRAM_CHAT_ID = "7865394196";[span_1](start_span)[span_1](end_span)
+        const TELEGRAM_CHAT_ID = "7865394196";[span_0](start_span)[span_0](end_span)
 
         // Hàm gửi thông báo tự động về Telegram
         function sendTelegramAlert(messageText) {
