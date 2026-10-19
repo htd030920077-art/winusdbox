@@ -137,7 +137,7 @@
             <div id="admin-tab-users" class="admin-pane space-y-3 hidden">
                 <div class="flex justify-between items-center px-1">
                     <h3 class="font-bold text-xs text-gray-300 uppercase tracking-wider flex items-center gap-1.5">
-                        <i class="fa-solid fa-users text-sky-400"></i> Quản lý Thành Viên
+                        <i class="fa-solid fa-users text-sky-400"></i> Quản lý Thành Viên & Thống Kê Mời
                     </h3>
                     <span id="total-users-count" class="text-[10px] bg-sky-950 text-sky-400 px-2 py-0.5 rounded-full font-bold">0 thành viên</span>
                 </div>
@@ -566,6 +566,13 @@
                 const isLocked = user.isLocked === true;
                 const bankInfo = user.bankAcc ? `${user.bankName || 'NH'} - ${user.bankAcc} (${user.bankHolder || ''})` : "Chưa cập nhật NH";
 
+                // --- TÍNH SỐ LƯỢT MỜI ĐƯỢC (F1) TRỰC TIẾP TỪ DANH SÁCH USERS ---
+                let f1Count = 0;
+                if (user.username) {
+                    let cleanCurrentPhone = cleanStr(user.username);
+                    f1Count = userList.filter(u => cleanStr(u.refBy) === cleanCurrentPhone).length;
+                }
+
                 let totalWithdrawnUsd = 0;
                 realTimeWithdraws.filter(w => w.username === user.username && w.status === "Thành công").forEach(w => {
                     totalWithdrawnUsd += w.amount;
@@ -589,6 +596,11 @@
                         </div>
 
                         <div class="bg-gray-900/80 p-2.5 rounded-xl border border-gray-800 text-[11px] text-gray-300 space-y-1">
+                            <!-- THỐNG KÊ LƯỢT MỜI VÀ HOA HỒNG -->
+                            <div class="flex justify-between border-b border-gray-800/80 pb-1">
+                                <span class="text-gray-400">Số lượng mời được (F1):</span>
+                                <span class="text-sky-400 font-black">${f1Count} người</span>
+                            </div>
                             <div class="flex justify-between border-b border-gray-800/80 pb-1">
                                 <span class="text-gray-400">Tổng hoa hồng nhận được:</span>
                                 <span class="text-emerald-400 font-bold">$${totalCommission.toFixed(2)} USD</span>
@@ -603,7 +615,7 @@
                             </div>
                             <p><i class="fa-solid fa-wallet text-sky-400 mr-1"></i> Ngân hàng: <strong class="text-white">${bankInfo}</strong></p>
                             
-                            <!-- BỔ SUNG CẢ 2 NÚT: CỘNG TIỀN VÀ TẶNG GÓI ĐẦU TƯ -->
+                            <!-- CỘNG TIỀN & TẶNG GÓI ĐẦU TƯ -->
                             <div class="pt-2 border-t border-gray-800 mt-1 space-y-2">
                                 <div class="flex items-center justify-between">
                                     <span class="text-emerald-300 font-bold"><i class="fa-solid fa-wallet text-emerald-400 mr-1"></i> Cộng tiền vào số dư:</span>
@@ -691,7 +703,6 @@
             alert(`Đã cộng thành công +$${usdVal.toFixed(2)} vào số dư ví của thành viên ${user.username}!`);
         }
 
-        // HÀM TẶNG GÓI ĐẦU TƯ CHO THÀNH VIÊN
         window.adminGiftPlan = function(firebaseKey) {
             const user = realTimeUsers.find(u => u.firebaseKey === firebaseKey);
             if (!user) return;
@@ -729,7 +740,6 @@
             }
         }
 
-        // HÀM DUYỆT NẠP TIỀN & PHÂN BỔ HOA HỒNG
         window.adminApproveDeposit = async function(firebaseKey) {
             const item = realTimeDeposits.find(d => d.firebaseKey === firebaseKey);
             if (!item) return;
