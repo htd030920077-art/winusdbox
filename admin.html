@@ -757,7 +757,7 @@
             }
         }
 
-        // HÀM DUYỆT NẠP TIỀN & PHÂN BỔ HOA HỒNG VÀO VÍ HOA HỒNG (COMMISSION WALLET)
+        // HÀM DUYỆT NẠP TIỀN & PHÂN BỔ HOA HỒNG (ĐÃ TỐI ƯU & KHỞI TẠO BIẾN CHUẨN XÁC)
         window.adminApproveDeposit = function(firebaseKey) {
             const item = realTimeDeposits.find(d => d.firebaseKey === firebaseKey);
             if (!item) return;
@@ -765,7 +765,7 @@
             // 1. Cập nhật trạng thái lệnh nạp thành công
             update(ref(db, 'deposits/' + firebaseKey), { status: "Thành công" });
 
-            // 2. Truy vấn trực tiếp toàn bộ users từ Firebase để xử lý chính xác
+            // 2. Truy vấn trực tiếp toàn bộ users từ Firebase
             get(ref(db, 'users')).then((snapshot) => {
                 const allUsersData = snapshot.val() || {};
                 let targetUserKey = null;
@@ -791,8 +791,10 @@
                         totalDepositUsd: Number(newTotalDeposit.toFixed(2))
                     });
 
-                    // 3. Tiến hành phân bổ hoa hồng đa cấp vào ví hoa hồng riêng của tuyến trên
+                    // 3. Tiến hành phân bổ hoa hồng đa cấp
                     distributeMultiLevelCommission(allUsersData, targetUserData.username, item.usd);
+                } else {
+                    console.error("Không tìm thấy user nạp tiền trong nhánh users trên Firebase:", item.username);
                 }
             }).catch((error) => {
                 console.error("Lỗi duyệt nạp tiền:", error);
@@ -811,23 +813,29 @@
             localStorage.setItem('appNotifications', JSON.stringify(appNotifications));
             localStorage.setItem('hasUnreadNotif', 'true');
 
-            alert("Đã duyệt lệnh nạp tiền thành công và phân bổ hoa hồng vào ví hoa hồng riêng của tuyến trên!");
+            alert("Đã duyệt lệnh nạp tiền thành công và phân bổ hoa hồng!");
         }
 
-        // HÀM PHÂN BỔ HOA HỒNG ĐA CẤP (F1: 10%, F2: 3%, F3: 2%) VÀO `commissionWallet` VÀ `totalCommission`
+        // HÀM PHÂN BỔ HOA HỒNG ĐA CẤP (F1: 10%, F2: 3%, F3: 2%) CÓ XỬ LÝ KHỞI TẠO BIẾN
         function distributeMultiLevelCommission(allUsersObj, depositorUsername, depositUsdAmount) {
             let usersArray = Object.keys(allUsersObj).map(key => ({
                 firebaseKey: key,
                 ...allUsersObj[key]
             }));
 
-            // Tìm thông tin của cấp dưới vừa nạp tiền
             let depositor = usersArray.find(u => u.username === depositorUsername);
-            if (!depositor || !depositor.refBy) return;
+            if (!depositor) {
+                console.log("Không tìm thấy thông tin depositor:", depositorUsername);
+                return;
+            }
+            if (!depositor.refBy) {
+                console.log("Thành viên này không có người giới thiệu (refBy trống).");
+                return;
+            }
 
             // --- XỬ LÝ F1 (10%) ---
-            let f1Phone = depositor.refBy;
-            let f1User = usersArray.find(u => u.username === f1Phone);
+            let f1Phone = String(depositor.refBy).trim();
+            let f1User = usersArray.find(u => String(u.username).trim() === f1Phone);
 
             if (f1User) {
                 let commF1 = depositUsdAmount * 0.10;
@@ -837,16 +845,16 @@
                 let newCommWalletF1 = currentCommWalletF1 + commF1;
                 let newTotalCommF1 = currentTotalCommF1 + commF1;
                 
-                // Cập nhật ví hoa hồng và tổng hoa hồng thống kê cho F1
                 update(ref(db, 'users/' + f1User.firebaseKey), { 
                     commissionWallet: Number(newCommWalletF1.toFixed(2)),
                     totalCommission: Number(newTotalCommF1.toFixed(2))
                 });
+                console.log(`Đã cộng ${commF1}U hoa hồng F1 cho: ${f1User.username}`);
 
                 // --- XỬ LÝ F2 (3%) ---
                 if (f1User.refBy) {
-                    let f2Phone = f1User.refBy;
-                    let f2User = usersArray.find(u => u.username === f2Phone);
+                    let f2Phone = String(f1User.refBy).trim();
+                    let f2User = usersArray.find(u => String(u.username).trim() === f2Phone);
                     if (f2User) {
                         let commF2 = depositUsdAmount * 0.03;
                         let currentCommWalletF2 = parseFloat(f2User.commissionWallet) || 0;
@@ -859,11 +867,12 @@
                             commissionWallet: Number(newCommWalletF2.toFixed(2)),
                             totalCommission: Number(newTotalCommF2.toFixed(2))
                         });
+                        console.log(`Đã cộng ${commF2}U hoa hồng F2 cho: ${f2User.username}`);
 
                         // --- XỬ LÝ F3 (2%) ---
                         if (f2User.refBy) {
-                            let f3Phone = f2User.refBy;
-                            let f3User = usersArray.find(u => u.username === f3Phone);
+                            let f3Phone = String(f2User.refBy).trim();
+                            let f3User = usersArray.find(u => String(u.username).trim() === f3Phone);
                             if (f3User) {
                                 let commF3 = depositUsdAmount * 0.02;
                                 let currentCommWalletF3 = parseFloat(f3User.commissionWallet) || 0;
@@ -876,10 +885,13 @@
                                     commissionWallet: Number(newCommWalletF3.toFixed(2)),
                                     totalCommission: Number(newTotalCommF3.toFixed(2))
                                 });
+                                console.log(`Đã cộng ${commF3}U hoa hồng F3 cho: ${f3User.username}`);
                             }
                         }
                     }
                 }
+            } else {
+                console.log("Không tìm thấy tài khoản F1 tuyến trên với SĐT:", f1Phone);
             }
         }
 
