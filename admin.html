@@ -399,6 +399,7 @@
                             username: locUser.username,
                             password: locUser.password || "123456",
                             balance: 0,
+                            activePlans: [],
                             createdAt: timeString
                         });
                     }
@@ -578,18 +579,31 @@
                             </div>
                             <p><i class="fa-solid fa-wallet text-sky-400 mr-1"></i> Ngân hàng: <strong class="text-white">${bankInfo}</strong></p>
                             
-                            <div class="flex items-center justify-between pt-2 border-t border-gray-800 mt-1">
-                                <span class="text-gray-300 font-bold"><i class="fa-solid fa-gift text-rose-400 mr-1"></i> Tặng gói / Nạp hộ:</span>
-                                <div class="flex items-center gap-1.5">
-                                    <select id="gift-plan-${fKey}" class="bg-gray-950 border border-gray-800 rounded-lg p-1 text-[10px] text-emerald-400 font-bold focus:outline-none">
-                                        <option value="3">Gói 3 USD</option>
-                                        <option value="7">Gói 7 USD</option>
-                                        <option value="15">Gói 15 USD</option>
-                                        <option value="20">Gói 20 USD</option>
-                                        <option value="50">Gói 50 USD</option>
-                                        <option value="100">Gói 100 USD</option>
-                                    </select>
-                                    <button onclick="adminGiftPlan('${fKey}')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold cursor-pointer shadow">Tặng ngay</button>
+                            <!-- 2 LOẠI TẶNG: 1. CỘNG TIỀN VÀO SỐ DƯ ĐỂ RÚT / 2. TẶNG GÓI KHÔNG CẦN MUA -->
+                            <div class="pt-2 border-t border-gray-800 mt-1 space-y-2">
+                                <!-- Loại 1: Cộng tiền vào số dư -->
+                                <div class="flex items-center justify-between">
+                                    <span class="text-emerald-300 font-bold"><i class="fa-solid fa-wallet text-emerald-400 mr-1"></i> Cộng tiền vào số dư:</span>
+                                    <div class="flex items-center gap-1.5">
+                                        <input type="number" step="0.01" id="add-bal-${fKey}" placeholder="Số USD..." class="w-20 bg-gray-950 border border-gray-800 rounded-lg p-1 text-[10px] text-white font-bold focus:outline-none focus:border-emerald-500">
+                                        <button onclick="adminAddBalance('${fKey}')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold cursor-pointer shadow">Cộng tiền</button>
+                                    </div>
+                                </div>
+
+                                <!-- Loại 2: Tặng gói không cần nạp mua -->
+                                <div class="flex items-center justify-between">
+                                    <span class="text-rose-300 font-bold"><i class="fa-solid fa-gift text-rose-400 mr-1"></i> Tặng gói đầu tư:</span>
+                                    <div class="flex items-center gap-1.5">
+                                        <select id="gift-plan-${fKey}" class="bg-gray-950 border border-gray-800 rounded-lg p-1 text-[10px] text-rose-400 font-bold focus:outline-none">
+                                            <option value="3">Gói 3 USD</option>
+                                            <option value="7">Gói 7 USD</option>
+                                            <option value="15">Gói 15 USD</option>
+                                            <option value="20">Gói 20 USD</option>
+                                            <option value="50">Gói 50 USD</option>
+                                            <option value="100">Gói 100 USD</option>
+                                        </select>
+                                        <button onclick="adminGiftPlan('${fKey}')" class="bg-rose-600 hover:bg-rose-500 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold cursor-pointer shadow">Tặng gói</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -625,17 +639,55 @@
             });
         }
 
-        window.adminGiftPlan = function(firebaseKey) {
+        // Loại 1: Cộng tiền mặt vào số dư ví để rút
+        window.adminAddBalance = function(firebaseKey) {
             const user = realTimeUsers.find(u => u.firebaseKey === firebaseKey);
             if (!user) return;
-            const selectEl = document.getElementById(`gift-plan-${firebaseKey}`);
-            const usdVal = parseFloat(selectEl.value);
+            const inputEl = document.getElementById(`add-bal-${firebaseKey}`);
+            const usdVal = parseFloat(inputEl.value) || 0;
+
+            if (usdVal <= 0) {
+                alert("Vui lòng nhập số USD hợp lệ cần cộng!");
+                return;
+            }
 
             const currentBal = user.balance || 0;
             const newBal = currentBal + usdVal;
 
             update(ref(db, 'users/' + firebaseKey), { balance: newBal });
-            alert(`Đã tặng thành công gói ${usdVal} USD (cộng trực tiếp vào số dư ví) cho thành viên ${user.username}!`);
+            inputEl.value = '';
+            alert(`Đã cộng thành công +$${usdVal.toFixed(2)} vào số dư ví của thành viên ${user.username}!`);
+        }
+
+        // Loại 2: Tặng gói đầu tư trực tiếp không cần mua
+        window.adminGiftPlan = function(firebaseKey) {
+            const user = realTimeUsers.find(u => u.firebaseKey === firebaseKey);
+            if (!user) return;
+            const selectEl = document.getElementById(`gift-plan-${firebaseKey}`);
+            const planUsd = parseFloat(selectEl.value);
+
+            // Rate sinh lợi theo giây tương ứng với các gói
+            let ratePerSec = 0.000003858; // Gói 3$
+            let planTitle = `Gói Khai Thác ${planUsd} USD`;
+            if (planUsd === 7) ratePerSec = 0.000009002;
+            else if (planUsd === 15) ratePerSec = 0.000019290;
+            else if (planUsd === 20) ratePerSec = 0.000025720;
+            else if (planUsd === 50) ratePerSec = 0.000057870;
+            else if (planUsd === 100) ratePerSec = 0.000115740;
+
+            const now = new Date();
+            const timeString = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} - ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+            let activePlans = user.activePlans || [];
+            activePlans.push({
+                priceUsd: planUsd,
+                ratePerSec: ratePerSec,
+                title: planTitle,
+                time: timeString
+            });
+
+            update(ref(db, 'users/' + firebaseKey), { activePlans: activePlans });
+            alert(`Đã tặng thành công ${planTitle} miễn phí cho thành viên ${user.username}!`);
         }
 
         window.adminDeleteUser = function(firebaseKey) {
@@ -765,7 +817,7 @@
                 });
             }
 
-            html += `<p class="font-bold text-rose-400 mt-3">Lịch sử rút tiền:</p>`;
+html += `<p class="font-bold text-rose-400 mt-3">Lịch sử rút tiền:</p>`;
             const userWithdraws = realTimeWithdraws.filter(w => w.username === user.username);
             if (userWithdraws.length === 0) {
                 html += `<p class="text-gray-500">Chưa có giao dịch rút.</p>`;
