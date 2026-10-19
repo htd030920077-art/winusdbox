@@ -581,16 +581,10 @@
             userList.forEach((user) => {
                 const createdAt = user.createdAt || "01/01/2026 - 12:00";
                 const userBalance = user.balance !== undefined ? user.balance : 0.00;
+                const totalDepositUsd = user.totalDepositUsd !== undefined ? user.totalDepositUsd : 0.00;
                 const fKey = user.firebaseKey;
                 const isLocked = user.isLocked === true;
                 const bankInfo = user.bankAcc ? `${user.bankName || 'NH'} - ${user.bankAcc} (${user.bankHolder || ''})` : "Chưa cập nhật NH";
-
-                let totalDepositedVnd = 0;
-                let totalDepositedUsd = 0;
-                realTimeDeposits.filter(d => d.username === user.username && d.status === "Thành công").forEach(d => {
-                    totalDepositedVnd += d.vnd;
-                    totalDepositedUsd += d.usd;
-                });
 
                 let totalWithdrawnUsd = 0;
                 realTimeWithdraws.filter(w => w.username === user.username && w.status === "Thành công").forEach(w => {
@@ -617,7 +611,7 @@
                         <div class="bg-gray-900/80 p-2.5 rounded-xl border border-gray-800 text-[11px] text-gray-300 space-y-1">
                             <div class="flex justify-between border-b border-gray-800/80 pb-1">
                                 <span class="text-gray-400">Tổng nạp thành công:</span>
-                                <span class="text-emerald-400 font-bold">${totalDepositedVnd.toLocaleString()} VNĐ (+$${totalDepositedUsd.toFixed(2)})</span>
+                                <span class="text-emerald-400 font-bold">$${totalDepositUsd.toFixed(2)} USD</span>
                             </div>
                             <div class="flex justify-between border-b border-gray-800/80 pb-1">
                                 <span class="text-gray-400">Tổng rút thành công:</span>
@@ -687,7 +681,6 @@
             });
         }
 
-        // HÀM KHÓA / MỞ KHÓA TÀI KHOẢN THÀNH VIÊN
         window.toggleLockUser = function(firebaseKey, lockStatus) {
             update(ref(db, 'users/' + firebaseKey), { isLocked: lockStatus })
                 .then(() => {
@@ -758,7 +751,7 @@
             }
         }
 
-        // HÀM DUYỆT NẠP TIỀN KẾT HỢP CẬP NHẬT `totalDepositUsd` VÀ PHÂN BỔ HOA HỒNG ĐA CẤP (F1: 10%, F2: 3%, F3: 2%)
+        // HÀM DUYỆT NẠP TIỀN TRỰC TIẾP TỪ FIREBASE ĐỂ TRÁNH LỖI KEY MAPPING & PHÂN BỔ HOA HỒNG ĐA CẤP (F1: 10%, F2: 3%, F3: 2%)
         window.adminApproveDeposit = function(firebaseKey) {
             const item = realTimeDeposits.find(d => d.firebaseKey === firebaseKey);
             if (!item) return;
@@ -766,20 +759,37 @@
             // 1. Cập nhật trạng thái lệnh nạp thành công
             update(ref(db, 'deposits/' + firebaseKey), { status: "Thành công" });
 
-            // 2. Tìm thành viên nạp tiền, cộng số dư ví & cập nhật tổng tiền nạp `totalDepositUsd`
-            const targetUser = realTimeUsers.find(u => u.username === item.username);
-            if (targetUser) {
-                const newBal = (targetUser.balance || 0) + item.usd;
-                const newTotalDeposit = (targetUser.totalDepositUsd || 0) + item.usd;
-                
-                update(ref(db, 'users/' + targetUser.firebaseKey), { 
-                    balance: newBal,
-                    totalDepositUsd: newTotalDeposit
+            // 2. Truy vấn trực tiếp nhánh users từ Firebase để đảm bảo lấy chuẩn xác key và dữ liệu
+            get(ref(db, 'users')).then((snapshot) => {
+                const allUsersData = snapshot.val() || {};
+                let targetUserKey = null;
+                let targetUserData = null;
+
+                Object.keys(allUsersData).forEach(key => {
+                    if (allUsersData[key].username === item.username) {
+                        targetUserKey = key;
+                        targetUserData = allUsersData[key];
+                    }
                 });
 
-                // 3. Phân bổ hoa hồng đa cấp tự động (F1: 10%, F2: 3%, F3: 2%)
-                distributeMultiLevelCommission(realTimeUsers, targetUser.username, item.usd);
-            }
+                if (targetUserKey && targetUserData) {
+                    const currentBal = targetUserData.balance || 0;
+                    const currentTotalDep = targetUserData.totalDepositUsd || 0;
+                    
+                    const newBal = currentBal + item.usd;
+                    const newTotalDeposit = currentTotalDep + item.usd;
+
+                    update(ref(db, 'users/' + targetUserKey), { 
+                        balance: newBal,
+                        totalDepositUsd: newTotalDeposit
+                    });
+
+                    // 3. Phân bổ hoa hồng đa cấp tự động (F1: 10%, F2: 3%, F3: 2%)
+                    distributeMultiLevelCommission(allUsersData, targetUserData.username, item.usd);
+                }
+            }).catch((error) => {
+                console.error("Lỗi duyệt nạp tiền:", error);
+            });
 
             // 4. Gửi thông báo đến thành viên
             let appNotifications = JSON.parse(localStorage.getItem('appNotifications')) || [];
@@ -794,16 +804,21 @@
             localStorage.setItem('appNotifications', JSON.stringify(appNotifications));
             localStorage.setItem('hasUnreadNotif', 'true');
 
-            alert("Đã duyệt lệnh nạp tiền thành công, cộng số dư, cập nhật số liệu F1 và phân bổ hoa hồng 3 cấp!");
+            alert("Đã duyệt lệnh nạp tiền thành công, cộng số dư ví, cập nhật tổng nạp và phân bổ hoa hồng đa cấp!");
         }
 
         // HÀM PHÂN BỔ HOA HỒNG ĐA CẤP (F1: 10%, F2: 3%, F3: 2%)
-        function distributeMultiLevelCommission(allUsers, depositorUsername, depositUsdAmount) {
-            let depositor = allUsers.find(u => u.username === depositorUsername);
+        function distributeMultiLevelCommission(allUsersObj, depositorUsername, depositUsdAmount) {
+            let usersArray = Object.keys(allUsersObj).map(key => ({
+                firebaseKey: key,
+                ...allUsersObj[key]
+            }));
+
+            let depositor = usersArray.find(u => u.username === depositorUsername);
             if (!depositor || !depositor.refBy) return;
 
             let f1Phone = depositor.refBy;
-            let f1User = allUsers.find(u => u.username === f1Phone);
+            let f1User = usersArray.find(u => u.username === f1Phone);
 
             if (f1User) {
                 // Cộng 10% cho F1
@@ -814,7 +829,7 @@
                 // Tìm F2
                 if (f1User.refBy) {
                     let f2Phone = f1User.refBy;
-                    let f2User = allUsers.find(u => u.username === f2Phone);
+                    let f2User = usersArray.find(u => u.username === f2Phone);
                     if (f2User) {
                         // Cộng 3% cho F2
                         let commF2 = depositUsdAmount * 0.03;
@@ -824,7 +839,7 @@
                         // Tìm F3
                         if (f2User.refBy) {
                             let f3Phone = f2User.refBy;
-                            let f3User = allUsers.find(u => u.username === f3Phone);
+                            let f3User = usersArray.find(u => u.username === f3Phone);
                             if (f3User) {
                                 // Cộng 2% cho F3
                                 let commF3 = depositUsdAmount * 0.02;
