@@ -72,7 +72,7 @@
             
             <div class="flex items-center gap-2">
                 <span id="sync-status" class="text-[10px] text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 px-2 py-0.5 rounded-full font-semibold">
-                    <i class="fa-solid fa-circle text-[8px] animate-pulse"></i> Live
+                    <i class="fa-solid fa-circle text-[8px] animate-pulse"></i> Live Firebase
                 </span>
                 <a href="index.html" class="px-2.5 py-1.5 rounded-xl bg-gray-900 border border-gray-800 text-xs font-semibold text-sky-400 hover:bg-gray-800 transition cursor-pointer" title="Quay lại Web Người Chơi">
                     <i class="fa-solid fa-house"></i>
@@ -233,8 +233,25 @@
         </div>
     </div>
 
-    <!-- JAVASCRIPT ADMIN LOGIC -->
-    <script>
+    <!-- JAVASCRIPT ADMIN LOGIC + FIREBASE REALTIME SYNC -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getDatabase, ref, set, get, update, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC832BgFHw5LIavbuwE17dpIFeJayKRbfg",
+            authDomain: "winusdbox.firebaseapp.com",
+            projectId: "winusdbox",
+            storageBucket: "winusdbox.firebasestorage.app",
+            messagingSenderId: "665540389423",
+            appId: "1:665540389423:web:7249d5d07b5629a4db34da",
+            measurementId: "G-KZKL342PD7",
+            databaseURL: "https://winusdbox-default-rtdb.asia-southeast1.firebasedatabase.app"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
         const USD_TO_VND = 26000;
         let isAdminLoggedIn = localStorage.getItem('isAdminLoggedIn') === 'true';
 
@@ -253,7 +270,10 @@
             { id: 6, priceUsd: 100, ratePerSec: 0.000115740, title: "Gói VIP 100 USD" }
         ];
 
-        function handleAdminLogin() {
+        let realTimeDeposits = [];
+        let realTimeWithdraws = [];
+
+        window.handleAdminLogin = function() {
             const pass = document.getElementById('admin-pass-input').value.trim();
             if (pass === "admin123") {
                 isAdminLoggedIn = true;
@@ -264,7 +284,7 @@
             }
         }
 
-        function handleAdminLogout() {
+        window.handleAdminLogout = function() {
             isAdminLoggedIn = false;
             localStorage.removeItem('isAdminLoggedIn');
             checkAdminAuth();
@@ -274,14 +294,14 @@
             const authScreen = document.getElementById('admin-auth-screen');
             if (isAdminLoggedIn) {
                 authScreen.classList.add('hidden');
-                loadAdminData();
+                initFirebaseListeners();
                 renderAdminGiftcodeList();
             } else {
                 authScreen.classList.remove('hidden');
             }
         }
 
-        function switchAdminTab(tabName) {
+        window.switchAdminTab = function(tabName) {
             document.querySelectorAll('.admin-pane').forEach(pane => pane.classList.add('hidden'));
             document.getElementById(`admin-tab-${tabName}`).classList.remove('hidden');
 
@@ -295,8 +315,7 @@
             });
         }
 
-        // TẠO VÀ QUẢN LÝ GIFTCODE KÈM GIỚI HẠN LƯỢT NHẬP
-        function adminCreateGiftcode() {
+        window.adminCreateGiftcode = function() {
             const code = document.getElementById('admin-code-input').value.trim().toUpperCase();
             const usd = parseFloat(document.getElementById('admin-usd-input').value) || 0;
             const limit = parseInt(document.getElementById('admin-limit-input').value) || 1;
@@ -321,7 +340,7 @@
             alert(`Đã tạo mã thành công: ${code} (${usd} USD - Giới hạn tối đa: ${limit} lượt)!`);
         }
 
-        function renderAdminGiftcodeList() {
+        window.renderAdminGiftcodeList = function() {
             const container = document.getElementById('admin-giftcode-list');
             if(!container) return;
             container.innerHTML = "";
@@ -340,41 +359,58 @@
             }
         }
 
-        function adminDeleteGiftcode(code) {
+        window.adminDeleteGiftcode = function(code) {
             giftcodeDatabase = JSON.parse(localStorage.getItem('giftcodeDatabase')) || giftcodeDatabase;
             delete giftcodeDatabase[code];
             localStorage.setItem('giftcodeDatabase', JSON.stringify(giftcodeDatabase));
             renderAdminGiftcodeList();
         }
 
-        function loadAdminData() {
-            let depositHistory = JSON.parse(localStorage.getItem('depositHistory')) || [];
-            let withdrawHistory = JSON.parse(localStorage.getItem('withdrawHistory')) || [];
+        // LẮNG NGHE REALTIME TỪ FIREBASE
+        function initFirebaseListeners() {
+            onValue(ref(db, 'deposits'), (snapshot) => {
+                const data = snapshot.val() || {};
+                realTimeDeposits = Object.keys(data).map(key => ({ firebaseKey: key, ...data[key] }));
+                // Sắp xếp mới nhất lên đầu
+                realTimeDeposits.reverse();
+                
+                const pendingCount = realTimeDeposits.filter(item => item.status === "Đang chờ duyệt").length;
+                document.getElementById('stat-pending-deposit').innerText = pendingCount;
+                renderAdminDeposits(realTimeDeposits);
+            });
+
+            onValue(ref(db, 'withdraws'), (snapshot) => {
+                const data = snapshot.val() || {};
+                realTimeWithdraws = Object.keys(data).map(key => ({ firebaseKey: key, ...data[key] }));
+                realTimeWithdraws.reverse();
+
+                const pendingCount = realTimeWithdraws.filter(item => item.status === "Đang chờ duyệt").length;
+                document.getElementById('stat-pending-withdraw').innerText = pendingCount;
+                renderAdminWithdraws(realTimeWithdraws);
+            });
+
             let registeredUsers = JSON.parse(localStorage.getItem('registeredUsers')) || [];
-
-            const pendingDeposits = depositHistory.filter(item => item.status === "Đang chờ duyệt");
-            const pendingWithdraws = withdrawHistory.filter(item => item.status === "Đang chờ duyệt");
-
-            document.getElementById('stat-pending-deposit').innerText = pendingDeposits.length;
-            document.getElementById('stat-pending-withdraw').innerText = pendingWithdraws.length;
-
-            renderAdminDeposits(depositHistory);
-            renderAdminWithdraws(withdrawHistory);
             renderAdminUsers(registeredUsers);
         }
 
-        function renderAdminDeposits(depositHistory) {
+        window.loadAdminData = function() {
+            initFirebaseListeners();
+        }
+
+        function renderAdminDeposits(depositList) {
             const container = document.getElementById('admin-deposit-list');
+            if(!container) return;
             container.innerHTML = "";
 
-            if (depositHistory.length === 0) {
+            if (depositList.length === 0) {
                 container.innerHTML = `<div class="card-dark rounded-2xl p-6 text-center text-xs text-gray-500">Chưa có lịch sử nạp tiền nào.</div>`;
                 return;
             }
 
-            depositHistory.forEach((item, idx) => {
+            depositList.forEach((item) => {
                 const isPending = item.status === "Đang chờ duyệt";
                 const memo = item.memo || "WIN1234";
+                const fKey = item.firebaseKey;
                 
                 let statusBadge = `<span class="text-amber-400 font-bold">Đang chờ duyệt</span>`;
                 if (item.status === "Thành công") statusBadge = `<span class="text-emerald-400 font-semibold">Thành công</span>`;
@@ -387,6 +423,10 @@
                             ${statusBadge}
                         </div>
                         <div class="space-y-1 bg-gray-900/60 p-2.5 rounded-xl border border-gray-800">
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Tài khoản:</span>
+                                <span class="text-white font-bold">${item.username || 'Khách'}</span>
+                            </div>
                             <div class="flex justify-between">
                                 <span class="text-gray-400">Số tiền nạp:</span>
                                 <span class="text-white font-bold">${item.vnd.toLocaleString()} VNĐ</span>
@@ -402,10 +442,10 @@
                         </div>
                         ${isPending ? `
                             <div class="pt-1 flex gap-2">
-                                <button onclick="adminRejectDeposit(${idx})" class="w-1/2 bg-gray-800 hover:bg-gray-700 text-rose-400 font-bold py-2 rounded-xl text-xs active:scale-95 transition cursor-pointer border border-rose-500/30">
+                                <button onclick="adminRejectDeposit('${fKey}')" class="w-1/2 bg-gray-800 hover:bg-gray-700 text-rose-400 font-bold py-2 rounded-xl text-xs active:scale-95 transition cursor-pointer border border-rose-500/30">
                                     <i class="fa-solid fa-xmark mr-1"></i> Từ chối
                                 </button>
-                                <button onclick="adminApproveDeposit(${idx})" class="w-1/2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-xl text-xs active:scale-95 transition cursor-pointer shadow">
+                                <button onclick="adminApproveDeposit('${fKey}')" class="w-1/2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-xl text-xs active:scale-95 transition cursor-pointer shadow">
                                     <i class="fa-solid fa-check mr-1"></i> Duyệt tiền
                                 </button>
                             </div>
@@ -415,17 +455,19 @@
             });
         }
 
-        function renderAdminWithdraws(withdrawHistory) {
+        function renderAdminWithdraws(withdrawList) {
             const container = document.getElementById('admin-withdraw-list');
+            if(!container) return;
             container.innerHTML = "";
 
-            if (withdrawHistory.length === 0) {
+            if (withdrawList.length === 0) {
                 container.innerHTML = `<div class="card-dark rounded-2xl p-6 text-center text-xs text-gray-500">Chưa có lịch sử rút tiền nào.</div>`;
                 return;
             }
 
-            withdrawHistory.forEach((item, idx) => {
+            withdrawList.forEach((item) => {
                 const isPending = item.status === "Đang chờ duyệt";
+                const fKey = item.firebaseKey;
                 
                 let statusBadge = `<span class="text-amber-400 font-bold">Đang chờ duyệt</span>`;
                 if (item.status === "Thành công") statusBadge = `<span class="text-emerald-400 font-semibold">Thành công</span>`;
@@ -448,10 +490,10 @@
                         </div>
                         ${isPending ? `
                             <div class="pt-1 flex gap-2">
-                                <button onclick="adminRejectWithdraw(${idx})" class="w-1/2 bg-gray-800 hover:bg-gray-700 text-rose-400 font-bold py-2 rounded-xl text-xs active:scale-95 transition cursor-pointer border border-rose-500/30">
+                                <button onclick="adminRejectWithdraw('${fKey}')" class="w-1/2 bg-gray-800 hover:bg-gray-700 text-rose-400 font-bold py-2 rounded-xl text-xs active:scale-95 transition cursor-pointer border border-rose-500/30">
                                     <i class="fa-solid fa-xmark mr-1"></i> Từ chối
                                 </button>
-                                <button onclick="adminApproveWithdraw(${idx})" class="w-1/2 bg-rose-600 hover:bg-rose-500 text-white font-bold py-2 rounded-xl text-xs active:scale-95 transition cursor-pointer shadow">
+                                <button onclick="adminApproveWithdraw('${fKey}')" class="w-1/2 bg-rose-600 hover:bg-rose-500 text-white font-bold py-2 rounded-xl text-xs active:scale-95 transition cursor-pointer shadow">
                                     <i class="fa-solid fa-check mr-1"></i> Xác nhận CK
                                 </button>
                             </div>
@@ -463,6 +505,7 @@
 
         function renderAdminUsers(registeredUsers) {
             const container = document.getElementById('admin-users-list');
+            if(!container) return;
             container.innerHTML = "";
 
             if (registeredUsers.length === 0) {
@@ -472,7 +515,7 @@
 
             registeredUsers.forEach((user, idx) => {
                 const createdAt = user.createdAt || "01/01/2026 - 12:00";
-                const userBalance = user.balance !== undefined ? user.balance : (parseFloat(localStorage.getItem('availableBalance')) || 0.00);
+                const userBalance = user.balance !== undefined ? user.balance : 0.00;
                 const bankInfo = user.bankAcc ? `${user.bankName || 'NH'} - ${user.bankAcc} (${user.bankHolder || ''})` : "Chưa cập nhật NH";
 
                 container.innerHTML += `
@@ -493,10 +536,10 @@
                         </div>
 
                         <div class="pt-1 border-t border-gray-800 flex justify-end gap-2">
-                            <button onclick="openUserHistoryModal(${idx})" class="bg-sky-600 hover:bg-sky-500 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition">
+                            <button onclick="openUserHistoryModal(${idx})" class="bg-sky-600 hover:bg-sky-500 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition cursor-pointer">
                                 <i class="fa-solid fa-clock-rotate-left mr-1"></i> Lịch sử
                             </button>
-                            <button onclick="openEditUserModal(${idx})" class="bg-amber-600 hover:bg-amber-500 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition">
+                            <button onclick="openEditUserModal(${idx})" class="bg-amber-600 hover:bg-amber-500 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition cursor-pointer">
                                 <i class="fa-solid fa-pen-to-square mr-1"></i> Sửa thông tin
                             </button>
                         </div>
@@ -505,19 +548,16 @@
             });
         }
 
-        function adminApproveDeposit(index) {
-            let depositHistory = JSON.parse(localStorage.getItem('depositHistory')) || [];
-            if (!depositHistory[index]) return;
+        window.adminApproveDeposit = function(firebaseKey) {
+            const item = realTimeDeposits.find(d => d.firebaseKey === firebaseKey);
+            if (!item) return;
 
-            const item = depositHistory[index];
-            item.status = "Thành công";
-            localStorage.setItem('depositHistory', JSON.stringify(depositHistory));
+            update(ref(db, 'deposits/' + firebaseKey), { status: "Thành công" });
 
             let matchedPlan = investmentPlans.find(p => p.priceUsd === Math.round(item.usd));
             if (!matchedPlan) {
                 matchedPlan = investmentPlans.find(p => p.priceUsd >= 3) || investmentPlans[1];
             }
-            localStorage.setItem('activePlanId', matchedPlan.id);
 
             let appNotifications = JSON.parse(localStorage.getItem('appNotifications')) || [];
             const now = new Date();
@@ -531,17 +571,14 @@
             localStorage.setItem('appNotifications', JSON.stringify(appNotifications));
             localStorage.setItem('hasUnreadNotif', 'true');
 
-            alert("Đã duyệt lệnh nạp tiền và kích hoạt gói thành công!");
-            loadAdminData();
+            alert("Đã duyệt lệnh nạp tiền thành công trên Firebase!");
         }
 
-        function adminRejectDeposit(index) {
-            let depositHistory = JSON.parse(localStorage.getItem('depositHistory')) || [];
-            if (!depositHistory[index]) return;
+        window.adminRejectDeposit = function(firebaseKey) {
+            const item = realTimeDeposits.find(d => d.firebaseKey === firebaseKey);
+            if (!item) return;
 
-            const item = depositHistory[index];
-            item.status = "Đã từ chối";
-            localStorage.setItem('depositHistory', JSON.stringify(depositHistory));
+            update(ref(db, 'deposits/' + firebaseKey), { status: "Đã từ chối" });
 
             let appNotifications = JSON.parse(localStorage.getItem('appNotifications')) || [];
             const now = new Date();
@@ -556,26 +593,13 @@
             localStorage.setItem('hasUnreadNotif', 'true');
 
             alert("Đã từ chối lệnh nạp tiền!");
-            loadAdminData();
         }
 
-        function adminApproveWithdraw(index) {
-            let withdrawHistory = JSON.parse(localStorage.getItem('withdrawHistory')) || [];
-            let availableBalance = parseFloat(localStorage.getItem('availableBalance')) || 0.00;
+        window.adminApproveWithdraw = function(firebaseKey) {
+            const item = realTimeWithdraws.find(w => w.firebaseKey === firebaseKey);
+            if (!item) return;
 
-            if (!withdrawHistory[index]) return;
-
-            const item = withdrawHistory[index];
-            if (availableBalance < item.amount) {
-                alert("Số dư khả dụng của người dùng không đủ để trừ!");
-                return;
-            }
-
-            item.status = "Thành công";
-            localStorage.setItem('withdrawHistory', JSON.stringify(withdrawHistory));
-
-            availableBalance -= item.amount;
-            localStorage.setItem('availableBalance', availableBalance);
+            update(ref(db, 'withdraws/' + firebaseKey), { status: "Thành công" });
 
             let appNotifications = JSON.parse(localStorage.getItem('appNotifications')) || [];
             const now = new Date();
@@ -590,16 +614,13 @@
             localStorage.setItem('hasUnreadNotif', 'true');
 
             alert("Đã duyệt lệnh rút tiền thành công!");
-            loadAdminData();
         }
 
-        function adminRejectWithdraw(index) {
-            let withdrawHistory = JSON.parse(localStorage.getItem('withdrawHistory')) || [];
-            if (!withdrawHistory[index]) return;
+        window.adminRejectWithdraw = function(firebaseKey) {
+            const item = realTimeWithdraws.find(w => w.firebaseKey === firebaseKey);
+            if (!item) return;
 
-            const item = withdrawHistory[index];
-            item.status = "Đã từ chối";
-            localStorage.setItem('withdrawHistory', JSON.stringify(withdrawHistory));
+            update(ref(db, 'withdraws/' + firebaseKey), { status: "Đã từ chối" });
 
             let appNotifications = JSON.parse(localStorage.getItem('appNotifications')) || [];
             const now = new Date();
@@ -614,10 +635,9 @@
             localStorage.setItem('hasUnreadNotif', 'true');
 
             alert("Đã từ chối lệnh rút tiền!");
-            loadAdminData();
         }
 
-        function openEditUserModal(index) {
+        window.openEditUserModal = function(index) {
             let registeredUsers = JSON.parse(localStorage.getItem('registeredUsers')) || [];
             const user = registeredUsers[index];
             if (!user) return;
@@ -626,7 +646,7 @@
             document.getElementById('edit-fullname').value = user.fullname || '';
             document.getElementById('edit-username').value = user.username || '';
             document.getElementById('edit-password').value = user.password || '';
-            document.getElementById('edit-balance').value = user.balance !== undefined ? user.balance : (parseFloat(localStorage.getItem('availableBalance')) || 0.00);
+            document.getElementById('edit-balance').value = user.balance !== undefined ? user.balance : 0.00;
             document.getElementById('edit-bank-name').value = user.bankName || '';
             document.getElementById('edit-bank-acc').value = user.bankAcc || '';
             document.getElementById('edit-bank-holder').value = user.bankHolder || '';
@@ -635,12 +655,12 @@
             document.getElementById('edit-user-modal').classList.add('flex');
         }
 
-        function closeEditUserModal() {
+        window.closeEditUserModal = function() {
             document.getElementById('edit-user-modal').classList.add('hidden');
             document.getElementById('edit-user-modal').classList.remove('flex');
         }
 
-        function saveEditedUser() {
+        window.saveEditedUser = function() {
             const index = parseInt(document.getElementById('edit-user-index').value);
             let registeredUsers = JSON.parse(localStorage.getItem('registeredUsers')) || [];
             if (!registeredUsers[index]) return;
@@ -654,14 +674,13 @@
             registeredUsers[index].bankHolder = document.getElementById('edit-bank-holder').value.trim();
 
             localStorage.setItem('registeredUsers', JSON.stringify(registeredUsers));
-            localStorage.setItem('availableBalance', registeredUsers[index].balance);
 
             closeEditUserModal();
             alert("Đã cập nhật thông tin thành viên thành công!");
             loadAdminData();
         }
 
-        function openUserHistoryModal(index) {
+        window.openUserHistoryModal = function(index) {
             let registeredUsers = JSON.parse(localStorage.getItem('registeredUsers')) || [];
             const user = registeredUsers[index];
             if (!user) return;
@@ -670,23 +689,22 @@
             const contentContainer = document.getElementById('user-history-content');
             contentContainer.innerHTML = "";
 
-            let depositHistory = JSON.parse(localStorage.getItem('depositHistory')) || [];
-            let withdrawHistory = JSON.parse(localStorage.getItem('withdrawHistory')) || [];
-
-            let html = `<p class="font-bold text-emerald-400">Lịch sử nạp tiền:</p>`;
-            if (depositHistory.length === 0) {
+            let html = `<p class="font-bold text-emerald-400">Lịch sử nạp tiền (Realtime):</p>`;
+            const userDeposits = realTimeDeposits.filter(d => d.username === user.username);
+            if (userDeposits.length === 0) {
                 html += `<p class="text-gray-500 mb-2">Chưa có giao dịch nạp.</p>`;
             } else {
-                depositHistory.forEach(d => {
+                userDeposits.forEach(d => {
                     html += `<div class="bg-gray-900 p-2 rounded-xl mb-1 flex justify-between"><span>${d.time}</span><span class="text-emerald-400">+${d.usd.toFixed(2)}U (${d.status})</span></div>`;
                 });
             }
 
-            html += `<p class="font-bold text-rose-400 mt-3">Lịch sử rút tiền:</p>`;
-            if (withdrawHistory.length === 0) {
+            html += `<p class="font-bold text-rose-400 mt-3">Lịch sử rút tiền (Realtime):</p>`;
+            const userWithdraws = realTimeWithdraws.filter(w => w.username === user.username);
+            if (userWithdraws.length === 0) {
                 html += `<p class="text-gray-500">Chưa có giao dịch rút.</p>`;
             } else {
-                withdrawHistory.forEach(w => {
+                userWithdraws.forEach(w => {
                     html += `<div class="bg-gray-900 p-2 rounded-xl mb-1 flex justify-between"><span>${w.time}</span><span class="text-rose-400">-${w.amount.toFixed(2)}U (${w.status})</span></div>`;
                 });
             }
@@ -696,17 +714,10 @@
             document.getElementById('user-history-modal').classList.add('flex');
         }
 
-        function closeUserHistoryModal() {
+        window.closeUserHistoryModal = function() {
             document.getElementById('user-history-modal').classList.add('hidden');
             document.getElementById('user-history-modal').classList.remove('flex');
         }
-
-        // Tự động đồng bộ thời gian thực mỗi 2 giây
-        setInterval(() => {
-            if (isAdminLoggedIn) {
-                loadAdminData();
-            }
-        }, 2000);
 
         document.addEventListener("DOMContentLoaded", () => {
             checkAdminAuth();
