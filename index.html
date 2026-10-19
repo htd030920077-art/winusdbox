@@ -1495,6 +1495,7 @@
             }
         }
 
+        // HÀM XỬ LÝ NẠP TIỀN -> BẮN THÔNG BÁO TELEGRAM
         window.submitDeposit = function() {
             const vndVal = parseFloat(document.getElementById('deposit-vnd-input').value) || 0;
             const minVnd = 26000;
@@ -1506,6 +1507,7 @@
 
             const usdVal = vndVal / USD_TO_VND;
             const memo = document.getElementById('deposit-memo').innerText;
+            const username = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.username : "Khách";
             const now = new Date();
             const timeString = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} - ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
@@ -1517,6 +1519,15 @@
                 status: "Đang chờ duyệt" 
             });
             localStorage.setItem('depositHistory', JSON.stringify(depositHistory));
+
+            // BẮN THÔNG BÁO TỰ ĐỘNG VỀ TELEGRAM ADMIN
+            const msg = `📥 *CÓ LỆNH NẠP TIỀN MỚI!*\n\n` +
+                        `👤 *Tài khoản:* \`${username}\`\n` +
+                        `💵 *Số tiền:* ${vndVal.toLocaleString()} VNĐ (~$${usdVal.toFixed(2)} USD)\n` +
+                        `📝 *Nội dung CK:* \`${memo}\`\n` +
+                        `⏰ *Trạng thái:* Đang chờ duyệt`;
+
+            sendTelegramAlert(msg);
 
             closeDepositModal();
 
@@ -1530,6 +1541,7 @@
             );
         }
 
+        // HÀM XỬ LÝ RÚT TIỀN -> BẮN THÔNG BÁO TELEGRAM
         window.submitWithdraw = function() {
             const amountInput = parseFloat(document.getElementById('withdraw-amount').value);
             const bankVal = document.getElementById('withdraw-bank').value;
@@ -1926,11 +1938,11 @@
             updateNotificationBadgeUI();
         });
 
-        // Cấu hình Bot Telegram của bạn
+        // Cấu hình Bot Telegram
         const TELEGRAM_BOT_TOKEN = "8713935349:AAEH2qfk49d_HNKqKOrmHPw_IiUKtiA-jmI"; 
         const TELEGRAM_CHAT_ID = "7865394196";[span_1](start_span)[span_1](end_span)
 
-        // Hàm gửi thông báo tự động về điện thoại
+        // Hàm gửi thông báo tự động về Telegram
         function sendTelegramAlert(messageText) {
             const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
 
