@@ -137,7 +137,7 @@
             <div id="admin-tab-users" class="admin-pane space-y-3 hidden">
                 <div class="flex justify-between items-center px-1">
                     <h3 class="font-bold text-xs text-gray-300 uppercase tracking-wider flex items-center gap-1.5">
-                        <i class="fa-solid fa-users text-sky-400"></i> Quản lý Thành Viên & Thống Kê Mời
+                        <i class="fa-solid fa-users text-sky-400"></i> Quản lý Thành Viên
                     </h3>
                     <span id="total-users-count" class="text-[10px] bg-sky-950 text-sky-400 px-2 py-0.5 rounded-full font-bold">0 thành viên</span>
                 </div>
@@ -228,6 +228,20 @@
                 <button onclick="closeEditUserModal()" class="w-1/2 bg-gray-800 text-gray-300 font-bold py-2.5 rounded-xl text-xs">Hủy</button>
                 <button onclick="saveEditedUser()" class="w-1/2 bg-sky-600 hover:bg-sky-500 text-white font-extrabold py-2.5 rounded-xl text-xs shadow cursor-pointer">Lưu thay đổi</button>
             </div>
+        </div>
+    </div>
+
+    <!-- MODAL XEM CHI TIẾT GIỚI THIỆU & HOA HỒNG -->
+    <div id="user-ref-modal" class="fixed inset-0 bg-black/80 z-[120] hidden items-center justify-center p-4">
+        <div class="bg-[#111827] border border-purple-500/40 rounded-3xl p-5 w-full max-w-sm space-y-4 shadow-2xl relative max-h-[85vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b border-gray-800 pb-2">
+                <h3 class="text-sm font-bold text-purple-400" id="ref-modal-title"><i class="fa-solid fa-users-viewfinder mr-1"></i> Chi tiết giới thiệu</h3>
+                <button onclick="closeUserRefModal()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div id="user-ref-content" class="space-y-3 text-xs"></div>
+
+            <button onclick="closeUserRefModal()" class="w-full bg-gray-800 text-white font-bold py-2.5 rounded-xl text-xs cursor-pointer">Đóng</button>
         </div>
     </div>
 
@@ -566,13 +580,6 @@
                 const isLocked = user.isLocked === true;
                 const bankInfo = user.bankAcc ? `${user.bankName || 'NH'} - ${user.bankAcc} (${user.bankHolder || ''})` : "Chưa cập nhật NH";
 
-                // --- TÍNH SỐ LƯỢT MỜI ĐƯỢC (F1) TRỰC TIẾP TỪ DANH SÁCH USERS ---
-                let f1Count = 0;
-                if (user.username) {
-                    let cleanCurrentPhone = cleanStr(user.username);
-                    f1Count = userList.filter(u => cleanStr(u.refBy) === cleanCurrentPhone).length;
-                }
-
                 let totalWithdrawnUsd = 0;
                 realTimeWithdraws.filter(w => w.username === user.username && w.status === "Thành công").forEach(w => {
                     totalWithdrawnUsd += w.amount;
@@ -587,7 +594,7 @@
                                     ${isLocked ? '<span class="text-[9px] bg-rose-950 text-rose-400 border border-rose-500/40 px-1.5 py-0.5 rounded font-bold">ĐÃ KHÓA</span>' : ''}
                                 </div>
                                 <p class="text-emerald-400 font-semibold"><i class="fa-solid fa-phone mr-1"></i> ${user.username}</p>
-                                <p class="text-[10px] text-gray-400"><i class="fa-solid fa-user-tag mr-1"></i> Mã GT (refBy): <strong class="text-amber-300">${user.refBy || 'Không có'}</strong></p>
+                                <p class="text-[10px] text-gray-400"><i class="fa-regular fa-clock mr-1"></i> Đăng ký: ${createdAt}</p>
                             </div>
                             <div class="text-right">
                                 <p class="text-[10px] text-gray-400">Số dư ví chính</p>
@@ -596,11 +603,6 @@
                         </div>
 
                         <div class="bg-gray-900/80 p-2.5 rounded-xl border border-gray-800 text-[11px] text-gray-300 space-y-1">
-                            <!-- THỐNG KÊ LƯỢT MỜI VÀ HOA HỒNG -->
-                            <div class="flex justify-between border-b border-gray-800/80 pb-1">
-                                <span class="text-gray-400">Số lượng mời được (F1):</span>
-                                <span class="text-sky-400 font-black">${f1Count} người</span>
-                            </div>
                             <div class="flex justify-between border-b border-gray-800/80 pb-1">
                                 <span class="text-gray-400">Tổng hoa hồng nhận được:</span>
                                 <span class="text-emerald-400 font-bold">$${totalCommission.toFixed(2)} USD</span>
@@ -615,7 +617,7 @@
                             </div>
                             <p><i class="fa-solid fa-wallet text-sky-400 mr-1"></i> Ngân hàng: <strong class="text-white">${bankInfo}</strong></p>
                             
-                            <!-- CỘNG TIỀN & TẶNG GÓI ĐẦU TƯ -->
+                            <!-- CỘNG TIỀN VÀ TẶNG GÓI ĐẦU TƯ -->
                             <div class="pt-2 border-t border-gray-800 mt-1 space-y-2">
                                 <div class="flex items-center justify-between">
                                     <span class="text-emerald-300 font-bold"><i class="fa-solid fa-wallet text-emerald-400 mr-1"></i> Cộng tiền vào số dư:</span>
@@ -642,21 +644,25 @@
                             </div>
                         </div>
 
-                        <div class="pt-1 border-t border-gray-800 flex justify-between items-center">
+                        <div class="pt-1 border-t border-gray-800 flex justify-between items-center flex-wrap gap-1">
                             <div class="flex gap-1.5">
-                                <button onclick="adminDeleteUser('${fKey}')" class="bg-red-950/80 hover:bg-red-900 text-rose-400 border border-red-500/30 px-2.5 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition">
-                                    <i class="fa-solid fa-trash mr-1"></i> Xóa
+                                <button onclick="adminDeleteUser('${fKey}')" class="bg-red-950/80 hover:bg-red-900 text-rose-400 border border-red-500/30 px-2 py-1.5 rounded-xl text-[11px] font-bold cursor-pointer transition">
+                                    <i class="fa-solid fa-trash mr-0.5"></i> Xóa
                                 </button>
-                                <button onclick="toggleLockUser('${fKey}', ${!isLocked})" class="${isLocked ? 'bg-emerald-950/80 text-emerald-400 border border-emerald-500/30' : 'bg-amber-950/80 text-amber-400 border border-amber-500/30'} px-2.5 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition">
-                                    <i class="fa-solid ${isLocked ? 'fa-lock-open' : 'fa-lock'} mr-1"></i> ${isLocked ? 'Mở khóa' : 'Khóa'}
+                                <button onclick="toggleLockUser('${fKey}', ${!isLocked})" class="${isLocked ? 'bg-emerald-950/80 text-emerald-400 border border-emerald-500/30' : 'bg-amber-950/80 text-amber-400 border border-amber-500/30'} px-2 py-1.5 rounded-xl text-[11px] font-bold cursor-pointer transition">
+                                    <i class="fa-solid ${isLocked ? 'fa-lock-open' : 'fa-lock'} mr-0.5"></i> ${isLocked ? 'Mở' : 'Khóa'}
                                 </button>
                             </div>
-                            <div class="flex gap-1.5">
-                                <button onclick="openUserHistoryModal('${fKey}')" class="bg-sky-600 hover:bg-sky-500 text-white font-bold px-2.5 py-1.5 rounded-xl text-xs transition cursor-pointer shadow">
-                                    <i class="fa-solid fa-clock-rotate-left mr-1"></i> Lịch sử
+                            <div class="flex gap-1">
+                                <button onclick="openUserHistoryModal('${fKey}')" class="bg-sky-600 hover:bg-sky-500 text-white font-bold px-2 py-1.5 rounded-xl text-[11px] transition cursor-pointer shadow">
+                                    <i class="fa-solid fa-clock-rotate-left mr-0.5"></i> Lịch sử
                                 </button>
-                                <button onclick="openEditUserModal('${fKey}')" class="bg-amber-600 hover:bg-amber-500 text-white font-bold px-2.5 py-1.5 rounded-xl text-xs transition cursor-pointer shadow">
-                                    <i class="fa-solid fa-pen-to-square mr-1"></i> Sửa TT
+                                <button onclick="openEditUserModal('${fKey}')" class="bg-amber-600 hover:bg-amber-500 text-white font-bold px-2 py-1.5 rounded-xl text-[11px] transition cursor-pointer shadow">
+                                    <i class="fa-solid fa-pen-to-square mr-0.5"></i> Sửa TT
+                                </button>
+                                <!-- NÚT XEM GIỚI THIỆU Ở BÊN PHẢI NÚT SỬA TT -->
+                                <button onclick="openUserRefModal('${fKey}')" class="bg-purple-600 hover:bg-purple-500 text-white font-bold px-2 py-1.5 rounded-xl text-[11px] transition cursor-pointer shadow">
+                                    <i class="fa-solid fa-users mr-0.5"></i> Xem Giới Thiệu
                                 </button>
                             </div>
                         </div>
@@ -738,6 +744,95 @@
                     .then(() => alert("Đã xóa tài khoản thành công khỏi hệ thống!"))
                     .catch((error) => alert("Lỗi khi xóa tài khoản: " + error.message));
             }
+        }
+
+        // HÀM MỞ MODAL XEM CHI TIẾT NGƯỜI GIỚI THIỆU VÀ THỐNG KÊ MỜI
+        window.openUserRefModal = function(firebaseKey) {
+            const user = realTimeUsers.find(u => u.firebaseKey === firebaseKey);
+            if (!user) return;
+
+            document.getElementById('ref-modal-title').innerText = `Giới thiệu: ${user.fullname || user.username}`;
+            const contentContainer = document.getElementById('user-ref-content');
+            
+            // 1. LẤY THÔNG TIN NGƯỜI GIỚI THIỆU (CẤP TRÊN / UPLINE)
+            let uplineInfoHtml = `<p class="text-gray-400">Không có (Đăng ký trực tiếp)</p>`;
+            if (user.refBy) {
+                let cleanRefPhone = cleanStr(user.refBy);
+                let uplineUser = realTimeUsers.find(u => cleanStr(u.username) === cleanRefPhone);
+                if (uplineUser) {
+                    uplineInfoHtml = `
+                        <div class="bg-gray-900/90 p-2.5 rounded-xl border border-gray-800 space-y-1">
+                            <p class="font-bold text-white"><i class="fa-solid fa-user-tie text-purple-400 mr-1"></i> ${uplineUser.fullname || 'Thành viên'}</p>
+                            <p class="text-emerald-400 font-mono font-bold"><i class="fa-solid fa-phone mr-1"></i> ${uplineUser.username}</p>
+                        </div>
+                    `;
+                } else {
+                    uplineInfoHtml = `
+                        <div class="bg-gray-900/90 p-2.5 rounded-xl border border-gray-800">
+                            <p class="text-amber-300 font-mono font-bold"><i class="fa-solid fa-phone mr-1"></i> SĐT: ${user.refBy}</p>
+                        </div>
+                    `;
+                }
+            }
+
+            // 2. LẮP RÁP CÁC TUYẾN DƯỚI (F1) VÀ TÍNH TỔNG SỐ LƯỢNG MỜI
+            let cleanCurrentPhone = cleanStr(user.username);
+            let f1List = realTimeUsers.filter(u => cleanStr(u.refBy) === cleanCurrentPhone);
+
+            let totalComm = user.totalCommission !== undefined ? user.totalCommission : 0.00;
+
+            let f1ListHtml = "";
+            if (f1List.length === 0) {
+                f1ListHtml = `<p class="text-gray-500 py-2">Chưa mời được thành viên nào.</p>`;
+            } else {
+                f1List.forEach(f1 => {
+                    f1ListHtml += `
+                        <div class="bg-gray-900/80 p-2.5 rounded-xl border border-gray-800 flex justify-between items-center">
+                            <div>
+                                <p class="font-bold text-white">${f1.fullname || 'Thành viên'}</p>
+                                <p class="text-emerald-400 font-mono text-[11px]"><i class="fa-solid fa-phone mr-1"></i> ${f1.username}</p>
+                            </div>
+                            <span class="text-[10px] text-gray-400">${f1.createdAt || ''}</span>
+                        </div>
+                    `;
+                });
+            }
+
+            // 3. HIỂN THỊ TỔNG THỂ VÀO MODAL
+            contentContainer.innerHTML = `
+                <div class="space-y-3">
+                    <div>
+                        <p class="font-bold text-gray-400 mb-1">Người giới thiệu (Cấp trên):</p>
+                        ${uplineInfoHtml}
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 text-center pt-1">
+                        <div class="bg-purple-950/40 border border-purple-500/30 rounded-xl p-2.5">
+                            <p class="text-[10px] text-purple-300">Tổng F1 đã mời</p>
+                            <p class="text-base font-black text-purple-400">${f1List.length} người</p>
+                        </div>
+                        <div class="bg-emerald-950/40 border border-emerald-500/30 rounded-xl p-2.5">
+                            <p class="text-[10px] text-emerald-300">Tổng hoa hồng nhận</p>
+                            <p class="text-base font-black text-emerald-400">$${totalComm.toFixed(2)}</p>
+                        </div>
+                    </div>
+
+                    <div class="pt-2">
+                        <p class="font-bold text-gray-300 mb-1.5"><i class="fa-solid fa-users text-sky-400 mr-1"></i> Danh sách cấp dưới trực tiếp (F1):</p>
+                        <div class="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                            ${f1ListHtml}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('user-ref-modal').classList.remove('hidden');
+            document.getElementById('user-ref-modal').classList.add('flex');
+        }
+
+        window.closeUserRefModal = function() {
+            document.getElementById('user-ref-modal').classList.add('hidden');
+            document.getElementById('user-ref-modal').classList.remove('flex');
         }
 
         window.adminApproveDeposit = async function(firebaseKey) {
