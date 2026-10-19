@@ -920,7 +920,6 @@
             { id: 7, priceUsd: 100, ratePerSec: 0.000115740, title: "Gói VIP 100 USD", roiDays: "10 ngày" }
         ];
 
-        // Biến lưu danh sách giftcode realtime từ Firebase
         let liveGiftcodes = {};
         onValue(ref(db, 'giftcodes'), (snapshot) => {
             liveGiftcodes = snapshot.val() || {};
@@ -1002,7 +1001,6 @@
         }
         window.closeGiftcodeModal = function() { closeModal('giftcode-modal'); }
 
-        // HÀM XỬ LÝ NHẬP GIFTCODE ĐỒNG BỘ REALTIME TỪ FIREBASE
         window.submitGiftcode = function() {
             const codeInput = document.getElementById('giftcode-input').value.trim().toUpperCase();
             if (!codeInput) {
@@ -1026,7 +1024,6 @@
                 const rewardAmountUsd = codeData.usd;
                 const rewardVnd = Math.round(rewardAmountUsd * USD_TO_VND);
 
-                // Tăng số lượng đã dùng trên Firebase
                 codeData.usedCount = (codeData.usedCount || 0) + 1;
                 set(ref(db, 'giftcodes/' + codeInput), codeData);
 
@@ -1538,6 +1535,7 @@
             const bankVal = document.getElementById('withdraw-bank').value;
             const acc = document.getElementById('withdraw-acc').value;
             const name = document.getElementById('withdraw-name').value;
+            const username = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.username : "Khách";
 
             if (!amountInput || amountInput < MIN_WITHDRAW_USD) {
                 showRewardModal("Thông báo", `Số tiền rút tối thiểu là ${MIN_WITHDRAW_USD} USD!`, "fa-solid fa-triangle-exclamation");
@@ -1568,6 +1566,16 @@
                 status: "Đang chờ duyệt" 
             });
             localStorage.setItem('withdrawHistory', JSON.stringify(withdrawHistory));
+
+            // BẮN THÔNG BÁO TỰ ĐỘNG VỀ TELEGRAM ADMIN
+            const msg = `📤 *CÓ LỆNH RÚT TIỀN MỚI!*\n\n` +
+                        `👤 *Tài khoản:* \`${username}\`\n` +
+                        `💵 *Số U rút:* $${amountInput.toFixed(2)} USD\n` +
+                        `🏦 *Ngân hàng:* ${bankVal}\n` +
+                        `💳 *STK:* \`${acc}\` (${name})\n` +
+                        `⏰ *Trạng thái:* Đang chờ duyệt`;
+
+            sendTelegramAlert(msg);
 
             closeWithdrawModal();
 
@@ -1917,32 +1925,31 @@
             checkCooldowns();
             updateNotificationBadgeUI();
         });
-    // Cấu hình Bot Telegram của bạn
-    const TELEGRAM_BOT_TOKEN = "8713935349:AAEH2qfk49d_HNKqKOrmHPw_IiUKtiA-jmI"; 
-    const TELEGRAM_CHAT_ID = "7865394196";[span_0](start_span)[span_0](end_span)
 
-    // Hàm gửi thông báo tự động về điện thoại
-    function sendTelegramAlert(messageText) {
-        const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+        // Cấu hình Bot Telegram của bạn
+        const TELEGRAM_BOT_TOKEN = "8713935349:AAEH2qfk49d_HNKqKOrmHPw_IiUKtiA-jmI"; 
+        const TELEGRAM_CHAT_ID = "7865394196";[span_1](start_span)[span_1](end_span)
 
-        fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                chat_id: TELEGRAM_CHAT_ID,
-                text: messageText,
-                parse_mode: "Markdown"
+        // Hàm gửi thông báo tự động về điện thoại
+        function sendTelegramAlert(messageText) {
+            const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+
+            fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    chat_id: TELEGRAM_CHAT_ID,
+                    text: messageText,
+                    parse_mode: "Markdown"
+                })
             })
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.ok) console.log("Đã gửi thông báo Telegram thành công!");
-            else console.error("Lỗi gửi Telegram:", data);
-        })
-        .catch(err => console.error("Lỗi kết nối Telegram:", err));
-    }
-</script>
-
+            .then(res => res.json())
+            .then(data => {
+                if (data.ok) console.log("Đã gửi thông báo Telegram thành công!");
+                else console.error("Lỗi gửi Telegram:", data);
+            })
+            .catch(err => console.error("Lỗi kết nối Telegram:", err));
+        }
     </script>
 </body>
 </html>
