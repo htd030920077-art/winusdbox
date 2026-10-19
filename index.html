@@ -978,6 +978,27 @@
 
         const COOLDOWN_TIME = 24 * 60 * 60 * 1000; 
 
+        // LẮNG NGHE REALTIME FIREBASE ĐỂ TỰ ĐỘNG KÍCH HOẠT GÓI KHI ADMIN DUYỆT
+        function initUserRealtimeSync() {
+            if (!currentUser) return;
+            onValue(ref(db, 'deposits'), (snapshot) => {
+                const data = snapshot.val() || {};
+                const list = Object.keys(data).map(k => data[k]);
+                // Kiểm tra lệnh nạp của user hiện tại đã được Admin duyệt "Thành công" chưa
+                const approvedDep = list.find(d => d.username === currentUser.username && d.status === "Thành công");
+                if (approvedDep) {
+                    const matchedPlan = investmentPlans.find(p => p.id === (approvedDep.planId || 1)) || investmentPlans[0];
+                    if (activePlanId !== matchedPlan.id) {
+                        activePlanId = matchedPlan.id;
+                        activePlan = matchedPlan;
+                        localStorage.setItem('activePlanId', activePlanId);
+                        updatePlanStatsUI();
+                        renderPlansUI();
+                    }
+                }
+            });
+        }
+
         window.openModal = function(modalId) {
             const modal = document.getElementById(modalId);
             if(!modal) return;
@@ -1422,6 +1443,7 @@
             
             loadUserGroupData();
             updateUserProfileUI();
+            initUserRealtimeSync();
             
             showRewardModal("Đăng nhập thành công", `Chào mừng trở lại, ${currentUser.fullname}!`, "fa-solid fa-shield-halved", () => {
                 document.getElementById('auth-screen').classList.add('hidden');
@@ -1495,7 +1517,7 @@
             }
         }
 
-        // HÀM XỬ LÝ NẠP TIỀN -> BẮN THÔNG BÁO TELEGRAM
+        // HÀM GỬI LỆNH NẠP LÊN FIREBASE ĐỂ ADMIN DUYỆT + BẮN TELEGRAM
         window.submitDeposit = function() {
             const inputElem = document.getElementById('deposit-vnd-input');
             let vndVal = parseFloat(inputElem ? inputElem.value : 0) || 0;
@@ -1509,9 +1531,16 @@
             const memo = memoElem ? memoElem.innerText : "WIN1234";
             const username = (typeof currentUser !== 'undefined' && currentUser && currentUser.username) ? currentUser.username : "Khách";
             const planTitle = pendingPlanToActivate ? pendingPlanToActivate.title : "Gói nạp tùy chọn";
+            const planId = pendingPlanToActivate ? pendingPlanToActivate.id : 1;
 
             const now = new Date();
             const timeString = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} - ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+            // Gửi dữ liệu nạp lên Firebase Realtime Database
+            const newDeposit = { username, vnd: vndVal, usd: usdVal, memo, time: timeString, status: "Đang chờ duyệt", planId };
+            import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js").then(({ push, ref: dbRef }) => {
+                push(dbRef(db, 'deposits'), newDeposit);
+            });
 
             depositHistory.unshift({ 
                 time: timeString, 
@@ -1522,7 +1551,6 @@
             });
             localStorage.setItem('depositHistory', JSON.stringify(depositHistory));
 
-            // CHUẨN BỊ NỘI DUNG VÀ BẮN TELEGRAM (DÙNG CHUỖI THUẦN TRÁNH LỖI PARSE)
             const msgText = `📥 CÓ LỆNH NẠP TIỀN MỚI!\n\n` +
                             `👤 Tài khoản: ${username}\n` +
                             `📦 Gói mua: ${planTitle}\n` +
@@ -1531,7 +1559,6 @@
                             `⏰ Thời gian: ${timeString}`;
 
             sendTelegramAlert(msgText);
-
             closeDepositModal();
 
             showRewardModal(
@@ -1544,7 +1571,7 @@
             );
         }
 
-        // HÀM XỬ LÝ RÚT TIỀN -> BẮN THÔNG BÁO TELEGRAM
+        // HÀM XỬ LÝ RÚT TIỀN -> TRỪ NGAY LẬP TỨC SỐ DƯ VÀ BẮN TELEGRAM
         window.submitWithdraw = function() {
             const amountInput = parseFloat(document.getElementById('withdraw-amount').value);
             const bankVal = document.getElementById('withdraw-bank').value;
@@ -1565,10 +1592,21 @@
                 return;
             }
 
+            // TRỪ NGAY LẬP TỨC TRONG SỐ DƯ KHẢ DỤNG CỦA NGƯỜI DÙNG
+            availableBalance -= amountInput;
+            saveUserGroupData();
+            updateDisplay();
+
             const fee = amountInput * 0.05;
             const net = amountInput - fee;
             const now = new Date();
             const timeString = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} - ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+            // Gửi lệnh rút lên Firebase
+            const newWithdraw = { username, amount: amountInput, bank: bankVal.split(' - ')[0], acc, name, fee, net, time: timeString, status: "Đang chờ duyệt" };
+            import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js").then(({ push, ref: dbRef }) => {
+                push(dbRef(db, 'withdraws'), newWithdraw);
+            });
 
             withdrawHistory.unshift({ 
                 time: timeString, 
@@ -1582,7 +1620,6 @@
             });
             localStorage.setItem('withdrawHistory', JSON.stringify(withdrawHistory));
 
-            // CHUẨN BỊ NỘI DUNG VÀ BẮN TELEGRAM
             const msgText = `📤 CÓ LỆNH RÚT TIỀN MỚI!\n\n` +
                             `👤 Tài khoản: ${username}\n` +
                             `💵 Số U rút: $${amountInput.toFixed(2)} USD\n` +
@@ -1591,13 +1628,12 @@
                             `⏰ Thời gian: ${timeString}`;
 
             sendTelegramAlert(msgText);
-
             closeWithdrawModal();
 
             showRewardModal(
-                "Đang xử lý lệnh rút", 
-                "Vui lòng chờ trong giây lát...", 
-                "fa-solid fa-spinner fa-spin", 
+                "Đã gửi lệnh rút tiền", 
+                "Số dư ví đã được trừ tạm thời. Vui lòng chờ Admin xử lý chuyển khoản!", 
+                "fa-solid fa-circle-check", 
                 () => {
                     updateDisplay();
                 }
@@ -1928,6 +1964,7 @@
                 document.getElementById('auth-screen').classList.remove('flex');
                 loadUserGroupData();
                 updateUserProfileUI();
+                initUserRealtimeSync();
             } else {
                 document.getElementById('auth-screen').classList.remove('hidden');
                 document.getElementById('auth-screen').classList.add('flex');
@@ -1945,7 +1982,6 @@
         const TELEGRAM_BOT_TOKEN = "8713935349:AAEH2qfk49d_HNKqKOrmHPw_IiUKtiA-jmI"; 
         const TELEGRAM_CHAT_ID = "7865394196";
 
-        // HÀM GỬI THÔNG BÁO TELEGRAM CHỐNG CORS VÀ CHỐNG BLOCK TRÌNH DUYỆT
         function sendTelegramAlert(messageText) {
             const endpoint = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
             
