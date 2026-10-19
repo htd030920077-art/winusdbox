@@ -244,7 +244,7 @@
     <!-- JAVASCRIPT ADMIN LOGIC + FIREBASE REALTIME SYNC -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-        import { getDatabase, ref, set, get, update, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+        import { getDatabase, ref, set, get, update, onValue, remove, push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyC832BgFHw5LIavbuwE17dpIFeJayKRbfg",
@@ -364,7 +364,6 @@
         }
 
         function initFirebaseListeners() {
-            // Lắng nghe Nạp tiền
             onValue(ref(db, 'deposits'), (snapshot) => {
                 const data = snapshot.val() || {};
                 realTimeDeposits = Object.keys(data).map(key => ({ firebaseKey: key, ...data[key] })).reverse();
@@ -372,11 +371,9 @@
                 const pendingCount = realTimeDeposits.filter(item => item.status === "Đang chờ duyệt").length;
                 document.getElementById('stat-pending-deposit').innerText = pendingCount;
                 renderAdminDeposits(realTimeDeposits);
-                // Cập nhật lại thành viên để tính tổng tiền nạp/rút realtime
                 renderAdminUsers(realTimeUsers);
             });
 
-            // Lắng nghe Rút tiền
             onValue(ref(db, 'withdraws'), (snapshot) => {
                 const data = snapshot.val() || {};
                 realTimeWithdraws = Object.keys(data).map(key => ({ firebaseKey: key, ...data[key] })).reverse();
@@ -387,10 +384,26 @@
                 renderAdminUsers(realTimeUsers);
             });
 
-            // Lắng nghe Danh sách Thành viên trên Firebase
             onValue(ref(db, 'users'), (snapshot) => {
                 const data = snapshot.val() || {};
                 realTimeUsers = Object.keys(data).map(key => ({ firebaseKey: key, ...data[key] }));
+                
+                let localRegistered = JSON.parse(localStorage.getItem('registeredUsers')) || [];
+                localRegistered.forEach(locUser => {
+                    const exists = realTimeUsers.some(u => u.username === locUser.username);
+                    if (!exists) {
+                        const now = new Date();
+                        const timeString = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} - ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+                        push(ref(db, 'users'), {
+                            fullname: locUser.fullname || "Thành viên",
+                            username: locUser.username,
+                            password: locUser.password || "123456",
+                            balance: 0,
+                            createdAt: timeString
+                        });
+                    }
+                });
+
                 renderAdminUsers(realTimeUsers);
             });
         }
@@ -528,7 +541,6 @@
                 const fKey = user.firebaseKey;
                 const bankInfo = user.bankAcc ? `${user.bankName || 'NH'} - ${user.bankAcc} (${user.bankHolder || ''})` : "Chưa cập nhật NH";
 
-                // Tính tổng nạp & tổng rút thực tế của thành viên này từ realTimeDeposits và realTimeWithdraws
                 let totalDepositedVnd = 0;
                 let totalDepositedUsd = 0;
                 realTimeDeposits.filter(d => d.username === user.username && d.status === "Thành công").forEach(d => {
@@ -565,6 +577,21 @@
                                 <span class="text-rose-400 font-bold">-$${totalWithdrawnUsd.toFixed(2)} USD</span>
                             </div>
                             <p><i class="fa-solid fa-wallet text-sky-400 mr-1"></i> Ngân hàng: <strong class="text-white">${bankInfo}</strong></p>
+                            
+                            <div class="flex items-center justify-between pt-2 border-t border-gray-800 mt-1">
+                                <span class="text-gray-300 font-bold"><i class="fa-solid fa-gift text-rose-400 mr-1"></i> Tặng gói / Nạp hộ:</span>
+                                <div class="flex items-center gap-1.5">
+                                    <select id="gift-plan-${fKey}" class="bg-gray-950 border border-gray-800 rounded-lg p-1 text-[10px] text-emerald-400 font-bold focus:outline-none">
+                                        <option value="3">Gói 3 USD</option>
+                                        <option value="7">Gói 7 USD</option>
+                                        <option value="15">Gói 15 USD</option>
+                                        <option value="20">Gói 20 USD</option>
+                                        <option value="50">Gói 50 USD</option>
+                                        <option value="100">Gói 100 USD</option>
+                                    </select>
+                                    <button onclick="adminGiftPlan('${fKey}')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold cursor-pointer shadow">Tặng ngay</button>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="pt-1 border-t border-gray-800 flex justify-between items-center">
@@ -598,10 +625,28 @@
             });
         }
 
+        window.adminGiftPlan = function(firebaseKey) {
+            const user = realTimeUsers.find(u => u.firebaseKey === firebaseKey);
+            if (!user) return;
+            const selectEl = document.getElementById(`gift-plan-${firebaseKey}`);
+            const usdVal = parseFloat(selectEl.value);
+
+            const currentBal = user.balance || 0;
+            const newBal = currentBal + usdVal;
+
+            update(ref(db, 'users/' + firebaseKey), { balance: newBal });
+            alert(`Đã tặng thành công gói ${usdVal} USD (cộng trực tiếp vào số dư ví) cho thành viên ${user.username}!`);
+        }
+
         window.adminDeleteUser = function(firebaseKey) {
-            if (confirm("Bạn có chắc chắn muốn xóa vĩnh viễn tài khoản này khỏi hệ thống?")) {
-                remove(ref(db, 'users/' + firebaseKey));
-                alert("Đã xóa tài khoản thành công!");
+            if (confirm("Bạn có chắc chắn muốn xóa vĩnh viễn tài khoản này khỏi hệ thống không?")) {
+                remove(ref(db, 'users/' + firebaseKey))
+                    .then(() => {
+                        alert("Đã xóa tài khoản thành công khỏi hệ thống!");
+                    })
+                    .catch((error) => {
+                        alert("Lỗi khi xóa tài khoản: " + error.message);
+                    });
             }
         }
 
@@ -611,7 +656,6 @@
 
             update(ref(db, 'deposits/' + firebaseKey), { status: "Thành công" });
 
-            // Cộng tiền vào ví tài khoản người dùng tương ứng trên Firebase nếu có
             const targetUser = realTimeUsers.find(u => u.username === item.username);
             if (targetUser) {
                 const newBal = (targetUser.balance || 0) + item.usd;
@@ -655,7 +699,6 @@
 
             update(ref(db, 'withdraws/' + firebaseKey), { status: "Đã từ chối" });
 
-            // Hoàn lại số dư vào ví cho người dùng khi lệnh rút bị từ chối
             const targetUser = realTimeUsers.find(u => u.username === item.username);
             if (targetUser) {
                 const refundBal = (targetUser.balance || 0) + item.amount;
