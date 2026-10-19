@@ -644,25 +644,25 @@
                             </div>
                         </div>
 
-                        <div class="pt-1 border-t border-gray-800 flex justify-between items-center flex-wrap gap-1">
-                            <div class="flex gap-1.5">
-                                <button onclick="adminDeleteUser('${fKey}')" class="bg-red-950/80 hover:bg-red-900 text-rose-400 border border-red-500/30 px-2 py-1.5 rounded-xl text-[11px] font-bold cursor-pointer transition">
-                                    <i class="fa-solid fa-trash mr-0.5"></i> Xóa
+                        <!-- CHIA THÀNH 2 HÀNG NÚT BẤM ĐỂ KHÔNG BỊ TRÀN MÀN HÌNH ĐT -->
+                        <div class="pt-1 border-t border-gray-800 space-y-1.5">
+                            <div class="grid grid-cols-2 gap-1.5">
+                                <button onclick="adminDeleteUser('${fKey}')" class="bg-red-950/80 hover:bg-red-900 text-rose-400 border border-red-500/30 py-2 rounded-xl text-[11px] font-bold cursor-pointer transition text-center">
+                                    <i class="fa-solid fa-trash mr-1"></i> Xóa tài khoản
                                 </button>
-                                <button onclick="toggleLockUser('${fKey}', ${!isLocked})" class="${isLocked ? 'bg-emerald-950/80 text-emerald-400 border border-emerald-500/30' : 'bg-amber-950/80 text-amber-400 border border-amber-500/30'} px-2 py-1.5 rounded-xl text-[11px] font-bold cursor-pointer transition">
-                                    <i class="fa-solid ${isLocked ? 'fa-lock-open' : 'fa-lock'} mr-0.5"></i> ${isLocked ? 'Mở' : 'Khóa'}
+                                <button onclick="toggleLockUser('${fKey}', ${!isLocked})" class="${isLocked ? 'bg-emerald-950/80 text-emerald-400 border border-emerald-500/30' : 'bg-amber-950/80 text-amber-400 border border-amber-500/30'} py-2 rounded-xl text-[11px] font-bold cursor-pointer transition text-center">
+                                    <i class="fa-solid ${isLocked ? 'fa-lock-open' : 'fa-lock'} mr-1"></i> ${isLocked ? 'Mở khóa' : 'Khóa TK'}
                                 </button>
                             </div>
-                            <div class="flex gap-1">
-                                <button onclick="openUserHistoryModal('${fKey}')" class="bg-sky-600 hover:bg-sky-500 text-white font-bold px-2 py-1.5 rounded-xl text-[11px] transition cursor-pointer shadow">
+                            <div class="grid grid-cols-3 gap-1.5">
+                                <button onclick="openUserHistoryModal('${fKey}')" class="bg-sky-600 hover:bg-sky-500 text-white font-bold py-2 rounded-xl text-[10px] transition cursor-pointer shadow text-center">
                                     <i class="fa-solid fa-clock-rotate-left mr-0.5"></i> Lịch sử
                                 </button>
-                                <button onclick="openEditUserModal('${fKey}')" class="bg-amber-600 hover:bg-amber-500 text-white font-bold px-2 py-1.5 rounded-xl text-[11px] transition cursor-pointer shadow">
+                                <button onclick="openEditUserModal('${fKey}')" class="bg-amber-600 hover:bg-amber-500 text-white font-bold py-2 rounded-xl text-[10px] transition cursor-pointer shadow text-center">
                                     <i class="fa-solid fa-pen-to-square mr-0.5"></i> Sửa TT
                                 </button>
-                                <!-- NÚT XEM GIỚI THIỆU Ở BÊN PHẢI NÚT SỬA TT -->
-                                <button onclick="openUserRefModal('${fKey}')" class="bg-purple-600 hover:bg-purple-500 text-white font-bold px-2 py-1.5 rounded-xl text-[11px] transition cursor-pointer shadow">
-                                    <i class="fa-solid fa-users mr-0.5"></i> Xem Giới Thiệu
+                                <button onclick="openUserRefModal('${fKey}')" class="bg-purple-600 hover:bg-purple-500 text-white font-bold py-2 rounded-xl text-[10px] transition cursor-pointer shadow text-center">
+                                    <i class="fa-solid fa-users mr-0.5"></i> Giới Thiệu
                                 </button>
                             </div>
                         </div>
@@ -746,7 +746,6 @@
             }
         }
 
-        // HÀM MỞ MODAL XEM CHI TIẾT NGƯỜI GIỚI THIỆU VÀ THỐNG KÊ MỜI
         window.openUserRefModal = function(firebaseKey) {
             const user = realTimeUsers.find(u => u.firebaseKey === firebaseKey);
             if (!user) return;
@@ -754,7 +753,6 @@
             document.getElementById('ref-modal-title').innerText = `Giới thiệu: ${user.fullname || user.username}`;
             const contentContainer = document.getElementById('user-ref-content');
             
-            // 1. LẤY THÔNG TIN NGƯỜI GIỚI THIỆU (CẤP TRÊN / UPLINE)
             let uplineInfoHtml = `<p class="text-gray-400">Không có (Đăng ký trực tiếp)</p>`;
             if (user.refBy) {
                 let cleanRefPhone = cleanStr(user.refBy);
@@ -775,10 +773,8 @@
                 }
             }
 
-            // 2. LẮP RÁP CÁC TUYẾN DƯỚI (F1) VÀ TÍNH TỔNG SỐ LƯỢNG MỜI
             let cleanCurrentPhone = cleanStr(user.username);
             let f1List = realTimeUsers.filter(u => cleanStr(u.refBy) === cleanCurrentPhone);
-
             let totalComm = user.totalCommission !== undefined ? user.totalCommission : 0.00;
 
             let f1ListHtml = "";
@@ -798,7 +794,6 @@
                 });
             }
 
-            // 3. HIỂN THỊ TỔNG THỂ VÀO MODAL
             contentContainer.innerHTML = `
                 <div class="space-y-3">
                     <div>
