@@ -399,7 +399,6 @@
         }
 
         function initFirebaseListeners() {
-            // Lắng nghe trạng thái khóa server từ Firebase
             onValue(ref(db, 'system/isServerLocked'), (snapshot) => {
                 isServerLocked = snapshot.val() === true;
                 updateServerLockButtonUI(isServerLocked);
@@ -440,6 +439,8 @@
                             username: locUser.username,
                             password: locUser.password || "123456",
                             balance: 0,
+                            totalDepositUsd: 0,
+                            isLocked: false,
                             activePlans: [],
                             createdAt: timeString
                         });
@@ -581,6 +582,7 @@
                 const createdAt = user.createdAt || "01/01/2026 - 12:00";
                 const userBalance = user.balance !== undefined ? user.balance : 0.00;
                 const fKey = user.firebaseKey;
+                const isLocked = user.isLocked === true;
                 const bankInfo = user.bankAcc ? `${user.bankName || 'NH'} - ${user.bankAcc} (${user.bankHolder || ''})` : "Chưa cập nhật NH";
 
                 let totalDepositedVnd = 0;
@@ -596,10 +598,13 @@
                 });
 
                 container.innerHTML += `
-                    <div class="card-dark rounded-2xl p-3.5 space-y-2.5 border border-gray-800 text-xs shadow-md user-item-card" data-search="${(user.fullname + ' ' + user.username).toLowerCase()}">
+                    <div class="card-dark rounded-2xl p-3.5 space-y-2.5 border ${isLocked ? 'border-rose-500/50 bg-rose-950/10' : 'border-gray-800'} text-xs shadow-md user-item-card" data-search="${(user.fullname + ' ' + user.username).toLowerCase()}">
                         <div class="flex justify-between items-start">
                             <div class="space-y-0.5">
-                                <p class="font-bold text-white text-sm">${user.fullname || 'Thành viên'}</p>
+                                <div class="flex items-center gap-1.5">
+                                    <p class="font-bold text-white text-sm">${user.fullname || 'Thành viên'}</p>
+                                    ${isLocked ? '<span class="text-[9px] bg-rose-950 text-rose-400 border border-rose-500/40 px-1.5 py-0.5 rounded font-bold">ĐÃ KHÓA</span>' : ''}
+                                </div>
                                 <p class="text-emerald-400 font-semibold"><i class="fa-solid fa-phone mr-1"></i> ${user.username}</p>
                                 <p class="text-[10px] text-gray-500"><i class="fa-regular fa-clock mr-1"></i> Đăng ký: ${createdAt}</p>
                             </div>
@@ -647,9 +652,14 @@
                         </div>
 
                         <div class="pt-1 border-t border-gray-800 flex justify-between items-center">
-                            <button onclick="adminDeleteUser('${fKey}')" class="bg-red-950/80 hover:bg-red-900 text-rose-400 border border-red-500/30 px-2.5 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition">
-                                <i class="fa-solid fa-trash mr-1"></i> Xóa
-                            </button>
+                            <div class="flex gap-1.5">
+                                <button onclick="adminDeleteUser('${fKey}')" class="bg-red-950/80 hover:bg-red-900 text-rose-400 border border-red-500/30 px-2.5 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition">
+                                    <i class="fa-solid fa-trash mr-1"></i> Xóa
+                                </button>
+                                <button onclick="toggleLockUser('${fKey}', ${!isLocked})" class="${isLocked ? 'bg-emerald-950/80 text-emerald-400 border border-emerald-500/30' : 'bg-amber-950/80 text-amber-400 border border-amber-500/30'} px-2.5 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition">
+                                    <i class="fa-solid ${isLocked ? 'fa-lock-open' : 'fa-lock'} mr-1"></i> ${isLocked ? 'Mở khóa' : 'Khóa'}
+                                </button>
+                            </div>
                             <div class="flex gap-1.5">
                                 <button onclick="openUserHistoryModal('${fKey}')" class="bg-sky-600 hover:bg-sky-500 text-white font-bold px-2.5 py-1.5 rounded-xl text-xs transition cursor-pointer shadow">
                                     <i class="fa-solid fa-clock-rotate-left mr-1"></i> Lịch sử
@@ -675,6 +685,17 @@
                     card.classList.add('hidden');
                 }
             });
+        }
+
+        // HÀM KHÓA / MỞ KHÓA TÀI KHOẢN THÀNH VIÊN
+        window.toggleLockUser = function(firebaseKey, lockStatus) {
+            update(ref(db, 'users/' + firebaseKey), { isLocked: lockStatus })
+                .then(() => {
+                    alert(lockStatus ? "Đã khóa tài khoản thành công!" : "Đã mở khóa tài khoản thành công!");
+                })
+                .catch((err) => {
+                    alert("Lỗi thao tác: " + err.message);
+                });
         }
 
         window.adminAddBalance = function(firebaseKey) {
@@ -737,22 +758,30 @@
             }
         }
 
-        // CẢI TIẾN CHUẨN: CHỈ CỘNG SỐ DƯ USD VÀO VÍ - KHÔNG ĐƯỢC TỰ ĐỘNG THÊM GÓI ĐỂ TRÁNH TRÙNG LẶP
+        // HÀM DUYỆT NẠP TIỀN KẾT HỢP CẬP NHẬT `totalDepositUsd` VÀ PHÂN BỔ HOA HỒNG ĐA CẤP (F1: 10%, F2: 3%, F3: 2%)
         window.adminApproveDeposit = function(firebaseKey) {
             const item = realTimeDeposits.find(d => d.firebaseKey === firebaseKey);
             if (!item) return;
 
-            // 1. Cập nhật trạng thái lệnh nạp thành thành công
+            // 1. Cập nhật trạng thái lệnh nạp thành công
             update(ref(db, 'deposits/' + firebaseKey), { status: "Thành công" });
 
-            // 2. Tìm thành viên và chỉ cộng tiền vào số dư ví (Balance)
+            // 2. Tìm thành viên nạp tiền, cộng số dư ví & cập nhật tổng tiền nạp `totalDepositUsd`
             const targetUser = realTimeUsers.find(u => u.username === item.username);
             if (targetUser) {
                 const newBal = (targetUser.balance || 0) + item.usd;
-                update(ref(db, 'users/' + targetUser.firebaseKey), { balance: newBal });
+                const newTotalDeposit = (targetUser.totalDepositUsd || 0) + item.usd;
+                
+                update(ref(db, 'users/' + targetUser.firebaseKey), { 
+                    balance: newBal,
+                    totalDepositUsd: newTotalDeposit
+                });
+
+                // 3. Phân bổ hoa hồng đa cấp tự động (F1: 10%, F2: 3%, F3: 2%)
+                distributeMultiLevelCommission(realTimeUsers, targetUser.username, item.usd);
             }
 
-            // 3. Gửi thông báo đến thành viên
+            // 4. Gửi thông báo đến thành viên
             let appNotifications = JSON.parse(localStorage.getItem('appNotifications')) || [];
             const now = new Date();
             const timeString = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} - ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
@@ -765,7 +794,47 @@
             localStorage.setItem('appNotifications', JSON.stringify(appNotifications));
             localStorage.setItem('hasUnreadNotif', 'true');
 
-            alert("Đã duyệt lệnh nạp tiền thành công và cộng số dư ví cho người dùng!");
+            alert("Đã duyệt lệnh nạp tiền thành công, cộng số dư, cập nhật số liệu F1 và phân bổ hoa hồng 3 cấp!");
+        }
+
+        // HÀM PHÂN BỔ HOA HỒNG ĐA CẤP (F1: 10%, F2: 3%, F3: 2%)
+        function distributeMultiLevelCommission(allUsers, depositorUsername, depositUsdAmount) {
+            let depositor = allUsers.find(u => u.username === depositorUsername);
+            if (!depositor || !depositor.refBy) return;
+
+            let f1Phone = depositor.refBy;
+            let f1User = allUsers.find(u => u.username === f1Phone);
+
+            if (f1User) {
+                // Cộng 10% cho F1
+                let commF1 = depositUsdAmount * 0.10;
+                let newBalF1 = (f1User.balance || 0) + commF1;
+                update(ref(db, 'users/' + f1User.firebaseKey), { balance: newBalF1 });
+
+                // Tìm F2
+                if (f1User.refBy) {
+                    let f2Phone = f1User.refBy;
+                    let f2User = allUsers.find(u => u.username === f2Phone);
+                    if (f2User) {
+                        // Cộng 3% cho F2
+                        let commF2 = depositUsdAmount * 0.03;
+                        let newBalF2 = (f2User.balance || 0) + commF2;
+                        update(ref(db, 'users/' + f2User.firebaseKey), { balance: newBalF2 });
+
+                        // Tìm F3
+                        if (f2User.refBy) {
+                            let f3Phone = f2User.refBy;
+                            let f3User = allUsers.find(u => u.username === f3Phone);
+                            if (f3User) {
+                                // Cộng 2% cho F3
+                                let commF3 = depositUsdAmount * 0.02;
+                                let newBalF3 = (f3User.balance || 0) + commF3;
+                                update(ref(db, 'users/' + f3User.firebaseKey), { balance: newBalF3 });
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         window.adminRejectDeposit = function(firebaseKey) {
