@@ -897,12 +897,13 @@
                 let newBalF1 = currentBalF1 + commF1;
                 let newTotalCommF1 = currentTotalCommF1 + commF1;
 
+                // Cộng trực tiếp vào balance (số dư ví) và tổng hoa hồng (totalCommission) lên Firebase
                 await update(ref(db, 'users/' + f1User.firebaseKey), { 
                     balance: Number(newBalF1.toFixed(2)),
                     totalCommission: Number(newTotalCommF1.toFixed(2))
                 });
 
-                reportLogs.push(`- F1 (${f1User.username}): +$${commF1.toFixed(2)} USD vào số dư.`);
+                reportLogs.push(`- F1 (${f1User.username}): +$${commF1.toFixed(2)} USD vào số dư ví & tổng hoa hồng.`);
 
                 // --- TÍNH CẤP F2 (3%) ---
                 if (f1User.refBy) {
@@ -922,7 +923,7 @@
                             totalCommission: Number(newTotalCommF2.toFixed(2))
                         });
 
-                        reportLogs.push(`- F2 (${f2User.username}): +$${commF2.toFixed(2)} USD vào số dư.`);
+                        reportLogs.push(`- F2 (${f2User.username}): +$${commF2.toFixed(2)} USD vào số dư ví & tổng hoa hồng.`);
 
                         // --- TÍNH CẤP F3 (2%) ---
                         if (f2User.refBy) {
@@ -942,7 +943,7 @@
                                     totalCommission: Number(newTotalCommF3.toFixed(2))
                                 });
 
-                                reportLogs.push(`- F3 (${f3User.username}): +$${commF3.toFixed(2)} USD vào số dư.`);
+                                reportLogs.push(`- F3 (${f3User.username}): +$${commF3.toFixed(2)} USD vào số dư ví & tổng hoa hồng.`);
                             }
                         }
                     }
