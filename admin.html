@@ -421,7 +421,11 @@
                 const data = snapshot.val() || {};
                 realTimeDeposits = Object.keys(data).map(key => ({ firebaseKey: key, ...data[key] })).reverse();
                 
-                const pendingCount = realTimeDeposits.filter(item => item.status === "Đang chờ duyệt").length;
+                const pendingCount = realTimeDeposits.filter(item => {
+                    const rawStatus = item.status ? String(item.status).trim() : "Đang chờ duyệt";
+                    return rawStatus === "Đang chờ duyệt" || rawStatus === "VUI LÒNG ĐỢI" || !item.status;
+                }).length;
+                
                 document.getElementById('stat-pending-deposit').innerText = pendingCount;
                 renderAdminDeposits(realTimeDeposits);
                 renderAdminUsers(realTimeUsers);
@@ -431,7 +435,11 @@
                 const data = snapshot.val() || {};
                 realTimeWithdraws = Object.keys(data).map(key => ({ firebaseKey: key, ...data[key] })).reverse();
 
-                const pendingCount = realTimeWithdraws.filter(item => item.status === "Đang chờ duyệt").length;
+                const pendingCount = realTimeWithdraws.filter(item => {
+                    const rawStatus = item.status ? String(item.status).trim() : "Đang chờ duyệt";
+                    return rawStatus === "Đang chờ duyệt" || rawStatus === "VUI LÒNG ĐỢI" || !item.status;
+                }).length;
+
                 document.getElementById('stat-pending-withdraw').innerText = pendingCount;
                 renderAdminWithdraws(realTimeWithdraws);
                 renderAdminUsers(realTimeUsers);
@@ -459,19 +467,21 @@
             }
 
             depositList.forEach((item) => {
-                const isPending = item.status === "Đang chờ duyệt";
+                const rawStatus = item.status ? String(item.status).trim() : "Đang chờ duyệt";
+                const isPending = rawStatus === "Đang chờ duyệt" || rawStatus === "VUI LÒNG ĐỢI" || !item.status;
+                
                 const memo = item.memo || "WIN1234";
                 const fKey = item.firebaseKey;
                 const phone = item.username || "Chưa rõ";
                 
                 let statusBadge = `<span class="text-amber-400 font-bold bg-amber-950/40 px-2 py-0.5 rounded border border-amber-500/30">Đang chờ duyệt</span>`;
-                if (item.status === "Thành công") statusBadge = `<span class="text-emerald-400 font-semibold bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-500/30">Thành công</span>`;
-                if (item.status === "Đã từ chối") statusBadge = `<span class="text-rose-400 font-semibold bg-rose-950/40 px-2 py-0.5 rounded border border-rose-500/30">Đã từ chối</span>`;
+                if (rawStatus === "Thành công") statusBadge = `<span class="text-emerald-400 font-semibold bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-500/30">Thành công</span>`;
+                if (rawStatus === "Đã từ chối") statusBadge = `<span class="text-rose-400 font-semibold bg-rose-950/40 px-2 py-0.5 rounded border border-rose-500/30">Đã từ chối</span>`;
 
                 container.innerHTML += `
                     <div class="card-dark rounded-2xl p-3.5 space-y-2 border border-gray-800 text-xs shadow-md">
                         <div class="flex justify-between items-center text-gray-400">
-                            <span><i class="fa-regular fa-clock mr-1"></i>${item.time}</span>
+                            <span><i class="fa-regular fa-clock mr-1"></i>${item.time || 'N/A'}</span>
                             ${statusBadge}
                         </div>
                         <div class="space-y-1 bg-gray-900/80 p-2.5 rounded-xl border border-gray-800/80">
@@ -481,11 +491,11 @@
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-gray-400">Số tiền nạp:</span>
-                                <span class="text-white font-bold">${item.vnd.toLocaleString()} VNĐ</span>
+                                <span class="text-white font-bold">${(item.vnd || 0).toLocaleString()} VNĐ</span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-gray-400">Quy đổi USD:</span>
-                                <span class="neon-text font-bold">+${item.usd.toFixed(2)} USD</span>
+                                <span class="neon-text font-bold">+${(item.usd || 0).toFixed(2)} USD</span>
                             </div>
                             <div class="flex justify-between border-t border-gray-800 pt-1 mt-1">
                                 <span class="text-gray-400">Nội dung CK:</span>
@@ -518,29 +528,31 @@
             }
 
             withdrawList.forEach((item) => {
-                const isPending = item.status === "Đang chờ duyệt";
+                const rawStatus = item.status ? String(item.status).trim() : "Đang chờ duyệt";
+                const isPending = rawStatus === "Đang chờ duyệt" || rawStatus === "VUI LÒNG ĐỢI" || !item.status;
+                
                 const fKey = item.firebaseKey;
                 const phone = item.username || "Chưa rõ";
                 
                 let statusBadge = `<span class="text-amber-400 font-bold bg-amber-950/40 px-2 py-0.5 rounded border border-amber-500/30">Đang chờ duyệt</span>`;
-                if (item.status === "Thành công") statusBadge = `<span class="text-emerald-400 font-semibold bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-500/30">Thành công</span>`;
-                if (item.status === "Đã từ chối") statusBadge = `<span class="text-rose-400 font-semibold bg-rose-950/40 px-2 py-0.5 rounded border border-rose-500/30">Đã từ chối</span>`;
+                if (rawStatus === "Thành công") statusBadge = `<span class="text-emerald-400 font-semibold bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-500/30">Thành công</span>`;
+                if (rawStatus === "Đã từ chối") statusBadge = `<span class="text-rose-400 font-semibold bg-rose-950/40 px-2 py-0.5 rounded border border-rose-500/30">Đã từ chối</span>`;
 
                 container.innerHTML += `
                     <div class="card-dark rounded-2xl p-3.5 space-y-2 border border-gray-800 text-xs shadow-md">
                         <div class="flex justify-between items-center text-gray-400">
-                            <span><i class="fa-regular fa-clock mr-1"></i>${item.time}</span>
+                            <span><i class="fa-regular fa-clock mr-1"></i>${item.time || 'N/A'}</span>
                             ${statusBadge}
                         </div>
                         <div class="space-y-1 bg-gray-900/80 p-2.5 rounded-xl border border-gray-800/80">
                             <p class="text-emerald-300 font-bold mb-1"><i class="fa-solid fa-phone mr-1"></i> SĐT: ${phone}</p>
-                            <p class="text-white font-bold flex items-center gap-1.5"><i class="fa-solid fa-building-columns text-rose-400"></i> Ngân hàng: ${item.bank}</p>
-                            <p class="text-gray-300">Số tài khoản: <strong class="text-white select-all font-mono text-amber-300">${item.acc}</strong></p>
-                            <p class="text-gray-300">Chủ tài khoản: <strong class="text-white uppercase">${item.name}</strong></p>
+                            <p class="text-white font-bold flex items-center gap-1.5"><i class="fa-solid fa-building-columns text-rose-400"></i> Ngân hàng: ${item.bank || 'MB'}</p>
+                            <p class="text-gray-300">Số tài khoản: <strong class="text-white select-all font-mono text-amber-300">${item.acc || ''}</strong></p>
+                            <p class="text-gray-300">Chủ tài khoản: <strong class="text-white uppercase">${item.name || ''}</strong></p>
                         </div>
                         <div class="flex justify-between items-center pt-1 border-t border-gray-800">
-                            <span class="text-gray-400">Yêu cầu rút (${item.amount.toFixed(2)}U) - Phí 5%:</span>
-                            <span class="font-black text-rose-400">Thực chuyển: -${item.net.toFixed(2)} USD</span>
+                            <span class="text-gray-400">Yêu cầu rút (${(item.amount || 0).toFixed(2)}U) - Phí 5%:</span>
+                            <span class="font-black text-rose-400">Thực chuyển: -${(item.net || 0).toFixed(2)} USD</span>
                         </div>
                         ${isPending ? `
                             <div class="pt-1 flex gap-2">
@@ -885,7 +897,6 @@
 
             let reportLogs = [];
 
-            // --- TÍNH CẤP F1 (10%) ---
             let f1Phone = cleanStr(depositor.refBy);
             let f1User = usersArray.find(u => cleanStr(u.username) === f1Phone);
 
@@ -897,7 +908,6 @@
                 let newBalF1 = currentBalF1 + commF1;
                 let newTotalCommF1 = currentTotalCommF1 + commF1;
 
-                // Cộng trực tiếp vào balance (số dư ví) và tổng hoa hồng (totalCommission) lên Firebase
                 await update(ref(db, 'users/' + f1User.firebaseKey), { 
                     balance: Number(newBalF1.toFixed(2)),
                     totalCommission: Number(newTotalCommF1.toFixed(2))
@@ -905,7 +915,6 @@
 
                 reportLogs.push(`- F1 (${f1User.username}): +$${commF1.toFixed(2)} USD vào số dư ví & tổng hoa hồng.`);
 
-                // --- TÍNH CẤP F2 (3%) ---
                 if (f1User.refBy) {
                     let f2Phone = cleanStr(f1User.refBy);
                     let f2User = usersArray.find(u => cleanStr(u.username) === f2Phone);
@@ -925,7 +934,6 @@
 
                         reportLogs.push(`- F2 (${f2User.username}): +$${commF2.toFixed(2)} USD vào số dư ví & tổng hoa hồng.`);
 
-                        // --- TÍNH CẤP F3 (2%) ---
                         if (f2User.refBy) {
                             let f3Phone = cleanStr(f2User.refBy);
                             let f3User = usersArray.find(u => cleanStr(u.username) === f3Phone);
