@@ -281,7 +281,7 @@
                                 Nhiệm Vụ Mời Bạn Bè
                             </h4>
                             <p class="text-[10px] text-gray-300 leading-tight">
-                                Nhận hoa hồng F1 (15%), F2 (3%), F3 (2%) tự động.
+                                Nhận hoa hồng F1 (10%), F2 (3%), F3 (2%) tự động.
                             </p>
                         </div>
 
@@ -316,6 +316,76 @@
                 <h3 class="font-bold text-lg mb-2 flex items-center gap-2">
                     <i class="fa-solid fa-list-check text-[#c0f135]"></i> Nhiệm vụ & Phần thưởng
                 </h3>
+
+                <!-- NHIỆM VỤ MỜI BẠN BÈ (MỚI TỪ HOME) -->
+                <div class="card-dark p-4 rounded-2xl space-y-3 border border-[#c0f135]/30">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="font-bold text-sm text-white">Nhiệm vụ mời bạn bè nạp tiền</p>
+                            <p class="text-xs text-gray-400 mt-0.5">Số F1 đã nạp tiền: <span id="f1-deposit-count" class="neon-text font-bold">0</span> người</p>
+                        </div>
+                        <span class="text-xs bg-[#1a2b10] text-[#c0f135] border border-[#c0f135]/40 px-2.5 py-1 rounded-full font-bold">
+                            Thưởng lớn
+                        </span>
+                    </div>
+
+                    <div class="pt-2 border-t border-gray-800 space-y-2">
+                        <!-- Mốc 3 người -->
+                        <div class="bg-gray-900/90 border border-gray-800 rounded-xl p-3 flex items-center justify-between text-xs">
+                            <div>
+                                <p class="font-bold text-white">Mời 3 F1 nạp tiền</p>
+                                <p class="text-[10px] text-gray-400">Nhận ngay +0.1 USD</p>
+                            </div>
+                            <div id="invite-reward-3-container">
+                                <button onclick="claimInviteTask(3)" id="invite-btn-3" class="bg-gray-800 text-gray-500 font-bold px-3 py-1.5 rounded-lg text-[11px] cursor-not-allowed" disabled>Chưa đạt</button>
+                            </div>
+                        </div>
+
+                        <!-- Mốc 10 người -->
+                        <div class="bg-gray-900/90 border border-gray-800 rounded-xl p-3 flex items-center justify-between text-xs">
+                            <div>
+                                <p class="font-bold text-white">Mời 10 F1 nạp tiền</p>
+                                <p class="text-[10px] text-gray-400">Nhận ngay +1.0 USD</p>
+                            </div>
+                            <div id="invite-reward-10-container">
+                                <button onclick="claimInviteTask(10)" id="invite-btn-10" class="bg-gray-800 text-gray-500 font-bold px-3 py-1.5 rounded-lg text-[11px] cursor-not-allowed" disabled>Chưa đạt</button>
+                            </div>
+                        </div>
+
+                        <!-- Mốc 20 người -->
+                        <div class="bg-gray-900/90 border border-gray-800 rounded-xl p-3 flex items-center justify-between text-xs">
+                            <div>
+                                <p class="font-bold text-white">Mời 20 F1 nạp tiền</p>
+                                <p class="text-[10px] text-gray-400">Nhận ngay +2.0 USD</p>
+                            </div>
+                            <div id="invite-reward-20-container">
+                                <button onclick="claimInviteTask(20)" id="invite-btn-20" class="bg-gray-800 text-gray-500 font-bold px-3 py-1.5 rounded-lg text-[11px] cursor-not-allowed" disabled>Chưa đạt</button>
+                            </div>
+                        </div>
+
+                        <!-- Mốc 50 người -->
+                        <div class="bg-gray-900/90 border border-gray-800 rounded-xl p-3 flex items-center justify-between text-xs">
+                            <div>
+                                <p class="font-bold text-white">Mời 50 F1 nạp tiền</p>
+                                <p class="text-[10px] text-gray-400">Nhận ngay +5.0 USD</p>
+                            </div>
+                            <div id="invite-reward-50-container">
+                                <button onclick="claimInviteTask(50)" id="invite-btn-50" class="bg-gray-800 text-gray-500 font-bold px-3 py-1.5 rounded-lg text-[11px] cursor-not-allowed" disabled>Chưa đạt</button>
+                            </div>
+                        </div>
+
+                        <!-- Mốc 100 người -->
+                        <div class="bg-gray-900/90 border border-gray-800 rounded-xl p-3 flex items-center justify-between text-xs">
+                            <div>
+                                <p class="font-bold text-white">Mời 100 F1 nạp tiền</p>
+                                <p class="text-[10px] text-gray-400">Nhận ngay +10.0 USD</p>
+                            </div>
+                            <div id="invite-reward-100-container">
+                                <button onclick="claimInviteTask(100)" id="invite-btn-100" class="bg-gray-800 text-gray-500 font-bold px-3 py-1.5 rounded-lg text-[11px] cursor-not-allowed" disabled>Chưa đạt</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 <div class="card-dark p-4 rounded-2xl space-y-3 border border-[#c0f135]/30">
                     <div class="flex justify-between items-center">
@@ -371,17 +441,26 @@
                         <span class="text-[10px] bg-[#1a2b10] text-[#c0f135] border border-[#c0f135]/40 px-2.5 py-0.5 rounded-full font-bold">Hoa hồng 3 cấp</span>
                     </div>
 
+                    <!-- MÃ MỜI CỦA BẢN THÂN -->
                     <div class="space-y-2">
-                        <label class="text-xs font-bold text-gray-300">Link giới thiệu của bạn (Mã mời = SĐT)</label>
+                        <label class="text-xs font-bold text-gray-300">Mã mời của bạn (SĐT cá nhân)</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="my-invite-code-input" readonly class="w-full bg-[#121929] border border-gray-800 rounded-xl p-2.5 text-xs text-[#c0f135] font-mono font-bold focus:outline-none">
+                            <button onclick="copyMyInviteCode()" class="neon-btn font-bold px-4 rounded-xl text-xs active:scale-95 transition cursor-pointer">Sao chép mã</button>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-gray-300">Link giới thiệu của bạn</label>
                         <div class="flex gap-2">
                             <input type="text" id="ref-link-input" readonly class="w-full bg-[#121929] border border-gray-800 rounded-xl p-2.5 text-xs text-[#c0f135] font-mono focus:outline-none">
-                            <button onclick="copyRefLink()" class="neon-btn font-bold px-4 rounded-xl text-xs active:scale-95 transition cursor-pointer">Sao chép</button>
+                            <button onclick="copyRefLink()" class="neon-btn font-bold px-4 rounded-xl text-xs active:scale-95 transition cursor-pointer">Sao chép link</button>
                         </div>
                     </div>
 
                     <div class="grid grid-cols-3 gap-2 pt-2">
                         <div class="bg-gray-900/90 border border-gray-800 p-2.5 rounded-2xl text-center">
-                            <p class="text-[10px] text-gray-400">Hoa hồng F1 (15%)</p>
+                            <p class="text-[10px] text-gray-400">Hoa hồng F1 (10%)</p>
                             <p id="f1-commission-val" class="text-xs font-black text-[#c0f135] mt-1">$0.00</p>
                         </div>
                         <div class="bg-gray-900/90 border border-gray-800 p-2.5 rounded-2xl text-center">
@@ -401,6 +480,16 @@
                             <i class="fa-solid fa-list text-[#c0f135]"></i> Danh sách thành viên F1 trực tiếp
                         </h4>
                         <span id="f1-count-badge" class="text-[10px] text-gray-400">0 thành viên</span>
+                    </div>
+
+                    <!-- Ô TÌM KIẾM CẤP DƯỚI BẰNG SỐ ĐIỆN THOẠI -->
+                    <div class="space-y-1">
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500">
+                                <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                            </span>
+                            <input type="text" id="search-f1-input" oninput="filterF1Members()" placeholder="Tìm kiếm SĐT cấp dưới F1..." class="w-full bg-[#121929] border border-gray-800 rounded-xl py-2.5 pl-9 pr-3 text-xs text-gray-200 focus:outline-none focus:border-[#c0f135] placeholder-gray-500">
+                        </div>
                     </div>
 
                     <div id="f1-member-list" class="space-y-2.5">
@@ -873,6 +962,10 @@
         let claimedStreak3 = localStorage.getItem('claimedStreak3') === 'true';
         let claimedStreak10 = localStorage.getItem('claimedStreak10') === 'true';
 
+        // Nhiệm vụ mời bạn bè nạp tiền
+        let claimedInviteTasks = JSON.parse(localStorage.getItem('claimedInviteTasks')) || [];
+        let cachedF1List = [];
+
         let pendingActionAfterModal = null;
         let withdrawHistory = JSON.parse(localStorage.getItem('withdrawHistory')) || [];
         let depositHistory = JSON.parse(localStorage.getItem('depositHistory')) || [];
@@ -911,7 +1004,7 @@
             }
         });
 
-        // ĐỒNG BỘ REALTIME TỪ FIREBASE (CẢ USER & GÓI ĐẦU TƯ / SỐ DƯ TỪ ADMIN)
+        // ĐỒNG BỘ REALTIME TỪ FIREBASE
         function initUserRealtimeSync() {
             if (!currentUser) return;
             
@@ -920,10 +1013,6 @@
                 const foundKey = Object.keys(allUsers).find(k => allUsers[k].username === currentUser.username);
                 if (foundKey) {
                     const liveData = allUsers[foundKey];
-                    // LƯU Ý QUAN TRỌNG: Chỉ đồng bộ số dư nếu admin thay đổi (nếu có), KHÔNG cộng dồn tiền nạp vào balance tại đây
-                    if (liveData.balance !== undefined && liveData.balance !== availableBalance) {
-                        // Chỉ cập nhật nếu là thay đổi hợp lệ từ hệ thống ví
-                    }
                     if (liveData.activePlans && liveData.activePlans.length > 0) {
                         const lastPlan = liveData.activePlans[liveData.activePlans.length - 1];
                         const matchedPlan = investmentPlans.find(p => p.priceUsd === lastPlan.priceUsd) || investmentPlans[0];
@@ -937,11 +1026,10 @@
                     }
                 }
                 
-                // Cập nhật danh sách nhóm F1, F2, F3 dựa vào mã mời (SĐT)
+                // Cập nhật danh sách nhóm F1, F2, F3 & tỷ lệ hoa hồng (F1: 10%, F2: 3%, F3: 2%)
                 renderGroupMembers(allUsers);
             });
 
-            // LẮNG NGHE LỆNH NẠP ĐÃ DUYỆT ĐỂ TỰ ĐỘNG KÍCH HOẠT GÓI KHAI THÁC VÀ TÍNH HOA HỒNG
             onValue(ref(db, 'deposits'), (snapshot) => {
                 const data = snapshot.val() || {};
                 const list = Object.keys(data).map(k => data[k]);
@@ -1001,37 +1089,27 @@
                 });
             });
 
-            let totalF1Deposit = 0;
             let calcF1Comm = 0;
             let calcF2Comm = 0;
             let calcF3Comm = 0;
+            let f1DepositedCount = 0;
 
-            const f1Container = document.getElementById('f1-member-list');
-            if (f1Container) {
-                f1Container.innerHTML = "";
-                if (f1List.length === 0) {
-                    f1Container.innerHTML = `<p class="text-center text-xs text-gray-500 py-6">Chưa có thành viên F1 nào.</p>`;
-                } else {
-                    f1List.forEach(f1 => {
-                        let f1DepositUsd = f1.totalDepositUsd || 0;
-                        totalF1Deposit += f1DepositUsd;
-                        calcF1Comm += f1DepositUsd * 0.15; // 15% F1
-
-                        f1Container.innerHTML += `
-                            <div class="card-dark rounded-2xl p-3 flex items-center justify-between border border-gray-800 text-xs">
-                                <div>
-                                    <p class="font-bold text-white"><i class="fa-solid fa-user text-[#c0f135] mr-1"></i> ${f1.fullname || 'Thành viên'}</p>
-                                    <p class="text-[11px] text-gray-400 mt-0.5">SĐT: ${f1.username}</p>
-                                </div>
-                                <div class="text-right">
-                                    <p class="font-black text-[#c0f135]">$${f1DepositUsd.toFixed(2)} U</p>
-                                    <p class="text-[10px] text-gray-400">Đã nạp</p>
-                                </div>
-                            </div>
-                        `;
-                    });
+            // Tính số lượng F1 đã phát sinh nạp tiền thành công
+            cachedF1List = f1List.map(f1 => {
+                let f1DepositUsd = f1.totalDepositUsd || 0;
+                if (f1DepositUsd > 0) {
+                    f1DepositedCount++;
                 }
-            }
+                let f1EarnedCommission = f1DepositUsd * 0.10; // Hoa hồng từ F1 này mang lại
+                calcF1Comm += f1EarnedCommission;
+
+                return {
+                    username: f1.username,
+                    fullname: f1.fullname || 'Thành viên',
+                    totalDepositUsd: f1DepositUsd,
+                    commissionReceived: f1EarnedCommission
+                };
+            });
 
             f2List.forEach(f2 => {
                 let f2DepositUsd = f2.totalDepositUsd || 0;
@@ -1048,11 +1126,97 @@
             f3Commission = calcF3Comm;
             totalCommission = f1Commission + f2Commission + f3Commission;
 
+            // Cập nhật UI Nhóm & Nhiệm vụ mời bạn bè
             document.getElementById('f1-count-badge').innerText = `${f1List.length} thành viên`;
             document.getElementById('f1-commission-val').innerText = `$${f1Commission.toFixed(2)}`;
             document.getElementById('f2-commission-val').innerText = `$${f2Commission.toFixed(2)}`;
             document.getElementById('f3-commission-val').innerText = `$${f3Commission.toFixed(2)}`;
             document.getElementById('profile-total-commission').innerText = `$${totalCommission.toFixed(2)}`;
+            
+            const f1DepCountEl = document.getElementById('f1-deposit-count');
+            if(f1DepCountEl) f1DepCountEl.innerText = f1DepositedCount;
+
+            renderF1TableUI(cachedF1List);
+            updateInviteTaskButtonsUI(f1DepositedCount);
+        }
+
+        window.renderF1TableUI = function(list) {
+            const f1Container = document.getElementById('f1-member-list');
+            if (!f1Container) return;
+            f1Container.innerHTML = "";
+
+            if (list.length === 0) {
+                f1Container.innerHTML = `<p class="text-center text-xs text-gray-500 py-6">Chưa có thành viên F1 nào.</p>`;
+                return;
+            }
+
+            list.forEach(f1 => {
+                f1Container.innerHTML += `
+                    <div class="card-dark rounded-2xl p-3.5 flex items-center justify-between border border-gray-800 text-xs">
+                        <div class="space-y-0.5">
+                            <p class="font-bold text-white"><i class="fa-solid fa-user text-[#c0f135] mr-1"></i> ${f1.fullname}</p>
+                            <p class="text-[11px] text-gray-400">SĐT: <span class="text-gray-200 font-mono">${f1.username}</span></p>
+                        </div>
+                        <div class="text-right space-y-0.5">
+                            <p class="font-black text-[#c0f135]">$${f1.totalDepositUsd.toFixed(2)} U</p>
+                            <p class="text-[10px] text-gray-400">Hoa hồng: <strong class="text-white">+$${f1.commissionReceived.toFixed(2)}U</strong></p>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        window.filterF1Members = function() {
+            const query = document.getElementById('search-f1-input').value.trim().toLowerCase();
+            const filtered = cachedF1List.filter(f1 => f1.username.toLowerCase().includes(query) || f1.fullname.toLowerCase().includes(query));
+            renderF1TableUI(filtered);
+        }
+
+        window.updateInviteTaskButtonsUI = function(f1DepositedCount) {
+            const milestones = [3, 10, 20, 50, 100];
+            const rewards = { 3: 0.1, 10: 1.0, 20: 2.0, 50: 5.0, 100: 10.0 };
+
+            milestones.forEach(goal => {
+                const btn = document.getElementById(`invite-btn-${goal}`);
+                if (!btn) return;
+
+                const isClaimed = claimedInviteTasks.includes(goal);
+                const hasReached = f1DepositedCount >= goal;
+
+                if (isClaimed) {
+                    btn.innerText = "Đã nhận";
+                    btn.className = "bg-gray-800 text-gray-500 font-bold px-3 py-1.5 rounded-lg text-[11px] cursor-not-allowed";
+                    btn.disabled = true;
+                } else if (hasReached) {
+                    btn.innerText = `Nhận ${rewards[goal]}U`;
+                    btn.className = "neon-btn font-extrabold px-3 py-1.5 rounded-lg text-[11px] active:scale-95 cursor-pointer shadow";
+                    btn.disabled = false;
+                } else {
+                    btn.innerText = `Chưa đạt (${f1DepositedCount}/${goal})`;
+                    btn.className = "bg-gray-800/80 text-gray-500 font-semibold px-3 py-1.5 rounded-lg text-[11px] cursor-not-allowed";
+                    btn.disabled = true;
+                }
+            });
+        }
+
+        window.claimInviteTask = function(goal) {
+            const rewards = { 3: 0.1, 10: 1.0, 20: 2.0, 50: 5.0, 100: 10.0 };
+            if (claimedInviteTasks.includes(goal)) return;
+
+            const f1DepositedCount = parseInt(document.getElementById('f1-deposit-count').innerText) || 0;
+            if (f1DepositedCount >= goal) {
+                claimedInviteTasks.push(goal);
+                localStorage.setItem('claimedInviteTasks', JSON.stringify(claimedInviteTasks));
+
+                const rewardVal = rewards[goal];
+                availableBalance += rewardVal;
+                totalClaimed += rewardVal;
+                saveUserGroupData();
+                updateDisplay();
+
+                showRewardModal("Nhận thưởng thành công", `Chúc mừng bạn nhận được +${rewardVal} USD từ nhiệm vụ mời ${goal} F1 nạp tiền!`, "fa-solid fa-gift");
+                updateInviteTaskButtonsUI(f1DepositedCount);
+            }
         }
 
         window.copyRefLink = function() {
@@ -1061,6 +1225,14 @@
             input.setSelectionRange(0, 99999);
             navigator.clipboard.writeText(input.value);
             showRewardModal("Thành công", "Đã sao chép link giới thiệu vào bộ nhớ tạm!", "fa-solid fa-copy");
+        }
+
+        window.copyMyInviteCode = function() {
+            const input = document.getElementById('my-invite-code-input');
+            input.select();
+            input.setSelectionRange(0, 99999);
+            navigator.clipboard.writeText(input.value);
+            showRewardModal("Thành công", "Đã sao chép mã mời cá nhân vào bộ nhớ tạm!", "fa-solid fa-copy");
         }
 
         window.openModal = function(modalId) {
@@ -1424,6 +1596,11 @@
                 const refLinkInput = document.getElementById('ref-link-input');
                 if (refLinkInput) {
                     refLinkInput.value = `${window.location.origin}${window.location.pathname}?ref=${currentUser.username}`;
+                }
+
+                const myInviteCodeInput = document.getElementById('my-invite-code-input');
+                if (myInviteCodeInput) {
+                    myInviteCodeInput.value = currentUser.username;
                 }
             }
         }
