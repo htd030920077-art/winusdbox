@@ -281,7 +281,7 @@
                                 Nhiệm Vụ Mời Bạn Bè
                             </h4>
                             <p class="text-[10px] text-gray-300 leading-tight">
-                                Nhận hoa hồng F1 (10%), F2 (3%), F3 (2%) tự động.
+                                Nhận hoa hồng F1 (10%), F2 (3%), F3 (2%) cộng thẳng vào số dư.
                             </p>
                         </div>
 
@@ -425,7 +425,7 @@
                 </div>
             </section>
 
-            <!-- 3. NHÓM (MỜI BẠN BÈ & HOA HỒNG F1, F2, F3) -->
+            <!-- 3. NHÓM (THỐNG KÊ HOA HỒNG F1, F2, F3 CHỈ ĐỂ HIỂN THỊ) -->
             <section id="tab-group" class="tab-pane hidden space-y-4">
                 <div class="card-dark rounded-3xl p-5 border border-[#c0f135]/30 space-y-4">
                     <div class="flex items-center justify-between border-b border-gray-800 pb-3">
@@ -465,20 +465,6 @@
                             <p class="text-[10px] text-gray-400">Hoa hồng F3 (2%)</p>
                             <p id="f3-commission-val" class="text-xs font-black text-[#c0f135] mt-1">$0.00</p>
                         </div>
-                    </div>
-
-                    <!-- MỤC VÍ HOA HỒNG & NÚT CHUYỂN VỀ VÍ CHÍNH -->
-                    <div class="bg-gray-900/90 border border-amber-500/30 rounded-2xl p-3.5 space-y-2.5 mt-2">
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <p class="text-[11px] text-gray-400 font-medium">Ví hoa hồng chờ rút</p>
-                                <p id="commission-wallet-balance" class="text-base font-black text-amber-400">$0.00 USD</p>
-                            </div>
-                            <button onclick="transferCommissionToBalance()" class="bg-amber-500 hover:bg-amber-400 text-gray-950 font-extrabold px-3.5 py-2 rounded-xl text-xs active:scale-95 transition cursor-pointer shadow">
-                                Rút về ví chính
-                            </button>
-                        </div>
-                        <p class="text-[10px] text-gray-400">Toàn bộ hoa hồng giới thiệu được gom tại đây. Bấm rút để chuyển thẳng về số dư ví chính.</p>
                     </div>
                 </div>
 
@@ -526,7 +512,7 @@
                         <p class="text-lg font-black text-[#c0f135] mt-1" id="profile-balance">$0.00</p>
                     </div>
                     <div class="card-dark rounded-2xl p-4 text-center">
-                        <p class="text-xs text-gray-400">Tổng Hoa Hồng</p>
+                        <p class="text-xs text-gray-400">Tổng Hoa Hồng Tích Lũy</p>
                         <p class="text-lg font-black text-[#c0f135] mt-1" id="profile-total-commission">$0.00</p>
                     </div>
                 </div>
@@ -952,7 +938,6 @@
         let pendingPlanToActivate = null;
         let currentUnclaimedProfit = parseFloat(localStorage.getItem('currentUnclaimedProfit')) || 0.0000000;
         let availableBalance = parseFloat(localStorage.getItem('availableBalance')) || 0.00;
-        let commissionWallet = 0.00; // Ví hoa hồng chờ rút lấy trực tiếp từ Firebase
         let totalClaimed = parseFloat(localStorage.getItem('totalClaimed')) || 0.00;
         let totalCommission = parseFloat(localStorage.getItem('totalCommission')) || 0.00;
         let f1Commission = parseFloat(localStorage.getItem('f1Commission')) || 0.00;
@@ -1011,7 +996,7 @@
             }
         });
 
-        // ĐỒNG BỘ REALTIME CHUẨN XÁC TỪ FIREBASE (KHÔNG BỊ ĐÈ BỞI LOCALSTORAGE)
+        // ĐỒNG BỘ REALTIME CHUẨN XÁC TỪ FIREBASE
         function initUserRealtimeSync() {
             if (!currentUser) return;
             
@@ -1022,12 +1007,9 @@
                     currentUserFirebaseKey = foundKey;
                     const liveData = allUsers[foundKey];
                     
-                    // Cập nhật số dư và ví hoa hồng trực tiếp từ Firebase Realtime
+                    // Cập nhật số dư trực tiếp từ Firebase Realtime
                     if (liveData.balance !== undefined) {
                         availableBalance = parseFloat(liveData.balance) || 0;
-                    }
-                    if (liveData.commissionWallet !== undefined) {
-                        commissionWallet = parseFloat(liveData.commissionWallet) || 0;
                     }
 
                     if (liveData.activePlans && liveData.activePlans.length > 0) {
@@ -1147,39 +1129,12 @@
             document.getElementById('f2-commission-val').innerText = `$${f2Commission.toFixed(2)}`;
             document.getElementById('f3-commission-val').innerText = `$${f3Commission.toFixed(2)}`;
             document.getElementById('profile-total-commission').innerText = `$${totalCommission.toFixed(2)}`;
-            
-            const commWalletEl = document.getElementById('commission-wallet-balance');
-            if(commWalletEl) commWalletEl.innerText = `$${commissionWallet.toFixed(2)} USD`;
 
             const f1DepCountEl = document.getElementById('f1-deposit-count');
             if(f1DepCountEl) f1DepCountEl.innerText = f1DepositedCount;
 
             renderF1TableUI(cachedF1List);
             updateInviteTaskButtonsUI(f1DepositedCount);
-        }
-
-        // HÀM RÚT TIỀN TỪ VÍ HOA HỒNG (COMMISSIONWALLET) VỀ VÍ CHÍNH TRÊN FIREBASE
-        window.transferCommissionToBalance = function() {
-            if (commissionWallet <= 0) {
-                showRewardModal("Thông báo", "Ví hoa hồng của bạn hiện đang trống!", "fa-solid fa-triangle-exclamation");
-                return;
-            }
-
-            const amountToTransfer = commissionWallet;
-            availableBalance += amountToTransfer;
-            commissionWallet = 0.00;
-
-            saveUserGroupData();
-
-            if (currentUserFirebaseKey) {
-                update(ref(db, 'users/' + currentUserFirebaseKey), {
-                    balance: Number(availableBalance.toFixed(2)),
-                    commissionWallet: Number(commissionWallet.toFixed(2))
-                });
-            }
-
-            updateDisplay();
-            showRewardModal("Chuyển tiền thành công", `Đã rút thành công +$${amountToTransfer.toFixed(2)} USD từ ví hoa hồng về số dư ví chính!`, "fa-solid fa-circle-check");
         }
 
         window.renderF1TableUI = function(list) {
@@ -1201,7 +1156,7 @@
                         </div>
                         <div class="text-right space-y-0.5">
                             <p class="font-black text-[#c0f135]">$${f1.totalDepositUsd.toFixed(2)} U</p>
-                            <p class="text-[10px] text-gray-400">Hoa hồng: <strong class="text-white">+$${f1.commissionReceived.toFixed(2)}U</strong></p>
+                            <p class="text-[10px] text-gray-400">Hoa hồng phát sinh: <strong class="text-white">+$${f1.commissionReceived.toFixed(2)}U</strong></p>
                         </div>
                     </div>
                 `;
@@ -1575,7 +1530,6 @@
                 password, 
                 refBy: refBy || "",
                 balance: 0, 
-                commissionWallet: 0,
                 totalDepositUsd: 0,
                 activePlans: [], 
                 createdAt: timeString 
@@ -1938,7 +1892,6 @@
             localStorage.setItem('lastActiveTimestamp', Date.now());
         });
 
-        // HIỂN THỊ DỮ LIỆU ĐỒNG BỘ TRỰC TIẾP TỪ FIREBASE (KHÔNG BỊ XUNG ĐỘT LOCALSTORAGE)
         window.updateDisplay = function() {
             const formatted = currentUnclaimedProfit.toFixed(7);
             const parts = formatted.split('.');
@@ -1974,10 +1927,6 @@
             const formattedBalance = '$' + availableBalance.toFixed(2);
             document.getElementById('available-balance').innerText = formattedBalance;
             document.getElementById('profile-balance').innerText = formattedBalance;
-
-            // HIỂN THỊ CHUẨN XÁC VÍ HOA HỒNG TỪ FIREBASE
-            const commWalletEl = document.getElementById('commission-wallet-balance');
-            if(commWalletEl) commWalletEl.innerText = `$${commissionWallet.toFixed(2)} USD`;
 
             document.getElementById('total-claimed').innerText = '+$' + totalClaimed.toFixed(2) + ' U';
             document.getElementById('streak-days').innerText = streakDays;
