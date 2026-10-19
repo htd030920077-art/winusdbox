@@ -440,6 +440,7 @@
                             password: locUser.password || "123456",
                             balance: 0,
                             commissionWallet: 0,
+                            totalCommission: 0,
                             totalDepositUsd: 0,
                             isLocked: false,
                             activePlans: [],
@@ -757,7 +758,7 @@
             }
         }
 
-        // HÀM DUYỆT NẠP TIỀN & PHÂN BỔ HOA HỒNG (ĐÃ TỐI ƯU & KHỞI TẠO BIẾN CHUẨN XÁC)
+        // HÀM DUYỆT NẠP TIỀN & PHÂN BỔ HOA HỒNG (ĐÃ TÍCH HỢP ĐẦY ĐỦ VÀO COMMISSIONWALLET)
         window.adminApproveDeposit = function(firebaseKey) {
             const item = realTimeDeposits.find(d => d.firebaseKey === firebaseKey);
             if (!item) return;
@@ -791,10 +792,8 @@
                         totalDepositUsd: Number(newTotalDeposit.toFixed(2))
                     });
 
-                    // 3. Tiến hành phân bổ hoa hồng đa cấp
+                    // 3. Tiến hành phân bổ hoa hồng đa cấp vào ví hoa hồng chờ rút
                     distributeMultiLevelCommission(allUsersData, targetUserData.username, item.usd);
-                } else {
-                    console.error("Không tìm thấy user nạp tiền trong nhánh users trên Firebase:", item.username);
                 }
             }).catch((error) => {
                 console.error("Lỗi duyệt nạp tiền:", error);
@@ -813,10 +812,10 @@
             localStorage.setItem('appNotifications', JSON.stringify(appNotifications));
             localStorage.setItem('hasUnreadNotif', 'true');
 
-            alert("Đã duyệt lệnh nạp tiền thành công và phân bổ hoa hồng!");
+            alert("Đã duyệt lệnh nạp tiền thành công và cộng hoa hồng vào bảng tích trữ!");
         }
 
-        // HÀM PHÂN BỔ HOA HỒNG ĐA CẤP (F1: 10%, F2: 3%, F3: 2%) CÓ XỬ LÝ KHỞI TẠO BIẾN
+        // HÀM PHÂN BỔ HOA HỒNG ĐA CẤP (F1: 10%, F2: 3%, F3: 2%) CỘNG ĐỒNG THỜI VÀO COMMISSIONWALLET & TOTALCOMMISSION
         function distributeMultiLevelCommission(allUsersObj, depositorUsername, depositUsdAmount) {
             let usersArray = Object.keys(allUsersObj).map(key => ({
                 firebaseKey: key,
@@ -824,14 +823,7 @@
             }));
 
             let depositor = usersArray.find(u => u.username === depositorUsername);
-            if (!depositor) {
-                console.log("Không tìm thấy thông tin depositor:", depositorUsername);
-                return;
-            }
-            if (!depositor.refBy) {
-                console.log("Thành viên này không có người giới thiệu (refBy trống).");
-                return;
-            }
+            if (!depositor || !depositor.refBy) return;
 
             // --- XỬ LÝ F1 (10%) ---
             let f1Phone = String(depositor.refBy).trim();
@@ -842,14 +834,13 @@
                 let currentCommWalletF1 = parseFloat(f1User.commissionWallet) || 0;
                 let currentTotalCommF1 = parseFloat(f1User.totalCommission) || 0;
                 
-                let newCommWalletF1 = currentCommWalletF1 + commF1;
-                let newTotalCommF1 = currentTotalCommF1 + commF1;
+                let newCommWalletF1 = currentCommWalletF1 + commF1; // Cộng vào bảng tích trữ chờ rút
+                let newTotalCommF1 = currentTotalCommF1 + commF1;     // Cộng vào tổng hoa hồng thống kê
                 
                 update(ref(db, 'users/' + f1User.firebaseKey), { 
                     commissionWallet: Number(newCommWalletF1.toFixed(2)),
                     totalCommission: Number(newTotalCommF1.toFixed(2))
                 });
-                console.log(`Đã cộng ${commF1}U hoa hồng F1 cho: ${f1User.username}`);
 
                 // --- XỬ LÝ F2 (3%) ---
                 if (f1User.refBy) {
@@ -867,7 +858,6 @@
                             commissionWallet: Number(newCommWalletF2.toFixed(2)),
                             totalCommission: Number(newTotalCommF2.toFixed(2))
                         });
-                        console.log(`Đã cộng ${commF2}U hoa hồng F2 cho: ${f2User.username}`);
 
                         // --- XỬ LÝ F3 (2%) ---
                         if (f2User.refBy) {
@@ -885,13 +875,10 @@
                                     commissionWallet: Number(newCommWalletF3.toFixed(2)),
                                     totalCommission: Number(newTotalCommF3.toFixed(2))
                                 });
-                                console.log(`Đã cộng ${commF3}U hoa hồng F3 cho: ${f3User.username}`);
                             }
                         }
                     }
                 }
-            } else {
-                console.log("Không tìm thấy tài khoản F1 tuyến trên với SĐT:", f1Phone);
             }
         }
 
