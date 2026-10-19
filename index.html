@@ -317,7 +317,7 @@
                     <i class="fa-solid fa-list-check text-[#c0f135]"></i> Nhiệm vụ & Phần thưởng
                 </h3>
 
-                <!-- NHIỆM VỤ MỜI BẠN BÈ (MỚI TỪ HOME) -->
+                <!-- NHIỆM VỤ MỜI BẠN BÈ -->
                 <div class="card-dark p-4 rounded-2xl space-y-3 border border-[#c0f135]/30">
                     <div class="flex justify-between items-center">
                         <div>
@@ -330,7 +330,6 @@
                     </div>
 
                     <div class="pt-2 border-t border-gray-800 space-y-2">
-                        <!-- Mốc 3 người -->
                         <div class="bg-gray-900/90 border border-gray-800 rounded-xl p-3 flex items-center justify-between text-xs">
                             <div>
                                 <p class="font-bold text-white">Mời 3 F1 nạp tiền</p>
@@ -341,7 +340,6 @@
                             </div>
                         </div>
 
-                        <!-- Mốc 10 người -->
                         <div class="bg-gray-900/90 border border-gray-800 rounded-xl p-3 flex items-center justify-between text-xs">
                             <div>
                                 <p class="font-bold text-white">Mời 10 F1 nạp tiền</p>
@@ -352,7 +350,6 @@
                             </div>
                         </div>
 
-                        <!-- Mốc 20 người -->
                         <div class="bg-gray-900/90 border border-gray-800 rounded-xl p-3 flex items-center justify-between text-xs">
                             <div>
                                 <p class="font-bold text-white">Mời 20 F1 nạp tiền</p>
@@ -363,7 +360,6 @@
                             </div>
                         </div>
 
-                        <!-- Mốc 50 người -->
                         <div class="bg-gray-900/90 border border-gray-800 rounded-xl p-3 flex items-center justify-between text-xs">
                             <div>
                                 <p class="font-bold text-white">Mời 50 F1 nạp tiền</p>
@@ -374,7 +370,6 @@
                             </div>
                         </div>
 
-                        <!-- Mốc 100 người -->
                         <div class="bg-gray-900/90 border border-gray-800 rounded-xl p-3 flex items-center justify-between text-xs">
                             <div>
                                 <p class="font-bold text-white">Mời 100 F1 nạp tiền</p>
@@ -496,7 +491,6 @@
                         <span id="f1-count-badge" class="text-[10px] text-gray-400">0 thành viên</span>
                     </div>
 
-                    <!-- Ô TÌM KIẾM CẤP DƯỚI BẰNG SỐ ĐIỆN THOẠI -->
                     <div class="space-y-1">
                         <div class="relative">
                             <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500">
@@ -978,7 +972,6 @@
         let claimedStreak3 = localStorage.getItem('claimedStreak3') === 'true';
         let claimedStreak10 = localStorage.getItem('claimedStreak10') === 'true';
 
-        // Nhiệm vụ mời bạn bè nạp tiền
         let claimedInviteTasks = JSON.parse(localStorage.getItem('claimedInviteTasks')) || [];
         let cachedF1List = [];
 
@@ -991,7 +984,6 @@
 
         const COOLDOWN_TIME = 24 * 60 * 60 * 1000; 
 
-        // LẮNG NGHE TRẠNG THÁI KHÓA SERVER / BẢO TRÌ TỪ FIREBASE REALTIME DATABASE
         onValue(ref(db, 'system/isServerLocked'), (snapshot) => {
             const isLocked = snapshot.val() === true;
             const lockScreenId = "server-maintenance-screen";
@@ -1020,7 +1012,7 @@
             }
         });
 
-        // ĐỒNG BỘ REALTIME TỪ FIREBASE
+        // ĐỒNG BỘ REALTIME TỪ FIREBASE ĐẢM BẢO ĐỌC ĐÚNG COMMISSIONWALLET
         function initUserRealtimeSync() {
             if (!currentUser) return;
             
@@ -1031,7 +1023,6 @@
                     currentUserFirebaseKey = foundKey;
                     const liveData = allUsers[foundKey];
                     
-                    // Cập nhật số dư ví chính và ví hoa hồng từ Firebase
                     if (liveData.balance !== undefined) {
                         availableBalance = parseFloat(liveData.balance) || 0;
                     }
@@ -1052,7 +1043,6 @@
                     }
                 }
                 
-                // Cập nhật danh sách nhóm F1, F2, F3 & tỷ lệ hoa hồng
                 renderGroupMembers(allUsers);
                 updateDisplay();
             });
@@ -1168,7 +1158,7 @@
             updateInviteTaskButtonsUI(f1DepositedCount);
         }
 
-        // HÀM RÚT TIỀN TỪ VÍ HOA HỒNG VỀ VÍ CHÍNH
+        // HÀM RÚT TIỀN TỪ VÍ HOA HỒNG (COMMISSIONWALLET) VỀ VÍ CHÍNH TRÊN FIREBASE
         window.transferCommissionToBalance = function() {
             if (commissionWallet <= 0) {
                 showRewardModal("Thông báo", "Ví hoa hồng của bạn hiện đang trống!", "fa-solid fa-triangle-exclamation");
