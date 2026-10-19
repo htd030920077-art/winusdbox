@@ -71,8 +71,13 @@
             </div>
             
             <div class="flex items-center gap-2">
-                <span id="sync-status" class="text-[10px] text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 px-2 py-0.5 rounded-full font-semibold">
-                    <i class="fa-solid fa-circle text-[8px] animate-pulse"></i> Live Firebase
+                <!-- NÚT KHÓA / MỞ SERVER NHANH -->
+                <button id="server-lock-toggle-btn" onclick="toggleServerLock()" class="px-2.5 py-1.5 rounded-xl bg-emerald-950/80 border border-emerald-500/40 text-[10px] font-extrabold text-emerald-400 hover:bg-emerald-900 transition cursor-pointer flex items-center gap-1">
+                    <i class="fa-solid fa-lock-open" id="server-lock-icon"></i> <span id="server-lock-text">SERVER: MỞ</span>
+                </button>
+
+                <span id="sync-status" class="text-[10px] text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 px-2 py-0.5 rounded-full font-semibold hidden">
+                    <i class="fa-solid fa-circle text-[8px] animate-pulse"></i> Live
                 </span>
                 <a href="index.html" class="px-2.5 py-1.5 rounded-xl bg-gray-900 border border-gray-800 text-xs font-semibold text-sky-400 hover:bg-gray-800 transition cursor-pointer" title="Quay lại Web Người Chơi">
                     <i class="fa-solid fa-house"></i>
@@ -264,6 +269,7 @@
         let realTimeDeposits = [];
         let realTimeWithdraws = [];
         let realTimeUsers = [];
+        let isServerLocked = false;
 
         let giftcodeDatabase = JSON.parse(localStorage.getItem('giftcodeDatabase')) || {
             "WIN2026": { usd: 1.00, limit: 100, usedCount: 0 },
@@ -295,6 +301,35 @@
                 renderAdminGiftcodeList();
             } else {
                 authScreen.classList.remove('hidden');
+            }
+        }
+
+        // HÀM BẬT / TẮT KHÓA SERVER (BẢO TRÌ HỆ THỐNG)
+        window.toggleServerLock = function() {
+            isServerLocked = !isServerLocked;
+            set(ref(db, 'system/isServerLocked'), isServerLocked)
+                .then(() => {
+                    updateServerLockButtonUI(isServerLocked);
+                })
+                .catch((err) => {
+                    alert("Lỗi cập nhật trạng thái server: " + err.message);
+                });
+        }
+
+        function updateServerLockButtonUI(locked) {
+            const btn = document.getElementById('server-lock-toggle-btn');
+            const icon = document.getElementById('server-lock-icon');
+            const text = document.getElementById('server-lock-text');
+            if (!btn) return;
+
+            if (locked) {
+                btn.className = "px-2.5 py-1.5 rounded-xl bg-rose-950/80 border border-rose-500/40 text-[10px] font-extrabold text-rose-400 hover:bg-rose-900 transition cursor-pointer flex items-center gap-1";
+                icon.className = "fa-solid fa-lock";
+                text.innerText = "SERVER: ĐÃ KHÓA";
+            } else {
+                btn.className = "px-2.5 py-1.5 rounded-xl bg-emerald-950/80 border border-emerald-500/40 text-[10px] font-extrabold text-emerald-400 hover:bg-emerald-900 transition cursor-pointer flex items-center gap-1";
+                icon.className = "fa-solid fa-lock-open";
+                text.innerText = "SERVER: MỞ";
             }
         }
 
@@ -364,6 +399,12 @@
         }
 
         function initFirebaseListeners() {
+            // Lắng nghe trạng thái khóa server từ Firebase
+            onValue(ref(db, 'system/isServerLocked'), (snapshot) => {
+                isServerLocked = snapshot.val() === true;
+                updateServerLockButtonUI(isServerLocked);
+            });
+
             onValue(ref(db, 'deposits'), (snapshot) => {
                 const data = snapshot.val() || {};
                 realTimeDeposits = Object.keys(data).map(key => ({ firebaseKey: key, ...data[key] })).reverse();
@@ -579,9 +620,7 @@
                             </div>
                             <p><i class="fa-solid fa-wallet text-sky-400 mr-1"></i> Ngân hàng: <strong class="text-white">${bankInfo}</strong></p>
                             
-                            <!-- 2 LOẠI TẶNG: 1. CỘNG TIỀN VÀO SỐ DƯ ĐỂ RÚT / 2. TẶNG GÓI KHÔNG CẦN MUA -->
                             <div class="pt-2 border-t border-gray-800 mt-1 space-y-2">
-                                <!-- Loại 1: Cộng tiền vào số dư -->
                                 <div class="flex items-center justify-between">
                                     <span class="text-emerald-300 font-bold"><i class="fa-solid fa-wallet text-emerald-400 mr-1"></i> Cộng tiền vào số dư:</span>
                                     <div class="flex items-center gap-1.5">
@@ -590,7 +629,6 @@
                                     </div>
                                 </div>
 
-                                <!-- Loại 2: Tặng gói không cần nạp mua -->
                                 <div class="flex items-center justify-between">
                                     <span class="text-rose-300 font-bold"><i class="fa-solid fa-gift text-rose-400 mr-1"></i> Tặng gói đầu tư:</span>
                                     <div class="flex items-center gap-1.5">
@@ -639,7 +677,6 @@
             });
         }
 
-        // Loại 1: Cộng tiền mặt vào số dư ví để rút
         window.adminAddBalance = function(firebaseKey) {
             const user = realTimeUsers.find(u => u.firebaseKey === firebaseKey);
             if (!user) return;
@@ -659,15 +696,13 @@
             alert(`Đã cộng thành công +$${usdVal.toFixed(2)} vào số dư ví của thành viên ${user.username}!`);
         }
 
-        // Loại 2: Tặng gói đầu tư trực tiếp không cần mua
         window.adminGiftPlan = function(firebaseKey) {
             const user = realTimeUsers.find(u => u.firebaseKey === firebaseKey);
             if (!user) return;
             const selectEl = document.getElementById(`gift-plan-${firebaseKey}`);
             const planUsd = parseFloat(selectEl.value);
 
-            // Rate sinh lợi theo giây tương ứng với các gói
-            let ratePerSec = 0.000003858; // Gói 3$
+            let ratePerSec = 0.000003858;
             let planTitle = `Gói Khai Thác ${planUsd} USD`;
             if (planUsd === 7) ratePerSec = 0.000009002;
             else if (planUsd === 15) ratePerSec = 0.000019290;
@@ -702,31 +737,35 @@
             }
         }
 
+        // CẢI TIẾN CHUẨN: CHỈ CỘNG SỐ DƯ USD VÀO VÍ - KHÔNG ĐƯỢC TỰ ĐỘNG THÊM GÓI ĐỂ TRÁNH TRÙNG LẶP
         window.adminApproveDeposit = function(firebaseKey) {
             const item = realTimeDeposits.find(d => d.firebaseKey === firebaseKey);
             if (!item) return;
 
+            // 1. Cập nhật trạng thái lệnh nạp thành thành công
             update(ref(db, 'deposits/' + firebaseKey), { status: "Thành công" });
 
+            // 2. Tìm thành viên và chỉ cộng tiền vào số dư ví (Balance)
             const targetUser = realTimeUsers.find(u => u.username === item.username);
             if (targetUser) {
                 const newBal = (targetUser.balance || 0) + item.usd;
                 update(ref(db, 'users/' + targetUser.firebaseKey), { balance: newBal });
             }
 
+            // 3. Gửi thông báo đến thành viên
             let appNotifications = JSON.parse(localStorage.getItem('appNotifications')) || [];
             const now = new Date();
             const timeString = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} - ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
             
             appNotifications.unshift({
                 title: "Nạp tiền thành công",
-                content: `Lệnh nạp ${item.usd.toFixed(2)} USD đã được admin duyệt thành công.`,
+                content: `Lệnh nạp $${item.usd.toFixed(2)} USD đã được admin duyệt thành công vào ví!`,
                 time: timeString
             });
             localStorage.setItem('appNotifications', JSON.stringify(appNotifications));
             localStorage.setItem('hasUnreadNotif', 'true');
 
-            alert("Đã duyệt lệnh nạp tiền thành công và cộng số dư cho người dùng!");
+            alert("Đã duyệt lệnh nạp tiền thành công và cộng số dư ví cho người dùng!");
         }
 
         window.adminRejectDeposit = function(firebaseKey) {
@@ -817,7 +856,7 @@
                 });
             }
 
-html += `<p class="font-bold text-rose-400 mt-3">Lịch sử rút tiền:</p>`;
+            html += `<p class="font-bold text-rose-400 mt-3">Lịch sử rút tiền:</p>`;
             const userWithdraws = realTimeWithdraws.filter(w => w.username === user.username);
             if (userWithdraws.length === 0) {
                 html += `<p class="text-gray-500">Chưa có giao dịch rút.</p>`;
