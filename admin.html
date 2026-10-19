@@ -751,7 +751,7 @@
             }
         }
 
-        // HÀM DUYỆT NẠP TIỀN & CỘNG HOA HỒNG TRỰC TIẾP VÀO VÍ VỚI ĐỊNH DẠNG SỐ AN TOÀN
+        // HÀM DUYỆT NẠP TIỀN & PHÂN BỔ HOA HỒNG (CỘNG VÀO CẢ TỔNG HOA HỒNG VÀ SỐ DƯ VÍ ĐỂ RÚT TIỀN)
         window.adminApproveDeposit = function(firebaseKey) {
             const item = realTimeDeposits.find(d => d.firebaseKey === firebaseKey);
             if (!item) return;
@@ -805,10 +805,10 @@
             localStorage.setItem('appNotifications', JSON.stringify(appNotifications));
             localStorage.setItem('hasUnreadNotif', 'true');
 
-            alert("Đã duyệt lệnh nạp tiền thành công, cộng số dư ví, cập nhật tổng nạp và phân bổ hoa hồng vào số dư ví tuyến trên!");
+            alert("Đã duyệt lệnh nạp tiền thành công, cộng số dư ví, cập nhật tổng nạp và cộng hoa hồng thẳng vào số dư ví tuyến trên!");
         }
 
-        // HÀM PHÂN BỔ HOA HỒNG ĐA CẤP (F1: 10%, F2: 3%, F3: 2%) ĐÃ ÉP KIỂU SỐ AN TOÀN
+        // HÀM PHÂN BỔ HOA HỒNG ĐA CẤP (F1: 10%, F2: 3%, F3: 2%) CẬP NHẬT CẢ VÍ VÀ TỔNG HOA HỒNG
         function distributeMultiLevelCommission(allUsersObj, depositorUsername, depositUsdAmount) {
             let usersArray = Object.keys(allUsersObj).map(key => ({
                 firebaseKey: key,
@@ -826,10 +826,16 @@
             if (f1User) {
                 let commF1 = depositUsdAmount * 0.10;
                 let currentBalF1 = parseFloat(f1User.balance) || 0;
-                let newBalF1 = currentBalF1 + commF1;
+                let currentCommF1 = parseFloat(f1User.totalCommission) || 0;
                 
-                // Cập nhật trực tiếp số dư ví cho F1
-                update(ref(db, 'users/' + f1User.firebaseKey), { balance: Number(newBalF1.toFixed(2)) });
+                let newBalF1 = currentBalF1 + commF1;
+                let newCommF1 = currentCommF1 + commF1;
+                
+                // Cập nhật cả số dư ví (để rút tiền) và tổng hoa hồng cho F1
+                update(ref(db, 'users/' + f1User.firebaseKey), { 
+                    balance: Number(newBalF1.toFixed(2)),
+                    totalCommission: Number(newCommF1.toFixed(2))
+                });
 
                 // --- XỬ LÝ F2 (3%) ---
                 if (f1User.refBy) {
@@ -838,10 +844,16 @@
                     if (f2User) {
                         let commF2 = depositUsdAmount * 0.03;
                         let currentBalF2 = parseFloat(f2User.balance) || 0;
-                        let newBalF2 = currentBalF2 + commF2;
+                        let currentCommF2 = parseFloat(f2User.totalCommission) || 0;
 
-                        // Cập nhật trực tiếp số dư ví cho F2
-                        update(ref(db, 'users/' + f2User.firebaseKey), { balance: Number(newBalF2.toFixed(2)) });
+                        let newBalF2 = currentBalF2 + commF2;
+                        let newCommF2 = currentCommF2 + commF2;
+
+                        // Cập nhật cả số dư ví và tổng hoa hồng cho F2
+                        update(ref(db, 'users/' + f2User.firebaseKey), { 
+                            balance: Number(newBalF2.toFixed(2)),
+                            totalCommission: Number(newCommF2.toFixed(2))
+                        });
 
                         // --- XỬ LÝ F3 (2%) ---
                         if (f2User.refBy) {
@@ -850,10 +862,16 @@
                             if (f3User) {
                                 let commF3 = depositUsdAmount * 0.02;
                                 let currentBalF3 = parseFloat(f3User.balance) || 0;
-                                let newBalF3 = currentBalF3 + commF3;
+                                let currentCommF3 = parseFloat(f3User.totalCommission) || 0;
 
-                                // Cập nhật trực tiếp số dư ví cho F3
-                                update(ref(db, 'users/' + f3User.firebaseKey), { balance: Number(newBalF3.toFixed(2)) });
+                                let newBalF3 = currentBalF3 + commF3;
+                                let newCommF3 = currentCommF3 + commF3;
+
+                                // Cập nhật cả số dư ví và tổng hoa hồng cho F3
+                                update(ref(db, 'users/' + f3User.firebaseKey), { 
+                                    balance: Number(newBalF3.toFixed(2)),
+                                    totalCommission: Number(newCommF3.toFixed(2))
+                                });
                             }
                         }
                     }
