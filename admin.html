@@ -52,7 +52,7 @@
                 <div class="space-y-4">
                     <div class="space-y-1">
                         <label class="text-xs font-bold text-gray-300">Mật khẩu quản trị</label>
-                        <input type="password" id="admin-pass-input" placeholder="Nhập mật khẩu (admin123)..." class="w-full bg-[#111827] border border-gray-800 rounded-xl p-3.5 text-xs text-gray-200 focus:outline-none focus:border-rose-500 placeholder-gray-600">
+                        <input type="password" id="admin-pass-input" placeholder="Nhập mật khẩu (td0309)..." class="w-full bg-[#111827] border border-gray-800 rounded-xl p-3.5 text-xs text-gray-200 focus:outline-none focus:border-rose-500 placeholder-gray-600">
                     </div>
                     <button onclick="handleAdminLogin()" class="w-full rose-btn font-extrabold py-3.5 rounded-xl text-xs tracking-wider shadow-lg shadow-rose-600/25 active:scale-95 transition cursor-pointer">
                         TRUY CẬP HỆ THỐNG
@@ -132,9 +132,17 @@
             <div id="admin-tab-users" class="admin-pane space-y-3 hidden">
                 <div class="flex justify-between items-center px-1">
                     <h3 class="font-bold text-xs text-gray-300 uppercase tracking-wider flex items-center gap-1.5">
-                        <i class="fa-solid fa-users text-sky-400"></i> Danh sách Thành viên Hệ thống
+                        <i class="fa-solid fa-users text-sky-400"></i> Quản lý Thành Viên
                     </h3>
+                    <span id="total-users-count" class="text-[10px] bg-sky-950 text-sky-400 px-2 py-0.5 rounded-full font-bold">0 thành viên</span>
                 </div>
+                
+                <!-- Thanh tìm kiếm thành viên -->
+                <div class="relative">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-gray-500 text-xs"></i>
+                    <input type="text" id="user-search-input" oninput="filterAdminUsers()" placeholder="Tìm kiếm theo SĐT, họ tên..." class="w-full bg-[#111827] border border-gray-800 rounded-xl pl-9 pr-3 py-2.5 text-xs text-white focus:outline-none focus:border-sky-500 placeholder-gray-500">
+                </div>
+
                 <div id="admin-users-list" class="space-y-3"></div>
             </div>
 
@@ -174,9 +182,9 @@
 
     <!-- MODAL CHỈNH SỬA THÔNG TIN THÀNH VIÊN -->
     <div id="edit-user-modal" class="fixed inset-0 bg-black/80 z-[120] hidden items-center justify-center p-4">
-        <div class="bg-[#111827] border border-rose-500/40 rounded-3xl p-5 w-full max-w-sm space-y-4 shadow-2xl relative">
+        <div class="bg-[#111827] border border-sky-500/40 rounded-3xl p-5 w-full max-w-sm space-y-4 shadow-2xl relative">
             <div class="flex justify-between items-center border-b border-gray-800 pb-2">
-                <h3 class="text-sm font-bold text-rose-400"><i class="fa-solid fa-user-pen mr-1"></i> Chỉnh sửa thành viên</h3>
+                <h3 class="text-sm font-bold text-sky-400"><i class="fa-solid fa-user-pen mr-1"></i> Chỉnh sửa thành viên</h3>
                 <button onclick="closeEditUserModal()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
             </div>
 
@@ -185,51 +193,51 @@
             <div class="space-y-3 text-xs">
                 <div class="space-y-1">
                     <label class="font-bold text-gray-300">Họ và tên</label>
-                    <input type="text" id="edit-fullname" class="w-full bg-[#070b14] border border-gray-800 rounded-xl p-2.5 text-gray-200 focus:outline-none focus:border-rose-500">
+                    <input type="text" id="edit-fullname" class="w-full bg-[#070b14] border border-gray-800 rounded-xl p-2.5 text-gray-200 focus:outline-none focus:border-sky-500">
                 </div>
                 <div class="space-y-1">
                     <label class="font-bold text-gray-300">Số điện thoại / Email (Tài khoản)</label>
-                    <input type="text" id="edit-username" class="w-full bg-[#070b14] border border-gray-800 rounded-xl p-2.5 text-gray-200 focus:outline-none focus:border-rose-500">
+                    <input type="text" id="edit-username" class="w-full bg-[#070b14] border border-gray-800 rounded-xl p-2.5 text-gray-200 focus:outline-none focus:border-sky-500">
                 </div>
                 <div class="space-y-1">
                     <label class="font-bold text-gray-300">Mật khẩu</label>
-                    <input type="text" id="edit-password" class="w-full bg-[#070b14] border border-gray-800 rounded-xl p-2.5 text-gray-200 focus:outline-none focus:border-rose-500">
+                    <input type="text" id="edit-password" class="w-full bg-[#070b14] border border-gray-800 rounded-xl p-2.5 text-gray-200 focus:outline-none focus:border-sky-500">
                 </div>
                 <div class="space-y-1">
                     <label class="font-bold text-gray-300">Số dư ví (USD)</label>
-                    <input type="number" step="0.01" id="edit-balance" class="w-full bg-[#070b14] border border-gray-800 rounded-xl p-2.5 text-gray-200 focus:outline-none focus:border-rose-500">
+                    <input type="number" step="0.01" id="edit-balance" class="w-full bg-[#070b14] border border-gray-800 rounded-xl p-2.5 text-gray-200 focus:outline-none focus:border-sky-500">
                 </div>
                 <div class="space-y-1">
                     <label class="font-bold text-gray-300">Ngân hàng & Số tài khoản nhận</label>
                     <div class="grid grid-cols-2 gap-2">
-                        <input type="text" id="edit-bank-name" placeholder="Tên NH (VD: MB)" class="bg-[#070b14] border border-gray-800 rounded-xl p-2.5 text-gray-200 focus:outline-none focus:border-rose-500">
-                        <input type="text" id="edit-bank-acc" placeholder="Số TK" class="bg-[#070b14] border border-gray-800 rounded-xl p-2.5 text-gray-200 focus:outline-none focus:border-rose-500">
+                        <input type="text" id="edit-bank-name" placeholder="Tên NH (VD: MB)" class="bg-[#070b14] border border-gray-800 rounded-xl p-2.5 text-gray-200 focus:outline-none focus:border-sky-500">
+                        <input type="text" id="edit-bank-acc" placeholder="Số TK" class="bg-[#070b14] border border-gray-800 rounded-xl p-2.5 text-gray-200 focus:outline-none focus:border-sky-500">
                     </div>
                 </div>
                 <div class="space-y-1">
                     <label class="font-bold text-gray-300">Tên chủ tài khoản ngân hàng</label>
-                    <input type="text" id="edit-bank-holder" placeholder="Họ tên không dấu..." class="w-full bg-[#070b14] border border-gray-800 rounded-xl p-2.5 text-gray-200 focus:outline-none focus:border-rose-500">
+                    <input type="text" id="edit-bank-holder" placeholder="Họ tên không dấu..." class="w-full bg-[#070b14] border border-gray-800 rounded-xl p-2.5 text-gray-200 focus:outline-none focus:border-sky-500">
                 </div>
             </div>
 
             <div class="pt-2 flex gap-2">
                 <button onclick="closeEditUserModal()" class="w-1/2 bg-gray-800 text-gray-300 font-bold py-2.5 rounded-xl text-xs">Hủy</button>
-                <button onclick="saveEditedUser()" class="w-1/2 rose-btn font-extrabold py-2.5 rounded-xl text-xs shadow">Lưu thay đổi</button>
+                <button onclick="saveEditedUser()" class="w-1/2 bg-sky-600 hover:bg-sky-500 text-white font-extrabold py-2.5 rounded-xl text-xs shadow cursor-pointer">Lưu thay đổi</button>
             </div>
         </div>
     </div>
 
     <!-- MODAL XEM LỊCH SỬ THÀNH VIÊN -->
     <div id="user-history-modal" class="fixed inset-0 bg-black/80 z-[120] hidden items-center justify-center p-4">
-        <div class="bg-[#111827] border border-rose-500/40 rounded-3xl p-5 w-full max-w-sm space-y-4 shadow-2xl relative max-h-[85vh] overflow-y-auto">
+        <div class="bg-[#111827] border border-sky-500/40 rounded-3xl p-5 w-full max-w-sm space-y-4 shadow-2xl relative max-h-[85vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b border-gray-800 pb-2">
-                <h3 class="text-sm font-bold text-rose-400" id="history-modal-title">Lịch sử giao dịch</h3>
+                <h3 class="text-sm font-bold text-sky-400" id="history-modal-title">Lịch sử giao dịch</h3>
                 <button onclick="closeUserHistoryModal()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
             </div>
 
             <div id="user-history-content" class="space-y-3 text-xs"></div>
 
-            <button onclick="closeUserHistoryModal()" class="w-full bg-gray-800 text-white font-bold py-2.5 rounded-xl text-xs">Đóng</button>
+            <button onclick="closeUserHistoryModal()" class="w-full bg-gray-800 text-white font-bold py-2.5 rounded-xl text-xs cursor-pointer">Đóng</button>
         </div>
     </div>
 
@@ -262,24 +270,14 @@
             "VIP5U": { usd: 5.00, limit: 10, usedCount: 0 }
         };
 
-        const investmentPlans = [
-            { id: 0, priceUsd: 0, ratePerSec: 0.000000200, title: "Gói Khai Thác Free" },
-            { id: 1, priceUsd: 3, ratePerSec: 0.000003858, title: "Gói Khai Thác 3 USD" },
-            { id: 2, priceUsd: 7, ratePerSec: 0.000009002, title: "Gói Khai Thác 7 USD" },
-            { id: 3, priceUsd: 15, ratePerSec: 0.000019290, title: "Gói Khai Thác 15 USD" },
-            { id: 4, priceUsd: 20, ratePerSec: 0.000025720, title: "Gói Khai Thác 20 USD" },
-            { id: 5, priceUsd: 50, ratePerSec: 0.000057870, title: "Gói VIP 50 USD" },
-            { id: 6, priceUsd: 100, ratePerSec: 0.000115740, title: "Gói VIP 100 USD" }
-        ];
-
         window.handleAdminLogin = function() {
             const pass = document.getElementById('admin-pass-input').value.trim();
-            if (pass === "admin123") {
+            if (pass === "td0309") {
                 isAdminLoggedIn = true;
                 localStorage.setItem('isAdminLoggedIn', 'true');
                 checkAdminAuth();
             } else {
-                alert("Mật khẩu quản trị không chính xác! (Mật khẩu mặc định: admin123)");
+                alert("Mật khẩu quản trị không chính xác! (Mật khẩu: td0309)");
             }
         }
 
@@ -374,6 +372,8 @@
                 const pendingCount = realTimeDeposits.filter(item => item.status === "Đang chờ duyệt").length;
                 document.getElementById('stat-pending-deposit').innerText = pendingCount;
                 renderAdminDeposits(realTimeDeposits);
+                // Cập nhật lại thành viên để tính tổng tiền nạp/rút realtime
+                renderAdminUsers(realTimeUsers);
             });
 
             // Lắng nghe Rút tiền
@@ -384,6 +384,7 @@
                 const pendingCount = realTimeWithdraws.filter(item => item.status === "Đang chờ duyệt").length;
                 document.getElementById('stat-pending-withdraw').innerText = pendingCount;
                 renderAdminWithdraws(realTimeWithdraws);
+                renderAdminUsers(realTimeUsers);
             });
 
             // Lắng nghe Danh sách Thành viên trên Firebase
@@ -414,19 +415,19 @@
                 const fKey = item.firebaseKey;
                 const phone = item.username || "Chưa rõ";
                 
-                let statusBadge = `<span class="text-amber-400 font-bold">Đang chờ duyệt</span>`;
-                if (item.status === "Thành công") statusBadge = `<span class="text-emerald-400 font-semibold">Thành công</span>`;
-                if (item.status === "Đã từ chối") statusBadge = `<span class="text-rose-400 font-semibold">Đã từ chối</span>`;
+                let statusBadge = `<span class="text-amber-400 font-bold bg-amber-950/40 px-2 py-0.5 rounded border border-amber-500/30">Đang chờ duyệt</span>`;
+                if (item.status === "Thành công") statusBadge = `<span class="text-emerald-400 font-semibold bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-500/30">Thành công</span>`;
+                if (item.status === "Đã từ chối") statusBadge = `<span class="text-rose-400 font-semibold bg-rose-950/40 px-2 py-0.5 rounded border border-rose-500/30">Đã từ chối</span>`;
 
                 container.innerHTML += `
-                    <div class="card-dark rounded-2xl p-3.5 space-y-2 border border-gray-800 text-xs">
+                    <div class="card-dark rounded-2xl p-3.5 space-y-2 border border-gray-800 text-xs shadow-md">
                         <div class="flex justify-between items-center text-gray-400">
-                            <span>${item.time}</span>
+                            <span><i class="fa-regular fa-clock mr-1"></i>${item.time}</span>
                             ${statusBadge}
                         </div>
-                        <div class="space-y-1 bg-gray-900/60 p-2.5 rounded-xl border border-gray-800">
+                        <div class="space-y-1 bg-gray-900/80 p-2.5 rounded-xl border border-gray-800/80">
                             <div class="flex justify-between">
-                                <span class="text-gray-400"><i class="fa-solid fa-phone text-emerald-400 mr-1"></i> SĐT:</span>
+                                <span class="text-gray-400"><i class="fa-solid fa-phone text-emerald-400 mr-1"></i> SĐT / Tài khoản:</span>
                                 <span class="text-emerald-300 font-bold">${phone}</span>
                             </div>
                             <div class="flex justify-between">
@@ -444,10 +445,10 @@
                         </div>
                         ${isPending ? `
                             <div class="pt-1 flex gap-2">
-                                <button onclick="adminRejectDeposit('${fKey}')" class="w-1/2 bg-gray-800 hover:bg-gray-700 text-rose-400 font-bold py-2 rounded-xl text-xs active:scale-95 transition cursor-pointer border border-rose-500/30">
+                                <button onclick="adminRejectDeposit('${fKey}')" class="w-1/2 bg-gray-800 hover:bg-rose-950/80 text-rose-400 font-bold py-2.5 rounded-xl text-xs active:scale-95 transition cursor-pointer border border-rose-500/40 shadow">
                                     <i class="fa-solid fa-xmark mr-1"></i> Từ chối
                                 </button>
-                                <button onclick="adminApproveDeposit('${fKey}')" class="w-1/2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-xl text-xs active:scale-95 transition cursor-pointer shadow">
+                                <button onclick="adminApproveDeposit('${fKey}')" class="w-1/2 bg-gradient-to-r from-emerald-600 to-green-500 hover:from-emerald-500 hover:to-green-400 text-white font-bold py-2.5 rounded-xl text-xs active:scale-95 transition cursor-pointer shadow-lg shadow-emerald-600/20">
                                     <i class="fa-solid fa-check mr-1"></i> Duyệt tiền
                                 </button>
                             </div>
@@ -472,20 +473,20 @@
                 const fKey = item.firebaseKey;
                 const phone = item.username || "Chưa rõ";
                 
-                let statusBadge = `<span class="text-amber-400 font-bold">Đang chờ duyệt</span>`;
-                if (item.status === "Thành công") statusBadge = `<span class="text-emerald-400 font-semibold">Thành công</span>`;
-                if (item.status === "Đã từ chối") statusBadge = `<span class="text-rose-400 font-semibold">Đã từ chối</span>`;
+                let statusBadge = `<span class="text-amber-400 font-bold bg-amber-950/40 px-2 py-0.5 rounded border border-amber-500/30">Đang chờ duyệt</span>`;
+                if (item.status === "Thành công") statusBadge = `<span class="text-emerald-400 font-semibold bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-500/30">Thành công</span>`;
+                if (item.status === "Đã từ chối") statusBadge = `<span class="text-rose-400 font-semibold bg-rose-950/40 px-2 py-0.5 rounded border border-rose-500/30">Đã từ chối</span>`;
 
                 container.innerHTML += `
-                    <div class="card-dark rounded-2xl p-3.5 space-y-2 border border-gray-800 text-xs">
+                    <div class="card-dark rounded-2xl p-3.5 space-y-2 border border-gray-800 text-xs shadow-md">
                         <div class="flex justify-between items-center text-gray-400">
-                            <span>${item.time}</span>
+                            <span><i class="fa-regular fa-clock mr-1"></i>${item.time}</span>
                             ${statusBadge}
                         </div>
-                        <div class="space-y-1 bg-gray-900/60 p-2.5 rounded-xl border border-gray-800">
+                        <div class="space-y-1 bg-gray-900/80 p-2.5 rounded-xl border border-gray-800/80">
                             <p class="text-emerald-300 font-bold mb-1"><i class="fa-solid fa-phone mr-1"></i> SĐT: ${phone}</p>
                             <p class="text-white font-bold flex items-center gap-1.5"><i class="fa-solid fa-building-columns text-rose-400"></i> Ngân hàng: ${item.bank}</p>
-                            <p class="text-gray-300">Số tài khoản: <strong class="text-white select-all">${item.acc}</strong></p>
+                            <p class="text-gray-300">Số tài khoản: <strong class="text-white select-all font-mono text-amber-300">${item.acc}</strong></p>
                             <p class="text-gray-300">Chủ tài khoản: <strong class="text-white uppercase">${item.name}</strong></p>
                         </div>
                         <div class="flex justify-between items-center pt-1 border-t border-gray-800">
@@ -494,10 +495,10 @@
                         </div>
                         ${isPending ? `
                             <div class="pt-1 flex gap-2">
-                                <button onclick="adminRejectWithdraw('${fKey}')" class="w-1/2 bg-gray-800 hover:bg-gray-700 text-rose-400 font-bold py-2 rounded-xl text-xs active:scale-95 transition cursor-pointer border border-rose-500/30">
+                                <button onclick="adminRejectWithdraw('${fKey}')" class="w-1/2 bg-gray-800 hover:bg-rose-950/80 text-rose-400 font-bold py-2.5 rounded-xl text-xs active:scale-95 transition cursor-pointer border border-rose-500/40 shadow">
                                     <i class="fa-solid fa-xmark mr-1"></i> Từ chối
                                 </button>
-                                <button onclick="adminApproveWithdraw('${fKey}')" class="w-1/2 bg-rose-600 hover:bg-rose-500 text-white font-bold py-2 rounded-xl text-xs active:scale-95 transition cursor-pointer shadow">
+                                <button onclick="adminApproveWithdraw('${fKey}')" class="w-1/2 bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white font-bold py-2.5 rounded-xl text-xs active:scale-95 transition cursor-pointer shadow-lg shadow-rose-600/20">
                                     <i class="fa-solid fa-check mr-1"></i> Xác nhận CK
                                 </button>
                             </div>
@@ -509,58 +510,73 @@
 
         function renderAdminUsers(userList) {
             const container = document.getElementById('admin-users-list');
+            const countBadge = document.getElementById('total-users-count');
             if(!container) return;
             container.innerHTML = "";
 
             if (userList.length === 0) {
+                if(countBadge) countBadge.innerText = `0 thành viên`;
                 container.innerHTML = `<div class="card-dark rounded-2xl p-6 text-center text-xs text-gray-500">Chưa có người dùng đăng ký nào.</div>`;
                 return;
             }
 
-            userList.forEach((user, idx) => {
+            if(countBadge) countBadge.innerText = `${userList.length} thành viên`;
+
+            userList.forEach((user) => {
                 const createdAt = user.createdAt || "01/01/2026 - 12:00";
                 const userBalance = user.balance !== undefined ? user.balance : 0.00;
                 const fKey = user.firebaseKey;
                 const bankInfo = user.bankAcc ? `${user.bankName || 'NH'} - ${user.bankAcc} (${user.bankHolder || ''})` : "Chưa cập nhật NH";
 
+                // Tính tổng nạp & tổng rút thực tế của thành viên này từ realTimeDeposits và realTimeWithdraws
+                let totalDepositedVnd = 0;
+                let totalDepositedUsd = 0;
+                realTimeDeposits.filter(d => d.username === user.username && d.status === "Thành công").forEach(d => {
+                    totalDepositedVnd += d.vnd;
+                    totalDepositedUsd += d.usd;
+                });
+
+                let totalWithdrawnUsd = 0;
+                realTimeWithdraws.filter(w => w.username === user.username && w.status === "Thành công").forEach(w => {
+                    totalWithdrawnUsd += w.amount;
+                });
+
                 container.innerHTML += `
-                    <div class="card-dark rounded-2xl p-3.5 space-y-2.5 border border-gray-800 text-xs">
+                    <div class="card-dark rounded-2xl p-3.5 space-y-2.5 border border-gray-800 text-xs shadow-md user-item-card" data-search="${(user.fullname + ' ' + user.username).toLowerCase()}">
                         <div class="flex justify-between items-start">
                             <div class="space-y-0.5">
                                 <p class="font-bold text-white text-sm">${user.fullname || 'Thành viên'}</p>
-                                <p class="text-gray-400"><i class="fa-solid fa-phone mr-1"></i> ${user.username}</p>
-                                <p class="text-[10px] text-gray-500"><i class="fa-regular fa-clock mr-1"></i> Tạo lúc: ${createdAt}</p>
+                                <p class="text-emerald-400 font-semibold"><i class="fa-solid fa-phone mr-1"></i> ${user.username}</p>
+                                <p class="text-[10px] text-gray-500"><i class="fa-regular fa-clock mr-1"></i> Đăng ký: ${createdAt}</p>
                             </div>
                             <div class="text-right">
+                                <p class="text-[10px] text-gray-400">Số dư ví</p>
                                 <span class="text-xs font-black text-emerald-400">$${userBalance.toFixed(2)}</span>
                             </div>
                         </div>
 
-                        <div class="bg-gray-900/60 p-2 rounded-xl border border-gray-800 text-[11px] text-gray-300 space-y-1">
-                            <p><i class="fa-solid fa-wallet text-rose-400 mr-1"></i> NH: <strong class="text-white">${bankInfo}</strong></p>
-                            <div class="flex items-center gap-2 pt-1">
-                                <select id="gift-plan-${fKey}" class="bg-gray-950 border border-gray-800 rounded-lg p-1 text-[10px] text-emerald-400 font-bold">
-                                    <option value="3">Tặng gói 3 USD</option>
-                                    <option value="7">Tặng gói 7 USD</option>
-                                    <option value="15">Tặng gói 15 USD</option>
-                                    <option value="20">Tặng gói 20 USD</option>
-                                    <option value="50">Tặng gói 50 USD</option>
-                                    <option value="100">Tặng gói 100 USD</option>
-                                </select>
-                                <button onclick="adminGiftPlan('${fKey}')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold cursor-pointer">Tặng gói</button>
+                        <div class="bg-gray-900/80 p-2.5 rounded-xl border border-gray-800 text-[11px] text-gray-300 space-y-1">
+                            <div class="flex justify-between border-b border-gray-800/80 pb-1">
+                                <span class="text-gray-400">Tổng nạp thành công:</span>
+                                <span class="text-emerald-400 font-bold">${totalDepositedVnd.toLocaleString()} VNĐ (+$${totalDepositedUsd.toFixed(2)})</span>
                             </div>
+                            <div class="flex justify-between border-b border-gray-800/80 pb-1">
+                                <span class="text-gray-400">Tổng rút thành công:</span>
+                                <span class="text-rose-400 font-bold">-$${totalWithdrawnUsd.toFixed(2)} USD</span>
+                            </div>
+                            <p><i class="fa-solid fa-wallet text-sky-400 mr-1"></i> Ngân hàng: <strong class="text-white">${bankInfo}</strong></p>
                         </div>
 
                         <div class="pt-1 border-t border-gray-800 flex justify-between items-center">
-                            <button onclick="adminDeleteUser('${fKey}')" class="bg-red-950/80 hover:bg-red-900 text-rose-400 border border-red-500/30 px-2.5 py-1.5 rounded-xl text-xs font-bold cursor-pointer">
-                                <i class="fa-solid fa-trash mr-1"></i> Xóa tài khoản
+                            <button onclick="adminDeleteUser('${fKey}')" class="bg-red-950/80 hover:bg-red-900 text-rose-400 border border-red-500/30 px-2.5 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition">
+                                <i class="fa-solid fa-trash mr-1"></i> Xóa
                             </button>
-                            <div class="flex gap-2">
-                                <button onclick="openUserHistoryModal('${fKey}')" class="bg-sky-600 hover:bg-sky-500 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition cursor-pointer">
+                            <div class="flex gap-1.5">
+                                <button onclick="openUserHistoryModal('${fKey}')" class="bg-sky-600 hover:bg-sky-500 text-white font-bold px-2.5 py-1.5 rounded-xl text-xs transition cursor-pointer shadow">
                                     <i class="fa-solid fa-clock-rotate-left mr-1"></i> Lịch sử
                                 </button>
-                                <button onclick="openEditUserModal('${fKey}')" class="bg-amber-600 hover:bg-amber-500 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition cursor-pointer">
-                                    <i class="fa-solid fa-pen-to-square mr-1"></i> Sửa
+                                <button onclick="openEditUserModal('${fKey}')" class="bg-amber-600 hover:bg-amber-500 text-white font-bold px-2.5 py-1.5 rounded-xl text-xs transition cursor-pointer shadow">
+                                    <i class="fa-solid fa-pen-to-square mr-1"></i> Sửa TT
                                 </button>
                             </div>
                         </div>
@@ -569,17 +585,17 @@
             });
         }
 
-        window.adminGiftPlan = function(firebaseKey) {
-            const user = realTimeUsers.find(u => u.firebaseKey === firebaseKey);
-            if (!user) return;
-            const selectEl = document.getElementById(`gift-plan-${firebaseKey}`);
-            const usdVal = parseFloat(selectEl.value);
-
-            const currentBal = user.balance || 0;
-            const newBal = currentBal + usdVal;
-
-            update(ref(db, 'users/' + firebaseKey), { balance: newBal });
-            alert(`Đã tặng thành công gói ${usdVal} USD (cộng trực tiếp vào số dư ví) cho thành viên ${user.username}!`);
+        window.filterAdminUsers = function() {
+            const keyword = document.getElementById('user-search-input').value.toLowerCase().trim();
+            const cards = document.querySelectorAll('.user-item-card');
+            cards.forEach(card => {
+                const searchText = card.getAttribute('data-search') || '';
+                if (searchText.includes(keyword)) {
+                    card.classList.remove('hidden');
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
         }
 
         window.adminDeleteUser = function(firebaseKey) {
@@ -595,6 +611,13 @@
 
             update(ref(db, 'deposits/' + firebaseKey), { status: "Thành công" });
 
+            // Cộng tiền vào ví tài khoản người dùng tương ứng trên Firebase nếu có
+            const targetUser = realTimeUsers.find(u => u.username === item.username);
+            if (targetUser) {
+                const newBal = (targetUser.balance || 0) + item.usd;
+                update(ref(db, 'users/' + targetUser.firebaseKey), { balance: newBal });
+            }
+
             let appNotifications = JSON.parse(localStorage.getItem('appNotifications')) || [];
             const now = new Date();
             const timeString = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} - ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
@@ -607,7 +630,7 @@
             localStorage.setItem('appNotifications', JSON.stringify(appNotifications));
             localStorage.setItem('hasUnreadNotif', 'true');
 
-            alert("Đã duyệt lệnh nạp tiền thành công trên Firebase!");
+            alert("Đã duyệt lệnh nạp tiền thành công và cộng số dư cho người dùng!");
         }
 
         window.adminRejectDeposit = function(firebaseKey) {
@@ -623,7 +646,7 @@
             if (!item) return;
 
             update(ref(db, 'withdraws/' + firebaseKey), { status: "Thành công" });
-            alert("Đã duyệt lệnh rút tiền thành công!");
+            alert("Đã duyệt xác nhận chuyển khoản rút tiền thành công!");
         }
 
         window.adminRejectWithdraw = function(firebaseKey) {
@@ -631,7 +654,15 @@
             if (!item) return;
 
             update(ref(db, 'withdraws/' + firebaseKey), { status: "Đã từ chối" });
-            alert("Đã từ chối lệnh rút tiền!");
+
+            // Hoàn lại số dư vào ví cho người dùng khi lệnh rút bị từ chối
+            const targetUser = realTimeUsers.find(u => u.username === item.username);
+            if (targetUser) {
+                const refundBal = (targetUser.balance || 0) + item.amount;
+                update(ref(db, 'users/' + targetUser.firebaseKey), { balance: refundBal });
+            }
+
+            alert("Đã từ chối lệnh rút tiền và hoàn lại số dư cho người dùng!");
         }
 
         window.openEditUserModal = function(firebaseKey) {
