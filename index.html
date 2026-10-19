@@ -288,7 +288,6 @@
                     </div>
                 </div>
 
-                <!-- Đã xóa nút nạp tiền VND ở trang chủ, nút rút tiền mở rộng toàn bộ -->
                 <div class="pt-1">
                     <button onclick="openWithdrawModal()" class="w-full bg-gray-800 border border-[#c0f135]/40 text-[#c0f135] font-extrabold py-3.5 rounded-2xl text-sm flex items-center justify-center gap-2 shadow-lg transition active:scale-95 cursor-pointer hover:bg-gray-700">
                         <i class="fa-solid fa-arrow-down-to-bracket"></i> Rút tiền về ngân hàng
@@ -470,7 +469,6 @@
                         <i class="fa-solid fa-wallet text-[#c0f135]"></i>
                         <span>Quản Lý Số Dư</span>
                     </div>
-                    <!-- Đã xóa mục Nạp Tiền VND ở phần Tôi -->
                     <div onclick="openWithdrawModal()" class="card-dark rounded-2xl p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/60 transition">
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 rounded-xl bg-[#c0f135]/10 border border-[#c0f135]/30 text-[#c0f135] flex items-center justify-center">
@@ -884,8 +882,25 @@
 
     </div>
 
-    <!-- JAVASCRIPT CORE LOGIC -->
-    <script>
+    <!-- JAVASCRIPT CORE LOGIC + FIREBASE REALTIME SYNC -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getDatabase, ref, set, get, update, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC832BgFHw5LIavbuwE17dpIFeJayKRbfg",
+            authDomain: "winusdbox.firebaseapp.com",
+            projectId: "winusdbox",
+            storageBucket: "winusdbox.firebasestorage.app",
+            messagingSenderId: "665540389423",
+            appId: "1:665540389423:web:7249d5d07b5629a4db34da",
+            measurementId: "G-KZKL342PD7",
+            databaseURL: "https://winusdbox-default-rtdb.asia-southeast1.firebasedatabase.app"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
         const USD_TO_VND = 26000;
         const minThreshold = 0.01;
         const ringMaxGoal = 0.10; 
@@ -895,7 +910,6 @@
         const ACCOUNT_NO = "11557000"; 
         const ACCOUNT_NAME = "WIN USDBOX";
 
-        // Danh sách các gói đầu tư
         const investmentPlans = [
             { id: 1, priceUsd: 1, ratePerSec: 0.000002315, title: "Gói Khai Thác 1 USD (26k)", roiDays: "5 ngày" },
             { id: 2, priceUsd: 3, ratePerSec: 0.000003858, title: "Gói Khai Thác 3 USD", roiDays: "9 ngày" },
@@ -906,11 +920,12 @@
             { id: 7, priceUsd: 100, ratePerSec: 0.000115740, title: "Gói VIP 100 USD", roiDays: "10 ngày" }
         ];
 
-        // Đồng bộ trực tiếp dữ liệu giftcode từ localStorage do Admin tạo
-        let giftcodeDatabase = JSON.parse(localStorage.getItem('giftcodeDatabase')) || {
-            "WIN2026": { usd: 1.00, limit: 100, usedCount: 0 },
-            "VIP5U": { usd: 5.00, limit: 10, usedCount: 0 }
-        };
+        // Biến lưu danh sách giftcode realtime từ Firebase
+        let liveGiftcodes = {};
+        onValue(ref(db, 'giftcodes'), (snapshot) => {
+            liveGiftcodes = snapshot.val() || {};
+        });
+
         let usedGiftcodes = JSON.parse(localStorage.getItem('usedGiftcodes')) || [];
 
         const inviteTasksList = [
@@ -964,52 +979,46 @@
 
         const COOLDOWN_TIME = 24 * 60 * 60 * 1000; 
 
-        function openModal(modalId) {
+        window.openModal = function(modalId) {
             const modal = document.getElementById(modalId);
             if(!modal) return;
             modal.classList.add('active');
             modal.scrollTop = 0;
         }
 
-        function closeModal(modalId) {
+        window.closeModal = function(modalId) {
             const modal = document.getElementById(modalId);
             if(!modal) return;
             modal.classList.remove('active');
         }
 
-        function showGroupDevelopingNotice() {
-            showRewardModal(
-                "Thông báo", 
-                "NHÓM ĐANG ĐƯỢC PHÁT TRIỂN", 
-                "fa-solid fa-code"
-            );
+        window.showGroupDevelopingNotice = function() {
+            showRewardModal("Thông báo", "NHÓM ĐANG ĐƯỢC PHÁT TRIỂN", "fa-solid fa-code");
         }
 
-        // HÀM QUẢN LÝ GIFTCODE (ĐỒNG BỘ VỚI ADMIN & KIỂM TRA GIỚI HẠN)
-        function openGiftcodeModal() {
+        window.openGiftcodeModal = function() {
             document.getElementById('giftcode-input').value = '';
             openModal('giftcode-modal');
         }
-        function closeGiftcodeModal() { closeModal('giftcode-modal'); }
+        window.closeGiftcodeModal = function() { closeModal('giftcode-modal'); }
 
-        function submitGiftcode() {
+        // HÀM XỬ LÝ NHẬP GIFTCODE ĐỒNG BỘ REALTIME TỪ FIREBASE
+        window.submitGiftcode = function() {
             const codeInput = document.getElementById('giftcode-input').value.trim().toUpperCase();
             if (!codeInput) {
                 showRewardModal("Thông báo", "Vui lòng nhập mã Giftcode!", "fa-solid fa-triangle-exclamation");
                 return;
             }
 
-            giftcodeDatabase = JSON.parse(localStorage.getItem('giftcodeDatabase')) || giftcodeDatabase;
-
-            if (giftcodeDatabase.hasOwnProperty(codeInput)) {
-                let codeData = giftcodeDatabase[codeInput];
+            if (liveGiftcodes.hasOwnProperty(codeInput)) {
+                let codeData = liveGiftcodes[codeInput];
 
                 if (usedGiftcodes.includes(codeInput)) {
                     showRewardModal("Thông báo", "Mã Giftcode này đã được sử dụng trước đó!", "fa-solid fa-triangle-exclamation");
                     return;
                 }
 
-                if (codeData.usedCount >= codeData.limit) {
+                if ((codeData.usedCount || 0) >= codeData.limit) {
                     showRewardModal("Lỗi Giftcode", "Mã code này đã hết lượt sử dụng!", "fa-solid fa-triangle-exclamation");
                     return;
                 }
@@ -1017,8 +1026,9 @@
                 const rewardAmountUsd = codeData.usd;
                 const rewardVnd = Math.round(rewardAmountUsd * USD_TO_VND);
 
-                codeData.usedCount++;
-                localStorage.setItem('giftcodeDatabase', JSON.stringify(giftcodeDatabase));
+                // Tăng số lượng đã dùng trên Firebase
+                codeData.usedCount = (codeData.usedCount || 0) + 1;
+                set(ref(db, 'giftcodes/' + codeInput), codeData);
 
                 availableBalance += rewardAmountUsd;
                 totalClaimed += rewardAmountUsd;
@@ -1035,24 +1045,20 @@
                     "fa-solid fa-circle-check"
                 );
             } else {
-                showRewardModal(
-                    "Lỗi Giftcode", 
-                    "CODE KHÔNG TỒN TẠI", 
-                    "fa-solid fa-triangle-exclamation"
-                );
+                showRewardModal("Lỗi Giftcode", "CODE KHÔNG TỒN TẠI TRÊN HỆ THỐNG", "fa-solid fa-triangle-exclamation");
             }
         }
 
-        function openNotificationModal() {
+        window.openNotificationModal = function() {
             hasUnreadNotif = false;
             localStorage.setItem('hasUnreadNotif', 'false');
             updateNotificationBadgeUI();
             renderNotificationList();
             openModal('notification-modal');
         }
-        function closeNotificationModal() { closeModal('notification-modal'); }
+        window.closeNotificationModal = function() { closeModal('notification-modal'); }
 
-        function updateNotificationBadgeUI() {
+        window.updateNotificationBadgeUI = function() {
             const badge = document.getElementById('notif-badge');
             const badgeSolid = document.getElementById('notif-badge-solid');
             if (!badge || !badgeSolid) return;
@@ -1066,19 +1072,7 @@
             }
         }
 
-        function pushNotification(title, content) {
-            const now = new Date();
-            const timeString = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} - ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-            
-            appNotifications.unshift({ title, content, time: timeString });
-            localStorage.setItem('appNotifications', JSON.stringify(appNotifications));
-
-            hasUnreadNotif = true;
-            localStorage.setItem('hasUnreadNotif', 'true');
-            updateNotificationBadgeUI();
-        }
-
-        function renderNotificationList() {
+        window.renderNotificationList = function() {
             const container = document.getElementById('notification-list');
             if(!container) return;
             container.innerHTML = "";
@@ -1101,25 +1095,25 @@
             });
         }
 
-        function openInviteTasksModal() {
+        window.openInviteTasksModal = function() {
             renderInviteTasksUI();
             openModal('invite-tasks-modal');
         }
-        function closeInviteTasksModal() { closeModal('invite-tasks-modal'); }
+        window.closeInviteTasksModal = function() { closeModal('invite-tasks-modal'); }
 
-        function openCashFlowModal() {
+        window.openCashFlowModal = function() {
             renderCashFlowList();
             openModal('cash-flow-modal');
         }
-        function closeCashFlowModal() { closeModal('cash-flow-modal'); }
+        window.closeCashFlowModal = function() { closeModal('cash-flow-modal'); }
 
-        function openUsdHistoryModal() {
+        window.openUsdHistoryModal = function() {
             renderUsdHistoryList();
             openModal('usd-history-modal');
         }
-        function closeUsdHistoryModal() { closeModal('usd-history-modal'); }
+        window.closeUsdHistoryModal = function() { closeModal('usd-history-modal'); }
 
-        function openGroupDetailModal(level) {
+        window.openGroupDetailModal = function(level) {
             const titleElem = document.getElementById('group-modal-title');
             const searchContainer = document.getElementById('f1-search-container');
             const contentElem = document.getElementById('group-modal-content');
@@ -1163,9 +1157,9 @@
             }
             openModal('group-detail-modal');
         }
-        function closeGroupDetailModal() { closeModal('group-detail-modal'); }
+        window.closeGroupDetailModal = function() { closeModal('group-detail-modal'); }
 
-        function renderF1MembersList(list) {
+        window.renderF1MembersList = function(list) {
             const contentElem = document.getElementById('group-modal-content');
             contentElem.innerHTML = "";
             if (list.length === 0) {
@@ -1192,18 +1186,18 @@
             });
         }
 
-        function filterF1Members() {
+        window.filterF1Members = function() {
             const keyword = document.getElementById('f1-search-input').value.trim().toLowerCase();
             const filtered = groupMembersF1.filter(m => m.phone.toLowerCase().includes(keyword));
             renderF1MembersList(filtered);
         }
 
-        function openDepositModal() { 
+        window.openDepositModal = function() { 
             document.getElementById('deposit-modal').classList.add('active');
         }
-        function closeDepositModal() { closeModal('deposit-modal'); }
+        window.closeDepositModal = function() { closeModal('deposit-modal'); }
 
-        function generateNewDepositMemo() {
+        window.generateNewDepositMemo = function() {
             const randomCode = Math.floor(1000 + Math.random() * 9000);
             const userPrefix = currentUser && currentUser.username ? currentUser.username.replace(/[^0-9]/g, '').slice(-4) : '1234';
             const memoEl = document.getElementById('deposit-memo');
@@ -1213,7 +1207,7 @@
             updateQrCodeImage();
         }
 
-        function calculateDeposit() {
+        window.calculateDeposit = function() {
             const vndVal = parseFloat(document.getElementById('deposit-vnd-input').value) || 0;
             const usdVal = vndVal / USD_TO_VND;
             document.getElementById('deposit-calc-text').innerHTML = `Quy đổi nhận được: <span class="neon-text font-bold">${usdVal.toFixed(2)} U</span>`;
@@ -1222,11 +1216,10 @@
             if(amountEl) {
                 amountEl.innerText = vndVal.toLocaleString() + " VNĐ";
             }
-            
             updateQrCodeImage();
         }
 
-        function updateQrCodeImage() {
+        window.updateQrCodeImage = function() {
             const vndVal = parseFloat(document.getElementById('deposit-vnd-input').value) || 0;
             const memoEl = document.getElementById('deposit-memo');
             const memo = memoEl ? memoEl.innerText : "WINUSDBOX";
@@ -1238,22 +1231,22 @@
             }
         }
 
-        function openDepositHistoryModal() {
+        window.openDepositHistoryModal = function() {
             renderDepositHistoryList();
             openModal('deposit-history-modal');
         }
-        function closeDepositHistoryModal() { closeModal('deposit-history-modal'); }
+        window.closeDepositHistoryModal = function() { closeModal('deposit-history-modal'); }
 
-        function openWithdrawModal() { openModal('withdraw-modal'); }
-        function closeWithdrawModal() { closeModal('withdraw-modal'); }
+        window.openWithdrawModal = function() { openModal('withdraw-modal'); }
+        window.closeWithdrawModal = function() { closeModal('withdraw-modal'); }
 
-        function openHistoryModal() {
+        window.openHistoryModal = function() {
             renderHistoryList();
             openModal('history-modal');
         }
-        function closeHistoryModal() { closeModal('history-modal'); }
+        window.closeHistoryModal = function() { closeModal('history-modal'); }
 
-        function renderInviteTasksUI() {
+        window.renderInviteTasksUI = function() {
             const container = document.getElementById('invite-tasks-list');
             if(!container) return;
             container.innerHTML = "";
@@ -1290,7 +1283,7 @@
             });
         }
 
-        function claimInviteTaskReward(taskId) {
+        window.claimInviteTaskReward = function(taskId) {
             const task = inviteTasksList.find(t => t.id === taskId);
             if (!task || claimedInviteTasks.includes(task.id) || currentF1DepositedCount < task.reqF1) return;
 
@@ -1307,7 +1300,7 @@
             showRewardModal("Nhận thưởng thành công", `Đã nhận +${task.rewardVnd.toLocaleString()} VNĐ ($${rewardUsd.toFixed(2)} USD) vào số dư!`, "fa-solid fa-gift");
         }
 
-        function renderPlansUI() {
+        window.renderPlansUI = function() {
             const container = document.getElementById('plans-container');
             if(!container) return;
             container.innerHTML = "";
@@ -1336,7 +1329,7 @@
             });
         }
 
-        function handleSelectPlan(planId) {
+        window.handleSelectPlan = function(planId) {
             const found = investmentPlans.find(p => p.id === planId);
             if(!found || found.id === activePlan.id) return;
 
@@ -1351,7 +1344,7 @@
             showRewardModal("Nạp tiền kích hoạt gói", `Thanh toán ${vndPrice.toLocaleString()} VNĐ (${found.priceUsd} USD) để kích hoạt ngay ${found.title}!`, "fa-solid fa-credit-card");
         }
 
-        function updatePlanStatsUI() {
+        window.updatePlanStatsUI = function() {
             if (activePlan.priceUsd > 0) {
                 document.getElementById('active-plan-badge').innerHTML = `<i class="fa-solid fa-chart-line text-[10px]"></i> Gói ${activePlan.priceUsd} USD`;
                 document.getElementById('active-plan-usd').innerText = `$${activePlan.priceUsd}.00`;
@@ -1369,11 +1362,11 @@
             }
         }
 
-        function scrollToPlans() {
+        window.scrollToPlans = function() {
             document.getElementById('investment-plans-section').scrollIntoView({ behavior: 'smooth' });
         }
 
-        function switchAuthMode(mode) {
+        window.switchAuthMode = function(mode) {
             const loginForm = document.getElementById('login-form');
             const registerForm = document.getElementById('register-form');
             if (mode === 'register') {
@@ -1385,7 +1378,7 @@
             }
         }
 
-        function handleRegister() {
+        window.handleRegister = function() {
             const fullname = document.getElementById('reg-fullname').value.trim();
             const username = document.getElementById('reg-username').value.trim();
             const password = document.getElementById('reg-password').value.trim();
@@ -1410,7 +1403,7 @@
             switchAuthMode('login');
         }
 
-        function handleLogin() {
+        window.handleLogin = function() {
             const username = document.getElementById('login-username').value.trim();
             const password = document.getElementById('login-password').value.trim();
 
@@ -1439,7 +1432,7 @@
             });
         }
 
-        function handleLogout() {
+        window.handleLogout = function() {
             showRewardModal("Xác nhận đăng xuất", "Bạn có chắc chắn muốn thoát phiên làm việc?", "fa-solid fa-right-from-bracket", () => {
                 localStorage.removeItem('currentUser');
                 currentUser = null;
@@ -1448,7 +1441,7 @@
             });
         }
 
-        function updateUserProfileUI() {
+        window.updateUserProfileUI = function() {
             if (currentUser) {
                 document.getElementById('profile-name').innerText = currentUser.fullname || "USER";
                 document.getElementById('profile-username').innerText = "ID: " + (currentUser.username || "21503092007");
@@ -1457,7 +1450,7 @@
             }
         }
 
-        function loadUserGroupData() {
+        window.loadUserGroupData = function() {
             if (!currentUser) return;
             const prefix = currentUser.username || "default";
             groupMembersF1 = JSON.parse(localStorage.getItem(`groupMembersF1_${prefix}`)) || [];
@@ -1472,7 +1465,7 @@
             totalClaimed = parseFloat(localStorage.getItem(`totalClaimed_${prefix}`)) || 0.00;
         }
 
-        function saveUserGroupData() {
+        window.saveUserGroupData = function() {
             if (!currentUser) return;
             const prefix = currentUser.username || "default";
             localStorage.setItem(`groupMembersF1_${prefix}`, JSON.stringify(groupMembersF1));
@@ -1487,7 +1480,7 @@
             localStorage.setItem(`totalClaimed_${prefix}`, totalClaimed);
         }
 
-        function showRewardModal(title, message, iconClass, callback = null) {
+        window.showRewardModal = function(title, message, iconClass, callback = null) {
             document.getElementById('reward-modal-title').innerText = title;
             document.getElementById('reward-modal-amount').innerText = message;
             document.getElementById('reward-modal-icon').className = iconClass;
@@ -1496,7 +1489,7 @@
             document.getElementById('reward-modal').classList.add('flex');
         }
 
-        function closeRewardModal() {
+        window.closeRewardModal = function() {
             document.getElementById('reward-modal').classList.add('hidden');
             document.getElementById('reward-modal').classList.remove('flex');
             if (pendingActionAfterModal) {
@@ -1505,7 +1498,7 @@
             }
         }
 
-        function submitDeposit() {
+        window.submitDeposit = function() {
             const vndVal = parseFloat(document.getElementById('deposit-vnd-input').value) || 0;
             const minVnd = 26000;
 
@@ -1540,7 +1533,7 @@
             );
         }
 
-        function submitWithdraw() {
+        window.submitWithdraw = function() {
             const amountInput = parseFloat(document.getElementById('withdraw-amount').value);
             const bankVal = document.getElementById('withdraw-bank').value;
             const acc = document.getElementById('withdraw-acc').value;
@@ -1588,7 +1581,7 @@
             );
         }
 
-        function renderDepositHistoryList() {
+        window.renderDepositHistoryList = function() {
             const container = document.getElementById('deposit-history-list');
             if(!container) return;
             container.innerHTML = depositHistory.length === 0 ? `<p class="text-center text-xs text-gray-500 py-6">Chưa có lịch sử nạp tiền.</p>` : "";
@@ -1608,7 +1601,7 @@
             });
         }
 
-        function renderHistoryList() {
+        window.renderHistoryList = function() {
             const container = document.getElementById('history-list');
             if(!container) return;
             container.innerHTML = withdrawHistory.length === 0 ? `<p class="text-center text-xs text-gray-500 py-6">Chưa có lịch sử rút tiền.</p>` : "";
@@ -1628,7 +1621,7 @@
             });
         }
 
-        function renderCashFlowList() {
+        window.renderCashFlowList = function() {
             const container = document.getElementById('cash-flow-list');
             if(!container) return;
             container.innerHTML = "";
@@ -1662,7 +1655,7 @@
             });
         }
 
-        function renderUsdHistoryList() {
+        window.renderUsdHistoryList = function() {
             const container = document.getElementById('usd-history-list');
             if(!container) return;
             container.innerHTML = "";
@@ -1696,7 +1689,7 @@
             });
         }
 
-        function switchTab(tabId) {
+        window.switchTab = function(tabId) {
             document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.add('hidden'));
             document.getElementById(`tab-${tabId}`).classList.remove('hidden');
 
@@ -1709,7 +1702,7 @@
             });
         }
 
-        function startMiningTimer() {
+        window.startMiningTimer = function() {
             setInterval(() => {
                 if (activePlan.ratePerSec > 0) {
                     currentUnclaimedProfit += activePlan.ratePerSec;
@@ -1726,7 +1719,7 @@
             localStorage.setItem('lastActiveTimestamp', Date.now());
         });
 
-        function updateDisplay() {
+        window.updateDisplay = function() {
             if (currentUser) loadUserGroupData();
 
             const formatted = currentUnclaimedProfit.toFixed(7);
@@ -1784,7 +1777,7 @@
             updateNotificationBadgeUI();
         }
 
-        function updateStreakButtonsUI() {
+        window.updateStreakButtonsUI = function() {
             const btn3 = document.getElementById('streak-btn-3');
             const btn10 = document.getElementById('streak-btn-10');
 
@@ -1821,7 +1814,7 @@
             }
         }
 
-        function claimStreakReward(days) {
+        window.claimStreakReward = function(days) {
             if (days === 3 && streakDays >= 3 && !claimedStreak3) {
                 claimedStreak3 = true;
                 localStorage.setItem('claimedStreak3', 'true');
@@ -1841,7 +1834,7 @@
             }
         }
 
-        function checkCooldowns() {
+        window.checkCooldowns = function() {
             const now = Date.now();
             const checkinBtn = document.getElementById('checkin-btn');
             const checkinMsg = document.getElementById('checkin-status-msg');
@@ -1863,7 +1856,7 @@
             }
         }
 
-        function doDailyCheckin() {
+        window.doDailyCheckin = function() {
             const now = Date.now();
             if (now - lastCheckinTime < COOLDOWN_TIME && lastCheckinTime > 0) return;
 
@@ -1881,7 +1874,7 @@
             showRewardModal("Điểm danh thành công", "Chúc mừng bạn đã nhận được: +0.01 USD", "fa-solid fa-gift");
         }
 
-        function claimProfit() {
+        window.claimProfit = function() {
             if (currentUnclaimedProfit >= minThreshold) {
                 const claimedAmount = currentUnclaimedProfit;
                 availableBalance += claimedAmount;
@@ -1896,7 +1889,7 @@
             }
         }
 
-        function calculateFee() {
+        window.calculateFee = function() {
             const inputVal = parseFloat(document.getElementById('withdraw-amount').value) || 0;
             const fee = inputVal * 0.05;
             const netAmount = inputVal - fee;
