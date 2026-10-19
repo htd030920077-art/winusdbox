@@ -263,27 +263,27 @@
                         </div>
                     </div>
 
-                    <div onclick="openInviteTasksModal()" class="card-dark rounded-2xl p-3.5 border border-[#c0f135]/40 flex flex-col justify-between cursor-pointer hover:border-[#c0f135] transition relative overflow-hidden bg-gradient-to-br from-[#121929] to-[#1a253c]">
-                        <div class="absolute -right-3 -bottom-3 text-[#c0f135]/10 text-7xl font-black select-none pointer-events-none">
-                            <i class="fa-solid fa-user-plus"></i>
+                    <div onclick="showGroupDevelopingNotice()" class="card-dark rounded-2xl p-3.5 border border-gray-800 flex flex-col justify-between cursor-pointer hover:border-gray-700 transition relative overflow-hidden bg-gradient-to-br from-[#121929] to-[#121929] opacity-75">
+                        <div class="absolute -right-3 -bottom-3 text-gray-700 text-7xl font-black select-none pointer-events-none">
+                            <i class="fa-solid fa-lock"></i>
                         </div>
                         
                         <div class="space-y-2 relative z-10">
                             <div class="flex items-center justify-between">
-                                <span class="text-[10px] bg-[#c0f135]/20 text-[#c0f135] font-bold px-2 py-0.5 rounded-full border border-[#c0f135]/40">THƯỞNG F1</span>
-                                <i class="fa-solid fa-chevron-right text-xs text-[#c0f135]"></i>
+                                <span class="text-[10px] bg-gray-800 text-gray-400 font-bold px-2 py-0.5 rounded-full border border-gray-700">TẠM KHÓA</span>
+                                <i class="fa-solid fa-lock text-xs text-gray-500"></i>
                             </div>
-                            <h4 class="font-extrabold text-sm text-white">
+                            <h4 class="font-extrabold text-sm text-gray-300">
                                 Nhiệm Vụ Mời Bạn Bè
                             </h4>
-                            <p class="text-[10px] text-gray-300 leading-tight">
-                                Mời bạn bè F1 nạp tiền nhận thưởng tới <strong class="text-[#c0f135]">1.000.000 VNĐ</strong>
+                            <p class="text-[10px] text-gray-500 leading-tight">
+                                Tính năng mời bạn bè đang được bảo trì và phát triển.
                             </p>
                         </div>
 
-                        <div class="pt-3 border-t border-gray-800/80 mt-2 flex items-center justify-between text-[10px] text-gray-400 relative z-10">
-                            <span>Đã mời nạp: <strong id="invited-f1-count" class="neon-text font-bold">0</strong> bạn</span>
-                            <span class="text-[#c0f135] font-bold underline">Xem chi tiết</span>
+                        <div class="pt-3 border-t border-gray-800/80 mt-2 flex items-center justify-between text-[10px] text-gray-500 relative z-10">
+                            <span>Trạng thái</span>
+                            <span class="text-gray-400 font-bold">Đang khóa</span>
                         </div>
                     </div>
                 </div>
@@ -357,83 +357,22 @@
                 </div>
             </section>
 
-            <!-- 3. NHÓM -->
-            <section id="tab-group" class="tab-pane hidden space-y-3">
-                <div onclick="showGroupDevelopingNotice()" class="card-dark rounded-2xl p-4 border border-[#c0f135]/40 space-y-2 bg-gradient-to-br from-[#121929] to-[#1a2b10]/30 cursor-pointer hover:border-[#c0f135] transition">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs font-bold text-[#c0f135]"><i class="fa-solid fa-link mr-1"></i> Link mời bạn bè của bạn</span>
-                        <span class="text-[10px] bg-[#c0f135]/20 text-[#c0f135] px-2 py-0.5 rounded font-bold">Hoa hồng 15%</span>
+            <!-- 3. NHÓM (ĐANG KHÓA / PHÁT TRIỂN) -->
+            <section id="tab-group" class="tab-pane hidden space-y-4">
+                <div class="card-dark rounded-3xl p-6 text-center space-y-4 border border-gray-800">
+                    <div class="w-16 h-16 bg-gray-800 border border-gray-700 text-gray-400 rounded-2xl mx-auto flex items-center justify-center text-2xl shadow-inner">
+                        <i class="fa-solid fa-lock"></i>
                     </div>
-                    <div class="flex items-center gap-2 pt-1">
-                        <input type="text" readonly class="w-full bg-[#0b0f19] border border-gray-800 rounded-xl p-2.5 text-[11px] text-gray-400 focus:outline-none pointer-events-none" value="Mục nhóm đang phát triển...">
-                        <button onclick="showGroupDevelopingNotice()" class="neon-btn font-bold px-4 py-2.5 rounded-xl text-xs shrink-0 flex items-center gap-1 active:scale-95 transition shadow cursor-pointer">
-                            <i class="fa-regular fa-copy"></i> Sao chép
+                    <div class="space-y-1">
+                        <h3 class="text-base font-black text-white">TÍNH NĂNG ĐANG KHÓA</h3>
+                        <p class="text-xs text-gray-400 leading-relaxed px-4">
+                            Hệ thống mời bạn bè và hoa hồng nhóm hiện đang được tạm khóa để nâng cấp và phát triển phiên bản tốt hơn. Vui lòng quay lại sau!
+                        </p>
+                    </div>
+                    <div class="pt-2">
+                        <button onclick="showGroupDevelopingNotice()" class="bg-gray-800 border border-gray-700 text-gray-300 font-bold px-5 py-2.5 rounded-xl text-xs active:scale-95 transition cursor-pointer">
+                            Xem thông báo
                         </button>
-                    </div>
-                </div>
-
-                <div class="card-dark rounded-2xl p-4 relative overflow-hidden border border-[#c0f135]/30">
-                    <div class="flex justify-between items-start mb-3">
-                        <div class="space-y-1">
-                            <div class="flex items-center gap-2">
-                                <span class="w-2 h-2 rounded-full bg-[#c0f135] animate-pulse"></span>
-                                <h3 class="text-sm font-bold text-white">Hệ sinh thái Đối tác & Hoa hồng</h3>
-                            </div>
-                            <div class="flex items-center gap-2 pt-1">
-                                <span class="text-xs bg-[#1a2b10] text-[#c0f135] border border-[#c0f135]/40 px-2.5 py-1 rounded-full font-semibold">
-                                    <i class="fa-solid fa-gift mr-1"></i> F1: 15% · F2: 3% · F3: 2%
-                                </span>
-                            </div>
-                        </div>
-                        <div class="w-12 h-12 rounded-2xl bg-[#c0f135]/10 border border-[#c0f135]/30 flex items-center justify-center text-[#c0f135] text-xl shadow-inner">
-                            <i class="fa-solid fa-sack-dollar"></i>
-                        </div>
-                    </div>
-
-                    <div class="pt-3 border-t border-gray-800/80 mt-3">
-                        <p class="text-xs text-gray-400 mb-1">Tổng hoa hồng hệ thống đã nhận</p>
-                        <h2 class="text-2xl font-black text-white">+<span class="neon-text" id="total-group-commission">$0,00</span> <span class="text-xs text-gray-400 font-normal">USD</span></h2>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-2">
-                    <div class="card-dark rounded-2xl p-3 border border-gray-800 text-center">
-                        <p class="text-[10px] text-gray-400">Tổng thành viên (F1+F2+F3)</p>
-                        <p class="text-base font-black text-white mt-1"><span id="total-network-members">0</span> người</p>
-                    </div>
-                    <div class="card-dark rounded-2xl p-3 border border-gray-800 text-center">
-                        <p class="text-[10px] text-gray-400">Doanh số nhóm</p>
-                        <p class="text-base font-black text-[#c0f135] mt-1" id="total-group-sales">$0.00</p>
-                    </div>
-                </div>
-
-                <div class="space-y-1 pt-1">
-                    <p class="text-xs font-bold text-gray-300 px-1"><i class="fa-solid fa-network-wired text-[#c0f135] mr-1"></i> Chi tiết các cấp hoa hồng:</p>
-                </div>
-
-                <div class="grid grid-cols-3 gap-2">
-                    <div onclick="openGroupDetailModal('F1')" class="card-dark rounded-2xl p-3 text-center cursor-pointer hover:border-[#c0f135] transition relative overflow-hidden flex flex-col justify-between">
-                        <div>
-                            <span class="text-[10px] bg-[#c0f135]/20 text-[#c0f135] px-2 py-0.5 rounded-full font-bold">F1 (15%)</span>
-                            <p class="text-sm font-black text-white mt-2" id="f1-commission-val">$0.00</p>
-                        </div>
-                        <p class="text-[10px] text-gray-400 mt-2 underline">Xem chi tiết</p>
-                    </div>
-
-                    <div onclick="openGroupDetailModal('F2')" class="card-dark rounded-2xl p-3 text-center cursor-pointer hover:border-[#c0f135] transition relative overflow-hidden flex flex-col justify-between">
-                        <div>
-                            <span class="text-[10px] bg-[#c0f135]/20 text-[#c0f135] px-2 py-0.5 rounded-full font-bold">F2 (3%)</span>
-                            <p class="text-sm font-black text-white mt-2" id="f2-commission-val">$0.00</p>
-                        </div>
-                        <p class="text-[10px] text-gray-400 mt-2 underline">Xem chi tiết</p>
-                    </div>
-
-                    <div onclick="openGroupDetailModal('F3')" class="card-dark rounded-2xl p-3 text-center cursor-pointer hover:border-[#c0f135] transition relative overflow-hidden flex flex-col justify-between">
-                        <div>
-                            <span class="text-[10px] bg-[#c0f135]/20 text-[#c0f135] px-2 py-0.5 rounded-full font-bold">F3 (2%)</span>
-                            <p class="text-sm font-black text-white mt-2" id="f3-commission-val">$0.00</p>
-                        </div>
-                        <p class="text-[10px] text-gray-400 mt-2 underline">Xem chi tiết</p>
                     </div>
                 </div>
             </section>
@@ -460,7 +399,7 @@
                     </div>
                     <div class="card-dark rounded-2xl p-4 text-center">
                         <p class="text-xs text-gray-400">Tổng Hoa Hồng</p>
-                        <p class="text-lg font-black text-[#c0f135] mt-1" id="profile-commission">$0.00</p>
+                        <p class="text-lg font-black text-gray-500 mt-1">$0.00</p>
                     </div>
                 </div>
 
@@ -593,56 +532,6 @@
                 </div>
 
                 <button onclick="closeGiftcodeModal()" class="w-full bg-gray-800 border border-gray-700 text-white font-bold py-3 rounded-xl text-xs active:scale-95 transition cursor-pointer">
-                    Đóng
-                </button>
-            </div>
-        </div>
-
-        <div id="group-detail-modal" class="modal-overlay absolute inset-0 bg-[#090d16]/95 z-50 flex flex-col overflow-y-auto">
-            <div class="modal-content card-dark rounded-none p-4 space-y-4 border-b border-[#c0f135]/30 w-full min-h-screen">
-                <div class="space-y-4">
-                    <div class="flex items-center justify-between py-2 border-b border-gray-800">
-                        <button onclick="closeGroupDetailModal()" class="w-8 h-8 rounded-lg bg-gray-900 border border-gray-700 flex items-center justify-center text-gray-300 hover:text-white cursor-pointer">
-                            <i class="fa-solid fa-chevron-left text-sm"></i>
-                        </button>
-                        <h2 id="group-modal-title" class="text-base font-bold text-[#c0f135] tracking-wide">Chi tiết Nhóm</h2>
-                        <div class="w-8"></div>
-                    </div>
-                    
-                    <div id="f1-search-container" class="space-y-2">
-                        <div class="relative">
-                            <input type="text" id="f1-search-input" oninput="filterF1Members()" placeholder="Tìm kiếm số điện thoại F1..." class="w-full bg-[#121929] border border-gray-800 rounded-xl p-3 pl-9 text-xs text-gray-200 focus:outline-none focus:border-[#c0f135]">
-                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-3.5 text-gray-500 text-xs"></i>
-                        </div>
-                    </div>
-
-                    <div id="group-modal-content" class="space-y-3 pt-1"></div>
-                </div>
-                <button onclick="closeGroupDetailModal()" class="w-full bg-gray-800 border border-gray-700 text-white font-bold py-3 rounded-xl text-xs active:scale-95 transition mt-6 cursor-pointer">
-                    Đóng
-                </button>
-            </div>
-        </div>
-
-        <div id="invite-tasks-modal" class="modal-overlay absolute inset-0 bg-[#090d16]/95 z-50 flex flex-col overflow-y-auto">
-            <div class="modal-content card-dark rounded-none p-4 space-y-4 border-b border-[#c0f135]/30 w-full min-h-screen">
-                <div class="space-y-4">
-                    <div class="flex items-center justify-between py-2 border-b border-gray-800">
-                        <button onclick="closeInviteTasksModal()" class="w-8 h-8 rounded-lg bg-gray-900 border border-gray-700 flex items-center justify-center text-gray-300 hover:text-white cursor-pointer">
-                            <i class="fa-solid fa-chevron-left text-sm"></i>
-                        </button>
-                        <h2 class="text-base font-bold text-[#c0f135] tracking-wide">Nhiệm Vụ Mời F1 Nạp Tiền</h2>
-                        <div class="w-8"></div>
-                    </div>
-                    <div class="bg-[#c0f135]/10 border border-[#c0f135]/30 rounded-xl p-3 text-xs space-y-1">
-                        <p class="text-[#c0f135] font-bold"><i class="fa-solid fa-circle-info mr-1"></i> Điều kiện tính nhiệm vụ:</p>
-                        <p class="text-gray-300 text-[11px] leading-relaxed">
-                            Chỉ áp dụng cho bạn bè cấp F1 tải app qua đường link giới thiệu của bạn và tiến hành nạp tiền thành công!
-                        </p>
-                    </div>
-                    <div id="invite-tasks-list" class="space-y-3 pt-1"></div>
-                </div>
-                <button onclick="closeInviteTasksModal()" class="w-full bg-gray-800 border border-gray-700 text-white font-bold py-3 rounded-xl text-xs active:scale-95 transition mt-6 cursor-pointer">
                     Đóng
                 </button>
             </div>
@@ -927,27 +816,7 @@
 
         let usedGiftcodes = JSON.parse(localStorage.getItem('usedGiftcodes')) || [];
 
-        const inviteTasksList = [
-            { id: 1, reqF1: 5, rewardVnd: 20000, title: "Mời 5 bạn F1 nạp tiền" },
-            { id: 2, reqF1: 10, rewardVnd: 50000, title: "Mời 10 bạn F1 nạp tiền" },
-            { id: 3, reqF1: 20, rewardVnd: 100000, title: "Mời 20 bạn F1 nạp tiền" },
-            { id: 4, reqF1: 50, rewardVnd: 300000, title: "Mời 50 bạn F1 nạp tiền" },
-            { id: 5, reqF1: 100, rewardVnd: 1000000, title: "Mời 100 bạn F1 nạp tiền" }
-        ];
-
         let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
-        let allUsersDatabase = JSON.parse(localStorage.getItem('registeredUsers')) || [];
-
-        let currentF1DepositedCount = parseInt(localStorage.getItem('currentF1DepositedCount')) || 0;
-        let claimedInviteTasks = JSON.parse(localStorage.getItem('claimedInviteTasks')) || [];
-
-        let groupMembersF1 = JSON.parse(localStorage.getItem('groupMembersF1')) || [];
-        let groupMembersF2 = JSON.parse(localStorage.getItem('groupMembersF2')) || [];
-        let groupMembersF3 = JSON.parse(localStorage.getItem('groupMembersF3')) || [];
-
-        let totalF2CommissionUsd = parseFloat(localStorage.getItem('totalF2CommissionUsd')) || 0.00;
-        let totalF3CommissionUsd = parseFloat(localStorage.getItem('totalF3CommissionUsd')) || 0.00;
-        let totalGroupSalesVnd = parseFloat(localStorage.getItem('totalGroupSalesVnd')) || 0;
 
         let activePlanId = parseInt(localStorage.getItem('activePlanId')) || 0;
         let activePlan = investmentPlans.find(p => p.id === activePlanId) || { id: 0, priceUsd: 0, ratePerSec: 0, title: "Chưa kích hoạt", roiDays: "-" };
@@ -984,7 +853,6 @@
             onValue(ref(db, 'deposits'), (snapshot) => {
                 const data = snapshot.val() || {};
                 const list = Object.keys(data).map(k => data[k]);
-                // Kiểm tra lệnh nạp của user hiện tại đã được Admin duyệt "Thành công" chưa
                 const approvedDep = list.find(d => d.username === currentUser.username && d.status === "Thành công");
                 if (approvedDep) {
                     const matchedPlan = investmentPlans.find(p => p.id === (approvedDep.planId || 1)) || investmentPlans[0];
@@ -1013,7 +881,7 @@
         }
 
         window.showGroupDevelopingNotice = function() {
-            showRewardModal("Thông báo", "NHÓM ĐANG ĐƯỢC PHÁT TRIỂN", "fa-solid fa-code");
+            showRewardModal("Thông báo", "TÍNH NĂNG MỜI BẠN BÈ ĐANG ĐƯỢC PHÁT TRIỂN", "fa-solid fa-code");
         }
 
         window.openGiftcodeModal = function() {
@@ -1113,12 +981,6 @@
             });
         }
 
-        window.openInviteTasksModal = function() {
-            renderInviteTasksUI();
-            openModal('invite-tasks-modal');
-        }
-        window.closeInviteTasksModal = function() { closeModal('invite-tasks-modal'); }
-
         window.openCashFlowModal = function() {
             renderCashFlowList();
             openModal('cash-flow-modal');
@@ -1130,85 +992,6 @@
             openModal('usd-history-modal');
         }
         window.closeUsdHistoryModal = function() { closeModal('usd-history-modal'); }
-
-        window.openGroupDetailModal = function(level) {
-            const titleElem = document.getElementById('group-modal-title');
-            const searchContainer = document.getElementById('f1-search-container');
-            const contentElem = document.getElementById('group-modal-content');
-            contentElem.innerHTML = "";
-
-            if (level === 'F1') {
-                titleElem.innerText = "Chi tiết Hoa hồng F1 (15%)";
-                if(searchContainer) searchContainer.classList.remove('hidden');
-                renderF1MembersList(groupMembersF1);
-            } else {
-                if(searchContainer) searchContainer.classList.add('hidden');
-                if (level === 'F2') {
-                    titleElem.innerText = "Chi tiết Hoa hồng F2 (3%)";
-                    if (groupMembersF2.length === 0) {
-                        contentElem.innerHTML = `<p class="text-center text-xs text-gray-500 py-6">Chưa có thành viên F2 nào.</p>`;
-                    } else {
-                        groupMembersF2.forEach(m => {
-                            contentElem.innerHTML += `
-                                <div class="card-dark rounded-2xl p-3.5 flex items-center justify-between border border-gray-800">
-                                    <span class="text-xs font-bold text-white">${m.phone}</span>
-                                    <span class="text-xs font-black neon-text">+${m.commissionUsd.toFixed(2)} USD</span>
-                                </div>
-                            `;
-                        });
-                    }
-                } else if (level === 'F3') {
-                    titleElem.innerText = "Chi tiết Hoa hồng F3 (2%)";
-                    if (groupMembersF3.length === 0) {
-                        contentElem.innerHTML = `<p class="text-center text-xs text-gray-500 py-6">Chưa có thành viên F3 nào.</p>`;
-                    } else {
-                        groupMembersF3.forEach(m => {
-                            contentElem.innerHTML += `
-                                <div class="card-dark rounded-2xl p-3.5 flex items-center justify-between border border-gray-800">
-                                    <span class="text-xs font-bold text-white">${m.phone}</span>
-                                    <span class="text-xs font-black neon-text">+${m.commissionUsd.toFixed(2)} USD</span>
-                                </div>
-                            `;
-                        });
-                    }
-                }
-            }
-            openModal('group-detail-modal');
-        }
-        window.closeGroupDetailModal = function() { closeModal('group-detail-modal'); }
-
-        window.renderF1MembersList = function(list) {
-            const contentElem = document.getElementById('group-modal-content');
-            contentElem.innerHTML = "";
-            if (list.length === 0) {
-                contentElem.innerHTML = `<p class="text-center text-xs text-gray-500 py-6">Chưa có thành viên F1 nào.</p>`;
-                return;
-            }
-            list.forEach(member => {
-                contentElem.innerHTML += `
-                    <div class="card-dark rounded-2xl p-3.5 flex items-center justify-between border border-gray-800">
-                        <div class="flex items-center gap-3">
-                            <div class="w-9 h-9 rounded-xl bg-[#c0f135]/10 text-[#c0f135] flex items-center justify-center font-bold text-xs">
-                                <i class="fa-solid fa-user"></i>
-                            </div>
-                            <div>
-                                <p class="text-xs font-bold text-white">${member.phone}</p>
-                                <p class="text-[10px] text-gray-400">Thành viên trực tiếp F1</p>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <p class="text-xs font-black neon-text">+$${member.commissionUsd.toFixed(2)} USD</p>
-                        </div>
-                    </div>
-                `;
-            });
-        }
-
-        window.filterF1Members = function() {
-            const keyword = document.getElementById('f1-search-input').value.trim().toLowerCase();
-            const filtered = groupMembersF1.filter(m => m.phone.toLowerCase().includes(keyword));
-            renderF1MembersList(filtered);
-        }
 
         window.openDepositModal = function() { 
             document.getElementById('deposit-modal').classList.add('active');
@@ -1263,60 +1046,6 @@
             openModal('history-modal');
         }
         window.closeHistoryModal = function() { closeModal('history-modal'); }
-
-        window.renderInviteTasksUI = function() {
-            const container = document.getElementById('invite-tasks-list');
-            if(!container) return;
-            container.innerHTML = "";
-
-            inviteTasksList.forEach(task => {
-                const rewardUsd = task.rewardVnd / USD_TO_VND;
-                const isClaimed = claimedInviteTasks.includes(task.id);
-                const isReached = currentF1DepositedCount >= task.reqF1;
-
-                let btnHtml = "";
-                if (isClaimed) {
-                    btnHtml = `<button class="bg-gray-800 text-gray-500 font-bold px-3 py-2 rounded-xl text-xs cursor-not-allowed" disabled>Đã nhận</button>`;
-                } else if (isReached) {
-                    btnHtml = `<button onclick="claimInviteTaskReward(${task.id})" class="neon-btn font-extrabold px-3 py-2 rounded-xl text-xs active:scale-95 transition shadow-md shadow-lime-500/20 cursor-pointer">Nhận ngay</button>`;
-                } else {
-                    btnHtml = `<button class="bg-gray-800/80 text-gray-500 border border-gray-700 font-semibold px-3 py-2 rounded-xl text-xs cursor-not-allowed" disabled>Chưa đạt (${currentF1DepositedCount}/${task.reqF1})</button>`;
-                }
-
-                container.innerHTML += `
-                    <div class="card-dark rounded-2xl p-4 flex items-center justify-between border border-gray-800 space-x-3">
-                        <div class="space-y-1">
-                            <div class="flex items-center gap-2">
-                                <span class="font-extrabold text-xs text-white">${task.title}</span>
-                                ${isClaimed ? '<span class="text-[9px] bg-[#1a2b10] text-[#c0f135] px-2 py-0.5 rounded-full font-bold">Đã xong</span>' : ''}
-                            </div>
-                            <p class="text-[11px] text-gray-300">
-                                Thưởng: <span class="neon-text font-bold">+${task.rewardVnd.toLocaleString()} VNĐ</span> <span class="text-gray-400">($${rewardUsd.toFixed(2)} USD)</span>
-                            </p>
-                            <p class="text-[10px] text-gray-500">Tiến độ F1 nạp tiền: ${currentF1DepositedCount}/${task.reqF1} người</p>
-                        </div>
-                        <div>${btnHtml}</div>
-                    </div>
-                `;
-            });
-        }
-
-        window.claimInviteTaskReward = function(taskId) {
-            const task = inviteTasksList.find(t => t.id === taskId);
-            if (!task || claimedInviteTasks.includes(task.id) || currentF1DepositedCount < task.reqF1) return;
-
-            const rewardUsd = task.rewardVnd / USD_TO_VND;
-            availableBalance += rewardUsd;
-            totalClaimed += rewardUsd;
-            claimedInviteTasks.push(task.id);
-            localStorage.setItem('claimedInviteTasks', JSON.stringify(claimedInviteTasks));
-            localStorage.setItem('availableBalance', availableBalance);
-            localStorage.setItem('totalClaimed', totalClaimed);
-
-            updateDisplay();
-            renderInviteTasksUI();
-            showRewardModal("Nhận thưởng thành công", `Đã nhận +${task.rewardVnd.toLocaleString()} VNĐ ($${rewardUsd.toFixed(2)} USD) vào số dư!`, "fa-solid fa-gift");
-        }
 
         window.renderPlansUI = function() {
             const container = document.getElementById('plans-container');
@@ -1472,14 +1201,6 @@
         window.loadUserGroupData = function() {
             if (!currentUser) return;
             const prefix = currentUser.username || "default";
-            groupMembersF1 = JSON.parse(localStorage.getItem(`groupMembersF1_${prefix}`)) || [];
-            groupMembersF2 = JSON.parse(localStorage.getItem(`groupMembersF2_${prefix}`)) || [];
-            groupMembersF3 = JSON.parse(localStorage.getItem(`groupMembersF3_${prefix}`)) || [];
-            totalF2CommissionUsd = parseFloat(localStorage.getItem(`totalF2CommissionUsd_${prefix}`)) || 0.00;
-            totalF3CommissionUsd = parseFloat(localStorage.getItem(`totalF3CommissionUsd_${prefix}`)) || 0.00;
-            totalGroupSalesVnd = parseFloat(localStorage.getItem(`totalGroupSalesVnd_${prefix}`)) || 0;
-            currentF1DepositedCount = parseInt(localStorage.getItem(`currentF1DepositedCount_${prefix}`)) || 0;
-            claimedInviteTasks = JSON.parse(localStorage.getItem(`claimedInviteTasks_${prefix}`)) || [];
             availableBalance = parseFloat(localStorage.getItem(`availableBalance_${prefix}`)) || 0.00;
             totalClaimed = parseFloat(localStorage.getItem(`totalClaimed_${prefix}`)) || 0.00;
         }
@@ -1487,14 +1208,6 @@
         window.saveUserGroupData = function() {
             if (!currentUser) return;
             const prefix = currentUser.username || "default";
-            localStorage.setItem(`groupMembersF1_${prefix}`, JSON.stringify(groupMembersF1));
-            localStorage.setItem(`groupMembersF2_${prefix}`, JSON.stringify(groupMembersF2));
-            localStorage.setItem(`groupMembersF3_${prefix}`, JSON.stringify(groupMembersF3));
-            localStorage.setItem(`totalF2CommissionUsd_${prefix}`, totalF2CommissionUsd);
-            localStorage.setItem(`totalF3CommissionUsd_${prefix}`, totalF3CommissionUsd);
-            localStorage.setItem(`totalGroupSalesVnd_${prefix}`, totalGroupSalesVnd);
-            localStorage.setItem(`currentF1DepositedCount_${prefix}`, currentF1DepositedCount);
-            localStorage.setItem(`claimedInviteTasks_${prefix}`, JSON.stringify(claimedInviteTasks));
             localStorage.setItem(`availableBalance_${prefix}`, availableBalance);
             localStorage.setItem(`totalClaimed_${prefix}`, totalClaimed);
         }
@@ -1517,7 +1230,6 @@
             }
         }
 
-        // HÀM GỬI LỆNH NẠP LÊN FIREBASE ĐỂ ADMIN DUYỆT + BẮN TELEGRAM
         window.submitDeposit = function() {
             const inputElem = document.getElementById('deposit-vnd-input');
             let vndVal = parseFloat(inputElem ? inputElem.value : 0) || 0;
@@ -1536,7 +1248,6 @@
             const now = new Date();
             const timeString = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} - ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
-            // Gửi dữ liệu nạp lên Firebase Realtime Database
             const newDeposit = { username, vnd: vndVal, usd: usdVal, memo, time: timeString, status: "Đang chờ duyệt", planId };
             import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js").then(({ push, ref: dbRef }) => {
                 push(dbRef(db, 'deposits'), newDeposit);
@@ -1571,7 +1282,6 @@
             );
         }
 
-        // HÀM XỬ LÝ RÚT TIỀN -> TRỪ NGAY LẬP TỨC SỐ DƯ VÀ BẮN TELEGRAM
         window.submitWithdraw = function() {
             const amountInput = parseFloat(document.getElementById('withdraw-amount').value);
             const bankVal = document.getElementById('withdraw-bank').value;
@@ -1592,7 +1302,7 @@
                 return;
             }
 
-            // TRỪ NGAY LẬP TỨC TRONG SỐ DƯ KHẢ DỤNG CỦA NGƯỜI DÙNG
+            // Trừ ngay số dư lập tức
             availableBalance -= amountInput;
             saveUserGroupData();
             updateDisplay();
@@ -1602,7 +1312,6 @@
             const now = new Date();
             const timeString = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} - ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
-            // Gửi lệnh rút lên Firebase
             const newWithdraw = { username, amount: amountInput, bank: bankVal.split(' - ')[0], acc, name, fee, net, time: timeString, status: "Đang chờ duyệt" };
             import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js").then(({ push, ref: dbRef }) => {
                 push(dbRef(db, 'withdraws'), newWithdraw);
@@ -1816,21 +1525,8 @@
             document.getElementById('available-balance').innerText = formattedBalance;
             document.getElementById('profile-balance').innerText = formattedBalance;
 
-            const f1Total = groupMembersF1.reduce((sum, m) => sum + m.commissionUsd, 0);
-            const totalGroupComm = f1Total + totalF2CommissionUsd + totalF3CommissionUsd;
-            const totalMembers = groupMembersF1.length + groupMembersF2.length + groupMembersF3.length;
-
-            document.getElementById('total-network-members').innerText = totalMembers;
-            document.getElementById('total-group-sales').innerText = `$${(totalGroupSalesVnd / USD_TO_VND).toFixed(2)}`;
-            document.getElementById('f1-commission-val').innerText = `$${f1Total.toFixed(2)}`;
-            document.getElementById('f2-commission-val').innerText = `$${totalF2CommissionUsd.toFixed(2)}`;
-            document.getElementById('f3-commission-val').innerText = `$${totalF3CommissionUsd.toFixed(2)}`;
-            document.getElementById('total-group-commission').innerText = `$${totalGroupComm.toFixed(2)}`;
-            document.getElementById('profile-commission').innerText = `$${totalGroupComm.toFixed(2)}`;
-
             document.getElementById('total-claimed').innerText = '+$' + totalClaimed.toFixed(2) + ' U';
             document.getElementById('streak-days').innerText = streakDays;
-            document.getElementById('invited-f1-count').innerText = currentF1DepositedCount;
 
             updateStreakButtonsUI();
             updateNotificationBadgeUI();
