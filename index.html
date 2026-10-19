@@ -889,9 +889,10 @@
                         saveUserGroupData();
                         updateDisplay();
                     }
+                    // TỰ ĐỘNG KÍCH HOẠT GÓI KHI ADMIN DUYỆT TỪ USER ACTIVEPLANS
                     if (liveData.activePlans && liveData.activePlans.length > 0) {
-                        const lastGifted = liveData.activePlans[liveData.activePlans.length - 1];
-                        const matchedPlan = investmentPlans.find(p => p.priceUsd === lastGifted.priceUsd) || investmentPlans[0];
+                        const lastPlan = liveData.activePlans[liveData.activePlans.length - 1];
+                        const matchedPlan = investmentPlans.find(p => p.priceUsd === lastPlan.priceUsd) || investmentPlans[0];
                         if (activePlanId !== matchedPlan.id) {
                             activePlanId = matchedPlan.id;
                             activePlan = matchedPlan;
@@ -903,12 +904,27 @@
                 }
             });
 
+            // LẮNG NGHE LỆNH NẠP ĐÃ DUYỆT ĐỂ TỰ ĐỘNG KÍCH HOẠT GÓI KHAI THÁC
             onValue(ref(db, 'deposits'), (snapshot) => {
                 const data = snapshot.val() || {};
                 const list = Object.keys(data).map(k => data[k]);
-                const approvedDep = list.find(d => d.username === currentUser.username && d.status === "Thành công");
+                const myDeposits = list.filter(d => d.username === currentUser.username);
+
+                // Cập nhật lại lịch sử nạp tiền cá nhân
+                depositHistory = myDeposits.map(d => ({
+                    time: d.time,
+                    vnd: d.vnd,
+                    usd: d.usd,
+                    memo: d.memo,
+                    status: d.status
+                })).reverse();
+                localStorage.setItem('depositHistory', JSON.stringify(depositHistory));
+
+                // Tìm lệnh nạp mới nhất đã thành công
+                const approvedDep = myDeposits.reverse().find(d => d.status === "Thành công");
                 if (approvedDep) {
-                    const matchedPlan = investmentPlans.find(p => p.id === (approvedDep.planId || 1)) || investmentPlans[0];
+                    const targetPlanId = approvedDep.planId || 1;
+                    const matchedPlan = investmentPlans.find(p => p.id === targetPlanId || p.priceUsd === approvedDep.usd) || investmentPlans[0];
                     if (activePlanId !== matchedPlan.id) {
                         activePlanId = matchedPlan.id;
                         activePlan = matchedPlan;
