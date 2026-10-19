@@ -107,10 +107,6 @@
 
                 <div id="register-form" class="space-y-4 hidden">
                     <div class="space-y-1">
-                        <label class="text-xs font-bold text-gray-300">Họ và tên (VIẾT HOA KHÔNG DẤU, CÁCH NHAU)</label>
-                        <input type="text" id="reg-fullname" placeholder="Nhập họ và tên..." class="w-full bg-[#121929] border border-gray-800 rounded-xl p-3.5 text-xs text-gray-200 focus:outline-none focus:border-[#c0f135] placeholder-gray-600 uppercase">
-                    </div>
-                    <div class="space-y-1">
                         <label class="text-xs font-bold text-gray-300">Số điện thoại (Chính xác 10 chữ số)</label>
                         <input type="text" id="reg-username" placeholder="Nhập 10 số điện thoại..." class="w-full bg-[#121929] border border-gray-800 rounded-xl p-3.5 text-xs text-gray-200 focus:outline-none focus:border-[#c0f135] placeholder-gray-600" maxlength="10">
                     </div>
@@ -267,7 +263,7 @@
                         </div>
                     </div>
 
-                    <!-- KHU VỰC ẢNH 2: ẤN VÀO SẼ MỞ TAB/MODAL NHIỆM VỤ MỜI BẠN BÈ RIÊNG (ẢNH 1) -->
+                    <!-- KHU VỰC NHIỆM VỤ MỜI BẠN BÈ -->
                     <div onclick="openInviteTaskModal()" class="card-dark rounded-2xl p-3.5 border border-gray-800 flex flex-col justify-between cursor-pointer hover:border-[#c0f135]/40 transition relative overflow-hidden bg-gradient-to-br from-[#121929] to-[#162215]">
                         <div class="absolute -right-3 -bottom-3 text-[#c0f135]/10 text-7xl font-black select-none pointer-events-none">
                             <i class="fa-solid fa-user-group"></i>
@@ -312,7 +308,7 @@
 
             </section>
 
-            <!-- 2. NHIỆM VỤ (CHỈ CÓ MỤC ĐĂNG NHẬP / ĐIỂM DANH NHẬN THƯỞNG) -->
+            <!-- 2. NHIỆM VỤ -->
             <section id="tab-tasks" class="tab-pane hidden space-y-4">
                 <h3 class="font-bold text-lg mb-2 flex items-center gap-2">
                     <i class="fa-solid fa-list-check text-[#c0f135]"></i> Nhiệm vụ điểm danh
@@ -363,7 +359,7 @@
                 </div>
             </section>
 
-            <!-- 3. NHÓM (THỐNG KÊ HOA HỒNG F1, F2, F3 CHỈ ĐỂ HIỂN THỊ) -->
+            <!-- 3. NHÓM -->
             <section id="tab-group" class="tab-pane hidden space-y-4">
                 <div class="card-dark rounded-3xl p-5 border border-[#c0f135]/30 space-y-4">
                     <div class="flex items-center justify-between border-b border-gray-800 pb-3">
@@ -433,10 +429,10 @@
             <section id="tab-profile" class="tab-pane hidden space-y-4">
                 <div class="bg-gradient-to-r from-emerald-900 via-gray-900 to-[#122b10] border border-[#c0f135]/30 rounded-3xl p-6 text-center shadow-xl space-y-3">
                     <div class="w-20 h-20 bg-[#c0f135] text-gray-950 font-extrabold text-2xl rounded-full flex items-center justify-center mx-auto shadow-md shadow-lime-500/20" id="profile-avatar-text">
-                        HD
+                        US
                     </div>
                     <div>
-                        <h2 class="text-xl font-black text-white tracking-wide" id="profile-name">NGUYEN VAN A</h2>
+                        <h2 class="text-xl font-black text-white tracking-wide" id="profile-name">MEMBER</h2>
                         <div class="flex items-center justify-center gap-2 mt-1">
                             <span class="text-xs text-gray-300" id="profile-username">SĐT: 0123456789</span>
                             <span class="text-[10px] bg-[#c0f135] text-gray-950 font-bold px-2 py-0.5 rounded-full">VIP 1</span>
@@ -554,7 +550,7 @@
         </main>
 
         <!-- MODALS -->
-        <!-- MODAL TAB RIÊNG CHO NHIỆM VỤ MỜI BÈ (ẢNH 1) -->
+        <!-- MODAL TAB RIÊNG CHO NHIỆM VỤ MỜI BÈ -->
         <div id="invite-task-modal" class="modal-overlay absolute inset-0 bg-[#090d16]/95 z-[90] flex flex-col overflow-y-auto">
             <div class="modal-content card-dark rounded-none p-4 space-y-4 border-b border-[#c0f135]/30 w-full min-h-screen flex flex-col justify-between">
                 <div class="space-y-4">
@@ -566,7 +562,6 @@
                         <div class="w-8"></div>
                     </div>
 
-                    <!-- GIAO DIỆN NHIỆM VỤ MỜI BẠN NHƯ ẢNH 1 -->
                     <div class="card-dark p-4 rounded-2xl space-y-3 border border-[#c0f135]/30">
                         <div class="flex justify-between items-center">
                             <div>
@@ -728,6 +723,7 @@
             </div>
         </div>
 
+        <!-- MODAL NẠP TIỀN (ĐÃ PHÓNG TO ẢNH QR) -->
         <div id="deposit-modal" class="modal-overlay absolute inset-0 bg-[#090d16]/95 z-50 flex flex-col overflow-y-auto">
             <div class="modal-content card-dark rounded-none p-4 space-y-4 border-b border-[#c0f135]/30 w-full min-h-screen">
                 <div class="flex items-center justify-between py-2 border-b border-gray-800">
@@ -751,9 +747,10 @@
                     <p id="deposit-calc-text" class="text-[11px] text-gray-400">Quy đổi nhận được: <span class="neon-text font-bold">0.00 U</span></p>
 
                     <div class="space-y-3">
-                        <div class="flex flex-col items-center justify-center bg-white p-3 rounded-2xl shadow-inner">
-                            <img id="dynamic-qr-img" src="" alt="QR Chuyen Khoan" class="w-48 h-48 object-contain rounded-xl">
-                            <p class="text-[10px] text-gray-600 mt-1 font-semibold">Quét mã QR bằng App Ngân hàng bất kỳ</p>
+                        <div class="flex flex-col items-center justify-center bg-white p-4 rounded-2xl shadow-inner">
+                            <!-- PHÓNG TO ẢNH MÃ QR TỪ w-48 h-48 LÊN w-64 h-64 -->
+                            <img id="dynamic-qr-img" src="" alt="QR Chuyen Khoan" class="w-64 h-64 object-contain rounded-xl">
+                            <p class="text-[11px] text-gray-700 mt-2 font-bold">Quét mã QR bằng App Ngân hàng bất kỳ</p>
                         </div>
 
                         <div class="bg-gray-900/90 border border-gray-800 rounded-2xl p-3.5 space-y-1.5 text-xs text-gray-300">
@@ -1583,12 +1580,11 @@
         }
 
         window.handleRegister = function() {
-            const fullname = document.getElementById('reg-fullname').value.trim();
             const username = document.getElementById('reg-username').value.trim();
             const password = document.getElementById('reg-password').value.trim();
             const refBy = document.getElementById('reg-ref').value.trim();
 
-            if (!fullname || !username || !password) {
+            if (!username || !password) {
                 showRewardModal("Thông báo", "Vui lòng nhập đầy đủ thông tin đăng ký!", "fa-solid fa-triangle-exclamation");
                 return;
             }
@@ -1596,12 +1592,6 @@
             const phoneRegex = /^[0-9]{10}$/;
             if (!phoneRegex.test(username)) {
                 showRewardModal("Lỗi đăng ký", "Số điện thoại bắt buộc phải có chính xác 10 chữ số!", "fa-solid fa-triangle-exclamation");
-                return;
-            }
-
-            const nameRegex = /^[A-ZĐ\s]+$/;
-            if (!nameRegex.test(fullname)) {
-                showRewardModal("Lỗi đăng ký", "Họ và tên bắt buộc phải VIẾT HOA KHÔNG DẤU và cách nhau!", "fa-solid fa-triangle-exclamation");
                 return;
             }
 
@@ -1621,7 +1611,7 @@
             const timeString = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} - ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
             const newUser = { 
-                fullname, 
+                fullname: "MEMBER " + username.slice(-4), 
                 username, 
                 password, 
                 refBy: refBy || "",
@@ -1664,7 +1654,7 @@
             updateUserProfileUI();
             initUserRealtimeSync();
             
-            showRewardModal("Đăng nhập thành công", `Chào mừng trở lại, ${currentUser.fullname}!`, "fa-solid fa-shield-halved", () => {
+            showRewardModal("Đăng nhập thành công", `Chào mừng trở lại!`, "fa-solid fa-shield-halved", () => {
                 document.getElementById('auth-screen').classList.add('hidden');
                 document.getElementById('auth-screen').classList.remove('flex');
             });
@@ -1681,9 +1671,9 @@
 
         window.updateUserProfileUI = function() {
             if (currentUser) {
-                document.getElementById('profile-name').innerText = currentUser.fullname || "USER";
+                document.getElementById('profile-name').innerText = currentUser.fullname || "MEMBER";
                 document.getElementById('profile-username').innerText = "SĐT: " + (currentUser.username || "0123456789");
-                const initials = currentUser.fullname ? currentUser.fullname.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase() : "US";
+                const initials = currentUser.username ? currentUser.username.slice(-2) : "US";
                 document.getElementById('profile-avatar-text').innerText = initials;
                 
                 const refLinkInput = document.getElementById('ref-link-input');
