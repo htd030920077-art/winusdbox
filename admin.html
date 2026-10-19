@@ -751,7 +751,7 @@
             }
         }
 
-        // HÀM DUYỆT NẠP TIỀN TRỰC TIẾP TỪ FIREBASE ĐỂ TRÁNH LỖI KEY MAPPING & PHÂN BỔ HOA HỒNG ĐA CẤP (F1: 10%, F2: 3%, F3: 2%)
+        // HÀM DUYỆT NẠP TIỀN & CỘNG THẲNG HOA HỒNG VÀO VÍ TUYẾN TRÊN CHUẨN XÁC TRÊN FIREBASE
         window.adminApproveDeposit = function(firebaseKey) {
             const item = realTimeDeposits.find(d => d.firebaseKey === firebaseKey);
             if (!item) return;
@@ -759,7 +759,7 @@
             // 1. Cập nhật trạng thái lệnh nạp thành công
             update(ref(db, 'deposits/' + firebaseKey), { status: "Thành công" });
 
-            // 2. Truy vấn trực tiếp nhánh users từ Firebase để đảm bảo lấy chuẩn xác key và dữ liệu
+            // 2. Truy vấn trực tiếp toàn bộ users từ Firebase để xử lý chính xác
             get(ref(db, 'users')).then((snapshot) => {
                 const allUsersData = snapshot.val() || {};
                 let targetUserKey = null;
@@ -779,12 +779,13 @@
                     const newBal = currentBal + item.usd;
                     const newTotalDeposit = currentTotalDep + item.usd;
 
+                    // Cộng tiền nạp và cập nhật tổng nạp cho user
                     update(ref(db, 'users/' + targetUserKey), { 
                         balance: newBal,
                         totalDepositUsd: newTotalDeposit
                     });
 
-                    // 3. Phân bổ hoa hồng đa cấp tự động (F1: 10%, F2: 3%, F3: 2%)
+                    // 3. Tiến hành phân bổ hoa hồng đa cấp cho tuyến trên (F1: 10%, F2: 3%, F3: 2%)
                     distributeMultiLevelCommission(allUsersData, targetUserData.username, item.usd);
                 }
             }).catch((error) => {
@@ -804,46 +805,54 @@
             localStorage.setItem('appNotifications', JSON.stringify(appNotifications));
             localStorage.setItem('hasUnreadNotif', 'true');
 
-            alert("Đã duyệt lệnh nạp tiền thành công, cộng số dư ví, cập nhật tổng nạp và phân bổ hoa hồng đa cấp!");
+            alert("Đã duyệt lệnh nạp tiền thành công, cộng số dư ví, cập nhật tổng nạp và phân bổ hoa hồng đa cấp vào ví tuyến trên!");
         }
 
-        // HÀM PHÂN BỔ HOA HỒNG ĐA CẤP (F1: 10%, F2: 3%, F3: 2%)
+        // HÀM PHÂN BỔ HOA HỒNG ĐA CẤP CHUẨN XÁC TRỰC TIẾP VÀO SỐ DƯ VÍ TUYẾN TRÊN
         function distributeMultiLevelCommission(allUsersObj, depositorUsername, depositUsdAmount) {
             let usersArray = Object.keys(allUsersObj).map(key => ({
                 firebaseKey: key,
                 ...allUsersObj[key]
             }));
 
+            // Tìm thông tin của cấp dưới vừa nạp tiền
             let depositor = usersArray.find(u => u.username === depositorUsername);
             if (!depositor || !depositor.refBy) return;
 
+            // --- XỬ LÝ F1 (10%) ---
             let f1Phone = depositor.refBy;
             let f1User = usersArray.find(u => u.username === f1Phone);
 
             if (f1User) {
-                // Cộng 10% cho F1
                 let commF1 = depositUsdAmount * 0.10;
-                let newBalF1 = (f1User.balance || 0) + commF1;
+                let currentBalF1 = f1User.balance || 0;
+                let newBalF1 = currentBalF1 + commF1;
+                
+                // Cập nhật trực tiếp số dư ví cho F1
                 update(ref(db, 'users/' + f1User.firebaseKey), { balance: newBalF1 });
 
-                // Tìm F2
+                // --- XỬ LÝ F2 (3%) ---
                 if (f1User.refBy) {
                     let f2Phone = f1User.refBy;
                     let f2User = usersArray.find(u => u.username === f2Phone);
                     if (f2User) {
-                        // Cộng 3% cho F2
                         let commF2 = depositUsdAmount * 0.03;
-                        let newBalF2 = (f2User.balance || 0) + commF2;
+                        let currentBalF2 = f2User.balance || 0;
+                        let newBalF2 = currentBalF2 + commF2;
+
+                        // Cập nhật trực tiếp số dư ví cho F2
                         update(ref(db, 'users/' + f2User.firebaseKey), { balance: newBalF2 });
 
-                        // Tìm F3
+                        // --- XỬ LÝ F3 (2%) ---
                         if (f2User.refBy) {
                             let f3Phone = f2User.refBy;
                             let f3User = usersArray.find(u => u.username === f3Phone);
                             if (f3User) {
-                                // Cộng 2% cho F3
                                 let commF3 = depositUsdAmount * 0.02;
-                                let newBalF3 = (f3User.balance || 0) + commF3;
+                                let currentBalF3 = f3User.balance || 0;
+                                let newBalF3 = currentBalF3 + commF3;
+
+                                // Cập nhật trực tiếp số dư ví cho F3
                                 update(ref(db, 'users/' + f3User.firebaseKey), { balance: newBalF3 });
                             }
                         }
