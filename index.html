@@ -267,7 +267,8 @@
                         </div>
                     </div>
 
-                    <div onclick="switchTab('group')" class="card-dark rounded-2xl p-3.5 border border-gray-800 flex flex-col justify-between cursor-pointer hover:border-[#c0f135]/40 transition relative overflow-hidden bg-gradient-to-br from-[#121929] to-[#162215]">
+                    <!-- KHU VỰC ẢNH 2: ẤN VÀO SẼ MỞ TAB/MODAL NHIỆM VỤ MỜI BẠN BÈ RIÊNG (ẢNH 1) -->
+                    <div onclick="openInviteTaskModal()" class="card-dark rounded-2xl p-3.5 border border-gray-800 flex flex-col justify-between cursor-pointer hover:border-[#c0f135]/40 transition relative overflow-hidden bg-gradient-to-br from-[#121929] to-[#162215]">
                         <div class="absolute -right-3 -bottom-3 text-[#c0f135]/10 text-7xl font-black select-none pointer-events-none">
                             <i class="fa-solid fa-user-group"></i>
                         </div>
@@ -311,76 +312,13 @@
 
             </section>
 
-            <!-- 2. NHIỆM VỤ -->
+            <!-- 2. NHIỆM VỤ (CHỈ CÓ MỤC ĐĂNG NHẬP / ĐIỂM DANH NHẬN THƯỞNG) -->
             <section id="tab-tasks" class="tab-pane hidden space-y-4">
                 <h3 class="font-bold text-lg mb-2 flex items-center gap-2">
-                    <i class="fa-solid fa-list-check text-[#c0f135]"></i> Nhiệm vụ & Phần thưởng
+                    <i class="fa-solid fa-list-check text-[#c0f135]"></i> Nhiệm vụ điểm danh
                 </h3>
 
-                <div class="card-dark p-4 rounded-2xl space-y-3 border border-[#c0f135]/30">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <p class="font-bold text-sm text-white">Nhiệm vụ mời bạn bè nạp tiền</p>
-                            <p class="text-xs text-gray-400 mt-0.5">Số F1 đã nạp tiền: <span id="f1-deposit-count" class="neon-text font-bold">0</span> người</p>
-                        </div>
-                        <span class="text-xs bg-[#1a2b10] text-[#c0f135] border border-[#c0f135]/40 px-2.5 py-1 rounded-full font-bold">
-                            Thưởng lớn
-                        </span>
-                    </div>
-
-                    <div class="pt-2 border-t border-gray-800 space-y-2">
-                        <div class="bg-gray-900/90 border border-gray-800 rounded-xl p-3 flex items-center justify-between text-xs">
-                            <div>
-                                <p class="font-bold text-white">Mời 3 F1 nạp tiền</p>
-                                <p class="text-[10px] text-gray-400">Nhận ngay +0.1 USD</p>
-                            </div>
-                            <div id="invite-reward-3-container">
-                                <button onclick="claimInviteTask(3)" id="invite-btn-3" class="bg-gray-800 text-gray-500 font-bold px-3 py-1.5 rounded-lg text-[11px] cursor-not-allowed" disabled>Chưa đạt</button>
-                            </div>
-                        </div>
-
-                        <div class="bg-gray-900/90 border border-gray-800 rounded-xl p-3 flex items-center justify-between text-xs">
-                            <div>
-                                <p class="font-bold text-white">Mời 10 F1 nạp tiền</p>
-                                <p class="text-[10px] text-gray-400">Nhận ngay +1.0 USD</p>
-                            </div>
-                            <div id="invite-reward-10-container">
-                                <button onclick="claimInviteTask(10)" id="invite-btn-10" class="bg-gray-800 text-gray-500 font-bold px-3 py-1.5 rounded-lg text-[11px] cursor-not-allowed" disabled>Chưa đạt</button>
-                            </div>
-                        </div>
-
-                        <div class="bg-gray-900/90 border border-gray-800 rounded-xl p-3 flex items-center justify-between text-xs">
-                            <div>
-                                <p class="font-bold text-white">Mời 20 F1 nạp tiền</p>
-                                <p class="text-[10px] text-gray-400">Nhận ngay +2.0 USD</p>
-                            </div>
-                            <div id="invite-reward-20-container">
-                                <button onclick="claimInviteTask(20)" id="invite-btn-20" class="bg-gray-800 text-gray-500 font-bold px-3 py-1.5 rounded-lg text-[11px] cursor-not-allowed" disabled>Chưa đạt</button>
-                            </div>
-                        </div>
-
-                        <div class="bg-gray-900/90 border border-gray-800 rounded-xl p-3 flex items-center justify-between text-xs">
-                            <div>
-                                <p class="font-bold text-white">Mời 50 F1 nạp tiền</p>
-                                <p class="text-[10px] text-gray-400">Nhận ngay +5.0 USD</p>
-                            </div>
-                            <div id="invite-reward-50-container">
-                                <button onclick="claimInviteTask(50)" id="invite-btn-50" class="bg-gray-800 text-gray-500 font-bold px-3 py-1.5 rounded-lg text-[11px] cursor-not-allowed" disabled>Chưa đạt</button>
-                            </div>
-                        </div>
-
-                        <div class="bg-gray-900/90 border border-gray-800 rounded-xl p-3 flex items-center justify-between text-xs">
-                            <div>
-                                <p class="font-bold text-white">Mời 100 F1 nạp tiền</p>
-                                <p class="text-[10px] text-gray-400">Nhận ngay +10.0 USD</p>
-                            </div>
-                            <div id="invite-reward-100-container">
-                                <button onclick="claimInviteTask(100)" id="invite-btn-100" class="bg-gray-800 text-gray-500 font-bold px-3 py-1.5 rounded-lg text-[11px] cursor-not-allowed" disabled>Chưa đạt</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
+                <!-- NHIỆM VỤ ĐIỂM DANH HÀNG NGÀY -->
                 <div class="card-dark p-4 rounded-2xl space-y-3 border border-[#c0f135]/30">
                     <div class="flex justify-between items-center">
                         <div>
@@ -616,6 +554,90 @@
         </main>
 
         <!-- MODALS -->
+        <!-- MODAL TAB RIÊNG CHO NHIỆM VỤ MỜI BÈ (ẢNH 1) -->
+        <div id="invite-task-modal" class="modal-overlay absolute inset-0 bg-[#090d16]/95 z-[90] flex flex-col overflow-y-auto">
+            <div class="modal-content card-dark rounded-none p-4 space-y-4 border-b border-[#c0f135]/30 w-full min-h-screen flex flex-col justify-between">
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between py-2 border-b border-gray-800">
+                        <button onclick="closeInviteTaskModal()" class="w-8 h-8 rounded-lg bg-gray-900 border border-gray-700 flex items-center justify-center text-gray-300 hover:text-white cursor-pointer">
+                            <i class="fa-solid fa-chevron-left text-sm"></i>
+                        </button>
+                        <h2 class="text-base font-bold text-[#c0f135] tracking-wide">Nhiệm vụ mời bạn bè</h2>
+                        <div class="w-8"></div>
+                    </div>
+
+                    <!-- GIAO DIỆN NHIỆM VỤ MỜI BẠN NHƯ ẢNH 1 -->
+                    <div class="card-dark p-4 rounded-2xl space-y-3 border border-[#c0f135]/30">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="font-bold text-sm text-white">Nhiệm vụ mời bạn bè nạp tiền</p>
+                                <p class="text-xs text-gray-400 mt-0.5">Số F1 đã nạp tiền: <span id="modal-f1-deposit-count" class="neon-text font-bold">0</span> người</p>
+                            </div>
+                            <span class="text-xs bg-[#1a2b10] text-[#c0f135] border border-[#c0f135]/40 px-2.5 py-1 rounded-full font-bold">
+                                Thưởng lớn
+                            </span>
+                        </div>
+
+                        <div class="pt-2 border-t border-gray-800 space-y-2">
+                            <div class="bg-gray-900/90 border border-gray-800 rounded-xl p-3 flex items-center justify-between text-xs">
+                                <div>
+                                    <p class="font-bold text-white">Mời 3 F1 nạp tiền</p>
+                                    <p class="text-[10px] text-gray-400">Nhận ngay +0.1 USD</p>
+                                </div>
+                                <div id="modal-invite-reward-3-container">
+                                    <button onclick="claimInviteTask(3)" id="modal-invite-btn-3" class="bg-gray-800 text-gray-500 font-bold px-3 py-1.5 rounded-lg text-[11px] cursor-not-allowed" disabled>Chưa đạt (0/3)</button>
+                                </div>
+                            </div>
+
+                            <div class="bg-gray-900/90 border border-gray-800 rounded-xl p-3 flex items-center justify-between text-xs">
+                                <div>
+                                    <p class="font-bold text-white">Mời 10 F1 nạp tiền</p>
+                                    <p class="text-[10px] text-gray-400">Nhận ngay +1.0 USD</p>
+                                </div>
+                                <div id="modal-invite-reward-10-container">
+                                    <button onclick="claimInviteTask(10)" id="modal-invite-btn-10" class="bg-gray-800 text-gray-500 font-bold px-3 py-1.5 rounded-lg text-[11px] cursor-not-allowed" disabled>Chưa đạt (0/10)</button>
+                                </div>
+                            </div>
+
+                            <div class="bg-gray-900/90 border border-gray-800 rounded-xl p-3 flex items-center justify-between text-xs">
+                                <div>
+                                    <p class="font-bold text-white">Mời 20 F1 nạp tiền</p>
+                                    <p class="text-[10px] text-gray-400">Nhận ngay +2.0 USD</p>
+                                </div>
+                                <div id="modal-invite-reward-20-container">
+                                    <button onclick="claimInviteTask(20)" id="modal-invite-btn-20" class="bg-gray-800 text-gray-500 font-bold px-3 py-1.5 rounded-lg text-[11px] cursor-not-allowed" disabled>Chưa đạt (0/20)</button>
+                                </div>
+                            </div>
+
+                            <div class="bg-gray-900/90 border border-gray-800 rounded-xl p-3 flex items-center justify-between text-xs">
+                                <div>
+                                    <p class="font-bold text-white">Mời 50 F1 nạp tiền</p>
+                                    <p class="text-[10px] text-gray-400">Nhận ngay +5.0 USD</p>
+                                </div>
+                                <div id="modal-invite-reward-50-container">
+                                    <button onclick="claimInviteTask(50)" id="modal-invite-btn-50" class="bg-gray-800 text-gray-500 font-bold px-3 py-1.5 rounded-lg text-[11px] cursor-not-allowed" disabled>Chưa đạt (0/50)</button>
+                                </div>
+                            </div>
+
+                            <div class="bg-gray-900/90 border border-gray-800 rounded-xl p-3 flex items-center justify-between text-xs">
+                                <div>
+                                    <p class="font-bold text-white">Mời 100 F1 nạp tiền</p>
+                                    <p class="text-[10px] text-gray-400">Nhận ngay +10.0 USD</p>
+                                </div>
+                                <div id="modal-invite-reward-100-container">
+                                    <button onclick="claimInviteTask(100)" id="modal-invite-btn-100" class="bg-gray-800 text-gray-500 font-bold px-3 py-1.5 rounded-lg text-[11px] cursor-not-allowed" disabled>Chưa đạt (0/100)</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="closeInviteTaskModal()" class="w-full bg-gray-800 border border-gray-700 text-white font-bold py-3 rounded-xl text-xs active:scale-95 transition cursor-pointer">
+                    Đóng
+                </button>
+            </div>
+        </div>
+
         <!-- MODAL NHẬP GIFTCODE -->
         <div id="giftcode-modal" class="modal-overlay absolute inset-0 bg-[#090d16]/95 z-50 flex flex-col overflow-y-auto">
             <div class="modal-content card-dark rounded-none p-4 space-y-4 border-b border-[#c0f135]/30 w-full min-h-screen flex flex-col justify-between">
@@ -774,6 +796,7 @@
             </div>
         </div>
 
+        <!-- MODAL RÚT TIỀN -->
         <div id="withdraw-modal" class="modal-overlay absolute inset-0 bg-[#090d16]/95 z-50 flex flex-col overflow-y-auto">
             <div class="modal-content card-dark rounded-none p-4 space-y-4 border-b border-[#c0f135]/30 w-full min-h-screen">
                 <div class="flex items-center justify-between py-2 border-b border-gray-800">
@@ -996,7 +1019,6 @@
             }
         });
 
-        // ĐỒNG BỘ REALTIME CHUẨN XÁC TỪ FIREBASE
         function initUserRealtimeSync() {
             if (!currentUser) return;
             
@@ -1007,7 +1029,6 @@
                     currentUserFirebaseKey = foundKey;
                     const liveData = allUsers[foundKey];
                     
-                    // Cập nhật số dư trực tiếp từ Firebase Realtime
                     if (liveData.balance !== undefined) {
                         availableBalance = parseFloat(liveData.balance) || 0;
                     }
@@ -1039,9 +1060,11 @@
                     vnd: d.vnd,
                     usd: d.usd,
                     memo: d.memo,
-                    status: d.status
+                    status: d.status === "Thành công" ? "Nạp tiền thành công" : "VUI LÒNG ĐỢI"
                 })).reverse();
                 localStorage.setItem('depositHistory', JSON.stringify(depositHistory));
+
+                syncNotifications();
 
                 const approvedDep = myDeposits.reverse().find(d => d.status === "Thành công");
                 if (approvedDep) {
@@ -1056,6 +1079,69 @@
                     }
                 }
             });
+
+            onValue(ref(db, 'withdraws'), (snapshot) => {
+                const data = snapshot.val() || {};
+                const list = Object.keys(data).map(k => data[k]);
+                const myWithdraws = list.filter(w => w.username === currentUser.username);
+
+                withdrawHistory = myWithdraws.map(w => ({
+                    time: w.time,
+                    bank: w.bank,
+                    acc: w.acc,
+                    name: w.name,
+                    amount: w.amount,
+                    fee: w.fee,
+                    net: w.net,
+                    status: w.status === "Thành công" ? "Rút tiền thành công" : "VUI LÒNG ĐỢI"
+                })).reverse();
+                localStorage.setItem('withdrawHistory', JSON.stringify(withdrawHistory));
+
+                syncNotifications();
+                checkAndLockBankInfo(myWithdraws);
+            });
+        }
+
+        window.syncNotifications = function() {
+            let notifs = [];
+            depositHistory.forEach(d => {
+                notifs.push({
+                    title: "Thông báo Nạp tiền",
+                    time: d.time,
+                    content: `Lệnh nạp ${d.vnd.toLocaleString()} VNĐ (~$${d.usd.toFixed(2)}U) hiện đang ở trạng thái: ${d.status}`
+                });
+            });
+            withdrawHistory.forEach(w => {
+                notifs.push({
+                    title: "Thông báo Rút tiền",
+                    time: w.time,
+                    content: `Lệnh rút $${w.amount.toFixed(2)}U về ngân hàng ${w.bank} hiện đang ở trạng thái: ${w.status}`
+                });
+            });
+
+            appNotifications = notifs.slice(0, 20);
+            localStorage.setItem('appNotifications', JSON.stringify(appNotifications));
+            hasUnreadNotif = true;
+            localStorage.setItem('hasUnreadNotif', 'true');
+            updateNotificationBadgeUI();
+        }
+
+        window.checkAndLockBankInfo = function(myWithdraws) {
+            const hasSuccessfulWithdraw = myWithdraws.some(w => w.status === "Thành công");
+            const accInput = document.getElementById('withdraw-acc');
+            const nameInput = document.getElementById('withdraw-name');
+
+            if (hasSuccessfulWithdraw && accInput && nameInput) {
+                const lastSuccess = myWithdraws.reverse().find(w => w.status === "Thành công");
+                if (lastSuccess) {
+                    accInput.value = lastSuccess.acc;
+                    nameInput.value = lastSuccess.name;
+                    accInput.readOnly = true;
+                    nameInput.readOnly = true;
+                    accInput.classList.add('bg-gray-900', 'text-gray-400', 'cursor-not-allowed');
+                    nameInput.classList.add('bg-gray-900', 'text-gray-400', 'cursor-not-allowed');
+                }
+            }
         }
 
         window.renderGroupMembers = function(allUsers) {
@@ -1132,6 +1218,9 @@
 
             const f1DepCountEl = document.getElementById('f1-deposit-count');
             if(f1DepCountEl) f1DepCountEl.innerText = f1DepositedCount;
+            
+            const modalF1DepCountEl = document.getElementById('modal-f1-deposit-count');
+            if(modalF1DepCountEl) modalF1DepCountEl.innerText = f1DepositedCount;
 
             renderF1TableUI(cachedF1List);
             updateInviteTaskButtonsUI(f1DepositedCount);
@@ -1174,7 +1263,7 @@
             const rewards = { 3: 0.1, 10: 1.0, 20: 2.0, 50: 5.0, 100: 10.0 };
 
             milestones.forEach(goal => {
-                const btn = document.getElementById(`invite-btn-${goal}`);
+                const btn = document.getElementById(`modal-invite-btn-${goal}`);
                 if (!btn) return;
 
                 const isClaimed = claimedInviteTasks.includes(goal);
@@ -1200,7 +1289,7 @@
             const rewards = { 3: 0.1, 10: 1.0, 20: 2.0, 50: 5.0, 100: 10.0 };
             if (claimedInviteTasks.includes(goal)) return;
 
-            const f1DepositedCount = parseInt(document.getElementById('f1-deposit-count').innerText) || 0;
+            const f1DepositedCount = parseInt(document.getElementById('modal-f1-deposit-count').innerText) || 0;
             if (f1DepositedCount >= goal) {
                 claimedInviteTasks.push(goal);
                 localStorage.setItem('claimedInviteTasks', JSON.stringify(claimedInviteTasks));
@@ -1214,6 +1303,13 @@
                 showRewardModal("Nhận thưởng thành công", `Chúc mừng bạn nhận được +${rewardVal} USD từ nhiệm vụ mời ${goal} F1 nạp tiền!`, "fa-solid fa-gift");
                 updateInviteTaskButtonsUI(f1DepositedCount);
             }
+        }
+
+        window.openInviteTaskModal = function() {
+            openModal('invite-task-modal');
+        }
+        window.closeInviteTaskModal = function() {
+            closeModal('invite-task-modal');
         }
 
         window.copyRefLink = function() {
@@ -1652,7 +1748,7 @@
             const now = new Date();
             const timeString = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} - ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
-            const newDeposit = { username, vnd: vndVal, usd: usdVal, memo, time: timeString, status: "Đang chờ duyệt", planId };
+            const newDeposit = { username, vnd: vndVal, usd: usdVal, memo, time: timeString, status: "VUI LÒNG ĐỢI", planId };
             push(ref(db, 'deposits'), newDeposit);
 
             depositHistory.unshift({ 
@@ -1660,7 +1756,7 @@
                 vnd: vndVal, 
                 usd: usdVal, 
                 memo: memo,
-                status: "Đang chờ duyệt" 
+                status: "VUI LÒNG ĐỢI" 
             });
             localStorage.setItem('depositHistory', JSON.stringify(depositHistory));
 
@@ -1719,7 +1815,7 @@
             const now = new Date();
             const timeString = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} - ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
-            const newWithdraw = { username, amount: amountInput, bank: bankVal.split(' - ')[0], acc, name, fee, net, time: timeString, status: "Đang chờ duyệt" };
+            const newWithdraw = { username, amount: amountInput, bank: bankVal.split(' - ')[0], acc, name, fee, net, time: timeString, status: "VUI LÒNG ĐỢI" };
             push(ref(db, 'withdraws'), newWithdraw);
 
             withdrawHistory.unshift({ 
@@ -1730,7 +1826,7 @@
                 amount: amountInput, 
                 fee: fee, 
                 net: net, 
-                status: "Đang chờ duyệt" 
+                status: "VUI LÒNG ĐỢI" 
             });
             localStorage.setItem('withdrawHistory', JSON.stringify(withdrawHistory));
 
