@@ -439,7 +439,6 @@
                             username: locUser.username,
                             password: locUser.password || "123456",
                             balance: 0,
-                            commissionWallet: 0,
                             totalCommission: 0,
                             totalDepositUsd: 0,
                             isLocked: false,
@@ -583,7 +582,7 @@
             userList.forEach((user) => {
                 const createdAt = user.createdAt || "01/01/2026 - 12:00";
                 const userBalance = user.balance !== undefined ? user.balance : 0.00;
-                const commWallet = user.commissionWallet !== undefined ? user.commissionWallet : 0.00;
+                const totalCommission = user.totalCommission !== undefined ? user.totalCommission : 0.00;
                 const totalDepositUsd = user.totalDepositUsd !== undefined ? user.totalDepositUsd : 0.00;
                 const fKey = user.firebaseKey;
                 const isLocked = user.isLocked === true;
@@ -613,8 +612,8 @@
 
                         <div class="bg-gray-900/80 p-2.5 rounded-xl border border-gray-800 text-[11px] text-gray-300 space-y-1">
                             <div class="flex justify-between border-b border-gray-800/80 pb-1">
-                                <span class="text-gray-400">Ví hoa hồng chờ rút:</span>
-                                <span class="text-amber-400 font-bold">$${commWallet.toFixed(2)} USD</span>
+                                <span class="text-gray-400">Tổng hoa hồng tích lũy:</span>
+                                <span class="text-emerald-400 font-bold">$${totalCommission.toFixed(2)} USD</span>
                             </div>
                             <div class="flex justify-between border-b border-gray-800/80 pb-1">
                                 <span class="text-gray-400">Tổng nạp thành công:</span>
@@ -758,7 +757,7 @@
             }
         }
 
-        // HÀM DUYỆT NẠP TIỀN & PHÂN BỔ HOA HỒNG (ĐÃ TÍCH HỢP ĐẦY ĐỦ VÀO COMMISSIONWALLET)
+        // HÀM DUYỆT NẠP TIỀN & PHÂN BỔ HOA HỒNG CỘNG THẲNG VÀO SỐ DƯ VÍ (BALANCE)
         window.adminApproveDeposit = function(firebaseKey) {
             const item = realTimeDeposits.find(d => d.firebaseKey === firebaseKey);
             if (!item) return;
@@ -792,7 +791,7 @@
                         totalDepositUsd: Number(newTotalDeposit.toFixed(2))
                     });
 
-                    // 3. Tiến hành phân bổ hoa hồng đa cấp vào ví hoa hồng chờ rút
+                    // 3. Tiến hành phân bổ hoa hồng đa cấp cộng thẳng vào số dư ví chính (balance)
                     distributeMultiLevelCommission(allUsersData, targetUserData.username, item.usd);
                 }
             }).catch((error) => {
@@ -812,10 +811,10 @@
             localStorage.setItem('appNotifications', JSON.stringify(appNotifications));
             localStorage.setItem('hasUnreadNotif', 'true');
 
-            alert("Đã duyệt lệnh nạp tiền thành công và cộng hoa hồng vào bảng tích trữ!");
+            alert("Đã duyệt lệnh nạp tiền thành công và cộng hoa hồng thẳng vào số dư cấp trên!");
         }
 
-        // HÀM PHÂN BỔ HOA HỒNG ĐA CẤP (F1: 10%, F2: 3%, F3: 2%) CỘNG ĐỒNG THỜI VÀO COMMISSIONWALLET & TOTALCOMMISSION
+        // HÀM PHÂN BỔ HOA HỒNG ĐA CẤP (F1: 10%, F2: 3%, F3: 2%) CỘNG THẲNG VÀO SỐ DƯ VÍ (BALANCE)
         function distributeMultiLevelCommission(allUsersObj, depositorUsername, depositUsdAmount) {
             let usersArray = Object.keys(allUsersObj).map(key => ({
                 firebaseKey: key,
@@ -831,14 +830,14 @@
 
             if (f1User) {
                 let commF1 = depositUsdAmount * 0.10;
-                let currentCommWalletF1 = parseFloat(f1User.commissionWallet) || 0;
+                let currentBalF1 = parseFloat(f1User.balance) || 0;
                 let currentTotalCommF1 = parseFloat(f1User.totalCommission) || 0;
                 
-                let newCommWalletF1 = currentCommWalletF1 + commF1; // Cộng vào bảng tích trữ chờ rút
+                let newBalF1 = currentBalF1 + commF1;                 // Cộng thẳng vào số dư ví chính
                 let newTotalCommF1 = currentTotalCommF1 + commF1;     // Cộng vào tổng hoa hồng thống kê
                 
                 update(ref(db, 'users/' + f1User.firebaseKey), { 
-                    commissionWallet: Number(newCommWalletF1.toFixed(2)),
+                    balance: Number(newBalF1.toFixed(2)),
                     totalCommission: Number(newTotalCommF1.toFixed(2))
                 });
 
@@ -848,14 +847,14 @@
                     let f2User = usersArray.find(u => String(u.username).trim() === f2Phone);
                     if (f2User) {
                         let commF2 = depositUsdAmount * 0.03;
-                        let currentCommWalletF2 = parseFloat(f2User.commissionWallet) || 0;
+                        let currentBalF2 = parseFloat(f2User.balance) || 0;
                         let currentTotalCommF2 = parseFloat(f2User.totalCommission) || 0;
 
-                        let newCommWalletF2 = currentCommWalletF2 + commF2;
+                        let newBalF2 = currentBalF2 + commF2;
                         let newTotalCommF2 = currentTotalCommF2 + commF2;
 
                         update(ref(db, 'users/' + f2User.firebaseKey), { 
-                            commissionWallet: Number(newCommWalletF2.toFixed(2)),
+                            balance: Number(newBalF2.toFixed(2)),
                             totalCommission: Number(newTotalCommF2.toFixed(2))
                         });
 
@@ -865,14 +864,14 @@
                             let f3User = usersArray.find(u => String(u.username).trim() === f3Phone);
                             if (f3User) {
                                 let commF3 = depositUsdAmount * 0.02;
-                                let currentCommWalletF3 = parseFloat(f3User.commissionWallet) || 0;
+                                let currentBalF3 = parseFloat(f3User.balance) || 0;
                                 let currentTotalCommF3 = parseFloat(f3User.totalCommission) || 0;
 
-                                let newCommWalletF3 = currentCommWalletF3 + commF3;
+                                let newBalF3 = currentBalF3 + commF3;
                                 let newTotalCommF3 = currentTotalCommF3 + commF3;
 
                                 update(ref(db, 'users/' + f3User.firebaseKey), { 
-                                    commissionWallet: Number(newCommWalletF3.toFixed(2)),
+                                    balance: Number(newBalF3.toFixed(2)),
                                     totalCommission: Number(newTotalCommF3.toFixed(2))
                                 });
                             }
