@@ -846,6 +846,35 @@
 
         const COOLDOWN_TIME = 24 * 60 * 60 * 1000; 
 
+        // LẮNG NGHE TRẠNG THÁI KHÓA SERVER / BẢO TRÌ TỪ FIREBASE REALTIME DATABASE
+        onValue(ref(db, 'system/isServerLocked'), (snapshot) => {
+            const isLocked = snapshot.val() === true;
+            const lockScreenId = "server-maintenance-screen";
+            let lockScreen = document.getElementById(lockScreenId);
+
+            if (isLocked) {
+                if (!lockScreen) {
+                    lockScreen = document.createElement('div');
+                    lockScreen.id = lockScreenId;
+                    lockScreen.className = "fixed inset-0 bg-[#070b14] z-[99999] flex flex-col items-center justify-center p-6 text-center space-y-4";
+                    lockScreen.innerHTML = `
+                        <div class="w-20 h-20 bg-rose-500/20 border border-rose-500/40 rounded-3xl flex items-center justify-center text-rose-400 text-3xl shadow-2xl">
+                            <i class="fa-solid fa-lock animate-bounce"></i>
+                        </div>
+                        <h1 class="text-2xl font-black text-white tracking-wide">HỆ THỐNG ĐANG BẢO TRÌ</h1>
+                        <p class="text-xs text-gray-400 max-w-xs leading-relaxed">
+                            Hệ thống WIN USDBOX hiện đang đóng để nâng cấp và bảo trì. Vui lòng quay lại sau!
+                        </p>
+                    `;
+                    document.body.appendChild(lockScreen);
+                }
+            } else {
+                if (lockScreen) {
+                    lockScreen.remove();
+                }
+            }
+        });
+
         // ĐỒNG BỘ REALTIME TỪ FIREBASE (CẢ USER & GÓI ĐẦU TƯ / SỐ DƯ TỪ ADMIN)
         function initUserRealtimeSync() {
             if (!currentUser) return;
