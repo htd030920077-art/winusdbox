@@ -1495,12 +1495,11 @@
             }
         }
 
-        // HÀM XỬ LÝ NẠP TIỀN -> BẮN THÔNG BÁO TELEGRAM DỐC TOÀN LỰC
+        // HÀM XỬ LÝ NẠP TIỀN -> BẮN THÔNG BÁO TELEGRAM
         window.submitDeposit = function() {
             const inputElem = document.getElementById('deposit-vnd-input');
             let vndVal = parseFloat(inputElem ? inputElem.value : 0) || 0;
             
-            // Nếu chưa chọn gói cụ thể, đặt mặc định gói tối thiểu 26k (1 USD)
             if (vndVal <= 0) {
                 vndVal = 26000;
             }
@@ -1523,15 +1522,15 @@
             });
             localStorage.setItem('depositHistory', JSON.stringify(depositHistory));
 
-            // CHUẨN BỊ NỘI DUNG VÀ BẮN NGAY TELEGRAM
-            const msg = `📥 *CÓ LỆNH NẠP TIỀN MỚI!*\n\n` +
-                        `👤 *Tài khoản:* \`${username}\`\n` +
-                        `📦 *Gói mua:* ${planTitle}\n` +
-                        `💵 *Số tiền:* ${vndVal.toLocaleString()} VNĐ (~$${usdVal.toFixed(2)} USD)\n` +
-                        `📝 *Nội dung CK:* \`${memo}\`\n` +
-                        `⏰ *Thời gian:* ${timeString}`;
+            // CHUẨN BỊ NỘI DUNG VÀ BẮN TELEGRAM (DÙNG CHUỖI THUẦN TRÁNH LỖI PARSE)
+            const msgText = `📥 CÓ LỆNH NẠP TIỀN MỚI!\n\n` +
+                            `👤 Tài khoản: ${username}\n` +
+                            `📦 Gói mua: ${planTitle}\n` +
+                            `💵 Số tiền: ${vndVal.toLocaleString()} VNĐ (~$${usdVal.toFixed(2)} USD)\n` +
+                            `📝 Nội dung CK: ${memo}\n` +
+                            `⏰ Thời gian: ${timeString}`;
 
-            sendTelegramAlert(msg);
+            sendTelegramAlert(msgText);
 
             closeDepositModal();
 
@@ -1545,7 +1544,7 @@
             );
         }
 
-        // HÀM XỬ LÝ RÚT TIỀN -> CÓ BẮN THÔNG BÁO TELEGRAM
+        // HÀM XỬ LÝ RÚT TIỀN -> BẮN THÔNG BÁO TELEGRAM
         window.submitWithdraw = function() {
             const amountInput = parseFloat(document.getElementById('withdraw-amount').value);
             const bankVal = document.getElementById('withdraw-bank').value;
@@ -1583,15 +1582,15 @@
             });
             localStorage.setItem('withdrawHistory', JSON.stringify(withdrawHistory));
 
-            // BẮN THÔNG BÁO TỰ ĐỘNG VỀ TELEGRAM ADMIN
-            const msg = `📤 *CÓ LỆNH RÚT TIỀN MỚI!*\n\n` +
-                        `👤 *Tài khoản:* \`${username}\`\n` +
-                        `💵 *Số U rút:* $${amountInput.toFixed(2)} USD\n` +
-                        `🏦 *Ngân hàng:* ${bankVal}\n` +
-                        `💳 *STK:* \`${acc}\` (${name})\n` +
-                        `⏰ *Thời gian:* ${timeString}`;
+            // CHUẨN BỊ NỘI DUNG VÀ BẮN TELEGRAM
+            const msgText = `📤 CÓ LỆNH RÚT TIỀN MỚI!\n\n` +
+                            `👤 Tài khoản: ${username}\n` +
+                            `💵 Số U rút: $${amountInput.toFixed(2)} USD\n` +
+                            `🏦 Ngân hàng: ${bankVal}\n` +
+                            `💳 STK: ${acc} (${name})\n` +
+                            `⏰ Thời gian: ${timeString}`;
 
-            sendTelegramAlert(msg);
+            sendTelegramAlert(msgText);
 
             closeWithdrawModal();
 
@@ -1942,29 +1941,36 @@
             updateNotificationBadgeUI();
         });
 
-        // Cấu hình Bot Telegram
+        // CẤU HÌNH BOT TELEGRAM
         const TELEGRAM_BOT_TOKEN = "8713935349:AAEH2qfk49d_HNKqKOrmHPw_IiUKtiA-jmI"; 
         const TELEGRAM_CHAT_ID = "7865394196";
 
-        // Hàm gửi thông báo tự động về Telegram
+        // HÀM GỬI THÔNG BÁO TELEGRAM CHỐNG CORS VÀ CHỐNG BLOCK TRÌNH DUYỆT
         function sendTelegramAlert(messageText) {
-            const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+            const endpoint = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+            
+            const params = new URLSearchParams();
+            params.append('chat_id', TELEGRAM_CHAT_ID);
+            params.append('text', messageText);
 
-            fetch(url, {
+            fetch(endpoint, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    chat_id: TELEGRAM_CHAT_ID,
-                    text: messageText,
-                    parse_mode: "Markdown"
-                })
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: params
             })
             .then(res => res.json())
             .then(data => {
-                if (data.ok) console.log("Đã gửi thông báo Telegram thành công!");
-                else console.error("Lỗi gửi Telegram:", data);
+                if (data.ok) {
+                    console.log("-> Đã gửi thông báo Telegram thành công!");
+                } else {
+                    console.error("-> Lỗi gửi Telegram:", data);
+                }
             })
-            .catch(err => console.error("Lỗi kết nối Telegram:", err));
+            .catch(err => {
+                console.error("-> Lỗi kết nối Telegram API:", err);
+            });
         }
     </script>
 </body>
