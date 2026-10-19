@@ -275,7 +275,6 @@
             "VIP5U": { usd: 5.00, limit: 10, usedCount: 0 }
         };
 
-        // Chuẩn hóa chuỗi so sánh SĐT/Username
         function cleanStr(val) {
             if (!val) return "";
             return String(val).trim().toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -604,12 +603,28 @@
                             </div>
                             <p><i class="fa-solid fa-wallet text-sky-400 mr-1"></i> Ngân hàng: <strong class="text-white">${bankInfo}</strong></p>
                             
+                            <!-- BỔ SUNG CẢ 2 NÚT: CỘNG TIỀN VÀ TẶNG GÓI ĐẦU TƯ -->
                             <div class="pt-2 border-t border-gray-800 mt-1 space-y-2">
                                 <div class="flex items-center justify-between">
                                     <span class="text-emerald-300 font-bold"><i class="fa-solid fa-wallet text-emerald-400 mr-1"></i> Cộng tiền vào số dư:</span>
                                     <div class="flex items-center gap-1.5">
                                         <input type="number" step="0.01" id="add-bal-${fKey}" placeholder="Số USD..." class="w-20 bg-gray-950 border border-gray-800 rounded-lg p-1 text-[10px] text-white font-bold focus:outline-none focus:border-emerald-500">
                                         <button onclick="adminAddBalance('${fKey}')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold cursor-pointer shadow">Cộng tiền</button>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center justify-between">
+                                    <span class="text-rose-300 font-bold"><i class="fa-solid fa-gift text-rose-400 mr-1"></i> Tặng gói đầu tư:</span>
+                                    <div class="flex items-center gap-1.5">
+                                        <select id="gift-plan-${fKey}" class="bg-gray-950 border border-gray-800 rounded-lg p-1 text-[10px] text-rose-400 font-bold focus:outline-none">
+                                            <option value="3">Gói 3 USD</option>
+                                            <option value="7">Gói 7 USD</option>
+                                            <option value="15">Gói 15 USD</option>
+                                            <option value="20">Gói 20 USD</option>
+                                            <option value="50">Gói 50 USD</option>
+                                            <option value="100">Gói 100 USD</option>
+                                        </select>
+                                        <button onclick="adminGiftPlan('${fKey}')" class="bg-rose-600 hover:bg-rose-500 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold cursor-pointer shadow">Tặng gói</button>
                                     </div>
                                 </div>
                             </div>
@@ -676,6 +691,36 @@
             alert(`Đã cộng thành công +$${usdVal.toFixed(2)} vào số dư ví của thành viên ${user.username}!`);
         }
 
+        // HÀM TẶNG GÓI ĐẦU TƯ CHO THÀNH VIÊN
+        window.adminGiftPlan = function(firebaseKey) {
+            const user = realTimeUsers.find(u => u.firebaseKey === firebaseKey);
+            if (!user) return;
+            const selectEl = document.getElementById(`gift-plan-${firebaseKey}`);
+            const planUsd = parseFloat(selectEl.value);
+
+            let ratePerSec = 0.000003858;
+            let planTitle = `Gói Khai Thác ${planUsd} USD`;
+            if (planUsd === 7) ratePerSec = 0.000009002;
+            else if (planUsd === 15) ratePerSec = 0.000019290;
+            else if (planUsd === 20) ratePerSec = 0.000025720;
+            else if (planUsd === 50) ratePerSec = 0.000057870;
+            else if (planUsd === 100) ratePerSec = 0.000115740;
+
+            const now = new Date();
+            const timeString = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} - ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+            let activePlans = user.activePlans || [];
+            activePlans.push({
+                priceUsd: planUsd,
+                ratePerSec: ratePerSec,
+                title: planTitle,
+                time: timeString
+            });
+
+            update(ref(db, 'users/' + firebaseKey), { activePlans: activePlans });
+            alert(`Đã tặng thành công ${planTitle} miễn phí cho thành viên ${user.username}!`);
+        }
+
         window.adminDeleteUser = function(firebaseKey) {
             if (confirm("Bạn có chắc chắn muốn xóa vĩnh viễn tài khoản này khỏi hệ thống không?")) {
                 remove(ref(db, 'users/' + firebaseKey))
@@ -684,25 +729,20 @@
             }
         }
 
-        // =========================================================================
-        // HÀM ADMIN BẤM DUYỆT NẠP TIỀN -> TỰ ĐỘNG CỘNG THẲNG SỐ DƯ BALANCE
-        // =========================================================================
+        // HÀM DUYỆT NẠP TIỀN & PHÂN BỔ HOA HỒNG
         window.adminApproveDeposit = async function(firebaseKey) {
             const item = realTimeDeposits.find(d => d.firebaseKey === firebaseKey);
             if (!item) return;
 
             try {
-                // 1. Đổi trạng thái lệnh nạp
                 await update(ref(db, 'deposits/' + firebaseKey), { status: "Thành công" });
 
-                // 2. Tải toàn bộ danh sách users mới nhất từ Firebase Realtime
                 const userSnapshot = await get(ref(db, 'users'));
                 const allUsersObj = userSnapshot.val() || {};
 
                 let depositorKey = null;
                 let depositorData = null;
 
-                // Tìm người nạp tiền trong danh sách users
                 Object.keys(allUsersObj).forEach(k => {
                     if (cleanStr(allUsersObj[k].username) === cleanStr(item.username)) {
                         depositorKey = k;
@@ -717,16 +757,13 @@
                     const newBal = currentBal + item.usd;
                     const newTotalDeposit = currentTotalDep + item.usd;
 
-                    // Cộng tiền vào tài khoản người nạp
                     await update(ref(db, 'users/' + depositorKey), { 
                         balance: Number(newBal.toFixed(2)),
                         totalDepositUsd: Number(newTotalDeposit.toFixed(2))
                     });
                 }
 
-                // 3. Tiến hành tính toán và CỘNG THẲNG HOA HỒNG VÀO SỐ DƯ (BALANCE) TUYẾN TRÊN
                 let commSummary = await distributeMultiLevelCommissionAsync(allUsersObj, item.username, item.usd);
-
                 alert(`Duyệt nạp tiền $${item.usd.toFixed(2)} thành công!\n\nChi tiết hoa hồng:\n` + commSummary);
 
             } catch (err) {
@@ -734,7 +771,6 @@
             }
         };
 
-        // HÀM TÍNH VÀ CỘNG TRỰC TIẾP HOA HỒNG CẤP TRÊN (ASYNC PROMISE)
         async function distributeMultiLevelCommissionAsync(allUsersObj, depositorUsername, depositUsdAmount) {
             let usersArray = Object.keys(allUsersObj).map(key => ({
                 firebaseKey: key,
@@ -761,7 +797,6 @@
                 let newBalF1 = currentBalF1 + commF1;
                 let newTotalCommF1 = currentTotalCommF1 + commF1;
 
-                // Update trực tiếp balance F1
                 await update(ref(db, 'users/' + f1User.firebaseKey), { 
                     balance: Number(newBalF1.toFixed(2)),
                     totalCommission: Number(newTotalCommF1.toFixed(2))
