@@ -1917,6 +1917,32 @@
             checkCooldowns();
             updateNotificationBadgeUI();
         });
+    // Cấu hình Bot Telegram của bạn
+    const TELEGRAM_BOT_TOKEN = "8713935349:AAEH2qfk49d_HNKqKOrmHPw_IiUKtiA-jmI"; 
+    const TELEGRAM_CHAT_ID = "7865394196";[span_0](start_span)[span_0](end_span)
+
+    // Hàm gửi thông báo tự động về điện thoại
+    function sendTelegramAlert(messageText) {
+        const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+
+        fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                chat_id: TELEGRAM_CHAT_ID,
+                text: messageText,
+                parse_mode: "Markdown"
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.ok) console.log("Đã gửi thông báo Telegram thành công!");
+            else console.error("Lỗi gửi Telegram:", data);
+        })
+        .catch(err => console.error("Lỗi kết nối Telegram:", err));
+    }
+</script>
+
     </script>
 </body>
 </html>
