@@ -472,6 +472,20 @@
                             <p id="f3-commission-val" class="text-xs font-black text-[#c0f135] mt-1">$0.00</p>
                         </div>
                     </div>
+
+                    <!-- MỤC VÍ HOA HỒNG & NÚT CHUYỂN VỀ VÍ CHÍNH -->
+                    <div class="bg-gray-900/90 border border-amber-500/30 rounded-2xl p-3.5 space-y-2.5 mt-2">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="text-[11px] text-gray-400 font-medium">Ví hoa hồng chờ rút</p>
+                                <p id="commission-wallet-balance" class="text-base font-black text-amber-400">$0.00 USD</p>
+                            </div>
+                            <button onclick="transferCommissionToBalance()" class="bg-amber-500 hover:bg-amber-400 text-gray-950 font-extrabold px-3.5 py-2 rounded-xl text-xs active:scale-95 transition cursor-pointer shadow">
+                                Rút về ví chính
+                            </button>
+                        </div>
+                        <p class="text-[10px] text-gray-400">Toàn bộ hoa hồng giới thiệu được gom tại đây. Bấm rút để chuyển thẳng về số dư ví chính.</p>
+                    </div>
                 </div>
 
                 <div class="space-y-3">
@@ -937,6 +951,7 @@
 
         let usedGiftcodes = JSON.parse(localStorage.getItem('usedGiftcodes')) || [];
         let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
+        let currentUserFirebaseKey = null;
 
         let activePlanId = parseInt(localStorage.getItem('activePlanId')) || 0;
         let activePlan = investmentPlans.find(p => p.id === activePlanId) || { id: 0, priceUsd: 0, ratePerSec: 0, title: "Chưa kích hoạt", roiDays: "-" };
@@ -944,6 +959,7 @@
         let pendingPlanToActivate = null;
         let currentUnclaimedProfit = parseFloat(localStorage.getItem('currentUnclaimedProfit')) || 0.0000000;
         let availableBalance = parseFloat(localStorage.getItem('availableBalance')) || 0.00;
+        let commissionWallet = 0.00; // Ví hoa hồng riêng biệt
         let totalClaimed = parseFloat(localStorage.getItem('totalClaimed')) || 0.00;
         let totalCommission = parseFloat(localStorage.getItem('totalCommission')) || 0.00;
         let f1Commission = parseFloat(localStorage.getItem('f1Commission')) || 0.00;
@@ -1012,7 +1028,17 @@
                 const allUsers = snapshot.val() || {};
                 const foundKey = Object.keys(allUsers).find(k => allUsers[k].username === currentUser.username);
                 if (foundKey) {
+                    currentUserFirebaseKey = foundKey;
                     const liveData = allUsers[foundKey];
+                    
+                    // Cập nhật số dư ví chính và ví hoa hồng từ Firebase
+                    if (liveData.balance !== undefined) {
+                        availableBalance = parseFloat(liveData.balance) || 0;
+                    }
+                    if (liveData.commissionWallet !== undefined) {
+                        commissionWallet = parseFloat(liveData.commissionWallet) || 0;
+                    }
+
                     if (liveData.activePlans && liveData.activePlans.length > 0) {
                         const lastPlan = liveData.activePlans[liveData.activePlans.length - 1];
                         const matchedPlan = investmentPlans.find(p => p.priceUsd === lastPlan.priceUsd) || investmentPlans[0];
@@ -1026,8 +1052,9 @@
                     }
                 }
                 
-                // Cập nhật danh sách nhóm F1, F2, F3 & tỷ lệ hoa hồng (F1: 10%, F2: 3%, F3: 2%)
+                // Cập nhật danh sách nhóm F1, F2, F3 & tỷ lệ hoa hồng
                 renderGroupMembers(allUsers);
+                updateDisplay();
             });
 
             onValue(ref(db, 'deposits'), (snapshot) => {
@@ -1094,13 +1121,12 @@
             let calcF3Comm = 0;
             let f1DepositedCount = 0;
 
-            // Tính số lượng F1 đã phát sinh nạp tiền thành công
             cachedF1List = f1List.map(f1 => {
                 let f1DepositUsd = f1.totalDepositUsd || 0;
                 if (f1DepositUsd > 0) {
                     f1DepositedCount++;
                 }
-                let f1EarnedCommission = f1DepositUsd * 0.10; // Hoa hồng từ F1 này mang lại
+                let f1EarnedCommission = f1DepositUsd * 0.10; 
                 calcF1Comm += f1EarnedCommission;
 
                 return {
@@ -1113,12 +1139,12 @@
 
             f2List.forEach(f2 => {
                 let f2DepositUsd = f2.totalDepositUsd || 0;
-                calcF2Comm += f2DepositUsd * 0.03; // 3% F2
+                calcF2Comm += f2DepositUsd * 0.03; 
             });
 
             f3List.forEach(f3 => {
                 let f3DepositUsd = f3.totalDepositUsd || 0;
-                calcF3Comm += f3DepositUsd * 0.02; // 2% F3
+                calcF3Comm += f3DepositUsd * 0.02; 
             });
 
             f1Commission = calcF1Comm;
@@ -1126,18 +1152,44 @@
             f3Commission = calcF3Comm;
             totalCommission = f1Commission + f2Commission + f3Commission;
 
-            // Cập nhật UI Nhóm & Nhiệm vụ mời bạn bè
             document.getElementById('f1-count-badge').innerText = `${f1List.length} thành viên`;
             document.getElementById('f1-commission-val').innerText = `$${f1Commission.toFixed(2)}`;
             document.getElementById('f2-commission-val').innerText = `$${f2Commission.toFixed(2)}`;
             document.getElementById('f3-commission-val').innerText = `$${f3Commission.toFixed(2)}`;
             document.getElementById('profile-total-commission').innerText = `$${totalCommission.toFixed(2)}`;
             
+            const commWalletEl = document.getElementById('commission-wallet-balance');
+            if(commWalletEl) commWalletEl.innerText = `$${commissionWallet.toFixed(2)} USD`;
+
             const f1DepCountEl = document.getElementById('f1-deposit-count');
             if(f1DepCountEl) f1DepCountEl.innerText = f1DepositedCount;
 
             renderF1TableUI(cachedF1List);
             updateInviteTaskButtonsUI(f1DepositedCount);
+        }
+
+        // HÀM RÚT TIỀN TỪ VÍ HOA HỒNG VỀ VÍ CHÍNH
+        window.transferCommissionToBalance = function() {
+            if (commissionWallet <= 0) {
+                showRewardModal("Thông báo", "Ví hoa hồng của bạn hiện đang trống!", "fa-solid fa-triangle-exclamation");
+                return;
+            }
+
+            const amountToTransfer = commissionWallet;
+            availableBalance += amountToTransfer;
+            commissionWallet = 0.00;
+
+            saveUserGroupData();
+
+            if (currentUserFirebaseKey) {
+                update(ref(db, 'users/' + currentUserFirebaseKey), {
+                    balance: Number(availableBalance.toFixed(2)),
+                    commissionWallet: Number(commissionWallet.toFixed(2))
+                });
+            }
+
+            updateDisplay();
+            showRewardModal("Chuyển tiền thành công", `Đã rút thành công +$${amountToTransfer.toFixed(2)} USD từ ví hoa hồng về số dư ví chính!`, "fa-solid fa-circle-check");
         }
 
         window.renderF1TableUI = function(list) {
@@ -1533,6 +1585,7 @@
                 password, 
                 refBy: refBy || "",
                 balance: 0, 
+                commissionWallet: 0,
                 totalDepositUsd: 0,
                 activePlans: [], 
                 createdAt: timeString 
@@ -1609,6 +1662,7 @@
             if (!currentUser) return;
             const prefix = currentUser.username || "default";
             availableBalance = parseFloat(localStorage.getItem(`availableBalance_${prefix}`)) || currentUser.balance || 0.00;
+            commissionWallet = parseFloat(localStorage.getItem(`commissionWallet_${prefix}`)) || currentUser.commissionWallet || 0.00;
             totalClaimed = parseFloat(localStorage.getItem(`totalClaimed_${prefix}`)) || 0.00;
         }
 
@@ -1616,6 +1670,7 @@
             if (!currentUser) return;
             const prefix = currentUser.username || "default";
             localStorage.setItem(`availableBalance_${prefix}`, availableBalance);
+            localStorage.setItem(`commissionWallet_${prefix}`, commissionWallet);
             localStorage.setItem(`totalClaimed_${prefix}`, totalClaimed);
         }
 
@@ -1710,6 +1765,12 @@
             availableBalance -= amountInput;
             saveUserGroupData();
             updateDisplay();
+
+            if (currentUserFirebaseKey) {
+                update(ref(db, 'users/' + currentUserFirebaseKey), {
+                    balance: Number(availableBalance.toFixed(2))
+                });
+            }
 
             const fee = amountInput * 0.05;
             const net = amountInput - fee;
@@ -1926,6 +1987,9 @@
             const formattedBalance = '$' + availableBalance.toFixed(2);
             document.getElementById('available-balance').innerText = formattedBalance;
             document.getElementById('profile-balance').innerText = formattedBalance;
+
+            const commWalletEl = document.getElementById('commission-wallet-balance');
+            if(commWalletEl) commWalletEl.innerText = `$${commissionWallet.toFixed(2)} USD`;
 
             document.getElementById('total-claimed').innerText = '+$' + totalClaimed.toFixed(2) + ' U';
             document.getElementById('streak-days').innerText = streakDays;
