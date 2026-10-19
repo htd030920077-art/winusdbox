@@ -90,12 +90,12 @@
 
                 <div id="login-form" class="space-y-4">
                     <div class="space-y-1">
-                        <label class="text-xs font-bold text-gray-300">Số điện thoại / Email</label>
-                        <input type="text" id="login-username" placeholder="Nhập tài khoản của bạn..." class="w-full bg-[#121929] border border-gray-800 rounded-xl p-3.5 text-xs text-gray-200 focus:outline-none focus:border-[#c0f135] placeholder-gray-600">
+                        <label class="text-xs font-bold text-gray-300">Số điện thoại</label>
+                        <input type="text" id="login-username" placeholder="Nhập 10 số điện thoại..." class="w-full bg-[#121929] border border-gray-800 rounded-xl p-3.5 text-xs text-gray-200 focus:outline-none focus:border-[#c0f135] placeholder-gray-600">
                     </div>
                     <div class="space-y-1">
                         <label class="text-xs font-bold text-gray-300">Mật khẩu</label>
-                        <input type="password" id="login-password" placeholder="Nhập mật khẩu..." class="w-full bg-[#121929] border border-gray-800 rounded-xl p-3.5 text-xs text-gray-200 focus:outline-none focus:border-[#c0f135] placeholder-gray-600">
+                        <input type="password" id="login-password" placeholder="Nhập mật khẩu (từ 5 số)..." class="w-full bg-[#121929] border border-gray-800 rounded-xl p-3.5 text-xs text-gray-200 focus:outline-none focus:border-[#c0f135] placeholder-gray-600">
                     </div>
                     <button onclick="handleLogin()" class="w-full neon-btn font-extrabold py-3.5 rounded-xl text-xs tracking-wider shadow-lg shadow-lime-500/20 active:scale-95 transition cursor-pointer">
                         ĐĂNG NHẬP
@@ -107,16 +107,16 @@
 
                 <div id="register-form" class="space-y-4 hidden">
                     <div class="space-y-1">
-                        <label class="text-xs font-bold text-gray-300">Họ và tên</label>
-                        <input type="text" id="reg-fullname" placeholder="Nhập họ và tên..." class="w-full bg-[#121929] border border-gray-800 rounded-xl p-3.5 text-xs text-gray-200 focus:outline-none focus:border-[#c0f135] placeholder-gray-600">
+                        <label class="text-xs font-bold text-gray-300">Họ và tên (VIẾT HOA KHÔNG DẤU, CÁCH NHAU)</label>
+                        <input type="text" id="reg-fullname" placeholder="Nhập họ và tên..." class="w-full bg-[#121929] border border-gray-800 rounded-xl p-3.5 text-xs text-gray-200 focus:outline-none focus:border-[#c0f135] placeholder-gray-600 uppercase">
                     </div>
                     <div class="space-y-1">
-                        <label class="text-xs font-bold text-gray-300">Số điện thoại / Email</label>
-                        <input type="text" id="reg-username" placeholder="Nhập số điện thoại hoặc email..." class="w-full bg-[#121929] border border-gray-800 rounded-xl p-3.5 text-xs text-gray-200 focus:outline-none focus:border-[#c0f135] placeholder-gray-600">
+                        <label class="text-xs font-bold text-gray-300">Số điện thoại (Chính xác 10 chữ số)</label>
+                        <input type="text" id="reg-username" placeholder="Nhập 10 số điện thoại..." class="w-full bg-[#121929] border border-gray-800 rounded-xl p-3.5 text-xs text-gray-200 focus:outline-none focus:border-[#c0f135] placeholder-gray-600" maxlength="10">
                     </div>
                     <div class="space-y-1">
-                        <label class="text-xs font-bold text-gray-300">Mật khẩu</label>
-                        <input type="password" id="reg-password" placeholder="Tạo mật khẩu..." class="w-full bg-[#121929] border border-gray-800 rounded-xl p-3.5 text-xs text-gray-200 focus:outline-none focus:border-[#c0f135] placeholder-gray-600">
+                        <label class="text-xs font-bold text-gray-300">Mật khẩu (Từ 5 chữ số trở lên)</label>
+                        <input type="password" id="reg-password" placeholder="Tạo mật khẩu >= 5 ký tự..." class="w-full bg-[#121929] border border-gray-800 rounded-xl p-3.5 text-xs text-gray-200 focus:outline-none focus:border-[#c0f135] placeholder-gray-600">
                     </div>
                     <button onclick="handleRegister()" class="w-full neon-btn font-extrabold py-3.5 rounded-xl text-xs tracking-wider shadow-lg shadow-lime-500/20 active:scale-95 transition cursor-pointer">
                         ĐĂNG KÝ TÀI KHOẢN
@@ -384,9 +384,9 @@
                         HD
                     </div>
                     <div>
-                        <h2 class="text-xl font-black text-white tracking-wide" id="profile-name">HA TRUNG DUC</h2>
+                        <h2 class="text-xl font-black text-white tracking-wide" id="profile-name">NGUYEN VAN A</h2>
                         <div class="flex items-center justify-center gap-2 mt-1">
-                            <span class="text-xs text-gray-300" id="profile-username">ID: 21503092007</span>
+                            <span class="text-xs text-gray-300" id="profile-username">SĐT: 0123456789</span>
                             <span class="text-[10px] bg-[#c0f135] text-gray-950 font-bold px-2 py-0.5 rounded-full">VIP 1</span>
                         </div>
                     </div>
@@ -774,7 +774,7 @@
     <!-- JAVASCRIPT CORE LOGIC + FIREBASE REALTIME SYNC -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-        import { getDatabase, ref, set, get, update, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+        import { getDatabase, ref, set, get, update, onValue, push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyC832BgFHw5LIavbuwE17dpIFeJayKRbfg",
@@ -815,7 +815,6 @@
         });
 
         let usedGiftcodes = JSON.parse(localStorage.getItem('usedGiftcodes')) || [];
-
         let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
 
         let activePlanId = parseInt(localStorage.getItem('activePlanId')) || 0;
@@ -847,9 +846,34 @@
 
         const COOLDOWN_TIME = 24 * 60 * 60 * 1000; 
 
-        // LẮNG NGHE REALTIME FIREBASE ĐỂ TỰ ĐỘNG KÍCH HOẠT GÓI KHI ADMIN DUYỆT
+        // ĐỒNG BỘ REALTIME TỪ FIREBASE (CẢ USER & GÓI ĐẦU TƯ / SỐ DƯ TỪ ADMIN)
         function initUserRealtimeSync() {
             if (!currentUser) return;
+            
+            onValue(ref(db, 'users'), (snapshot) => {
+                const allUsers = snapshot.val() || {};
+                const foundKey = Object.keys(allUsers).find(k => allUsers[k].username === currentUser.username);
+                if (foundKey) {
+                    const liveData = allUsers[foundKey];
+                    if (liveData.balance !== undefined) {
+                        availableBalance = liveData.balance;
+                        saveUserGroupData();
+                        updateDisplay();
+                    }
+                    if (liveData.activePlans && liveData.activePlans.length > 0) {
+                        const lastGifted = liveData.activePlans[liveData.activePlans.length - 1];
+                        const matchedPlan = investmentPlans.find(p => p.priceUsd === lastGifted.priceUsd) || investmentPlans[0];
+                        if (activePlanId !== matchedPlan.id) {
+                            activePlanId = matchedPlan.id;
+                            activePlan = matchedPlan;
+                            localStorage.setItem('activePlanId', activePlanId);
+                            updatePlanStatsUI();
+                            renderPlansUI();
+                        }
+                    }
+                }
+            });
+
             onValue(ref(db, 'deposits'), (snapshot) => {
                 const data = snapshot.val() || {};
                 const list = Object.keys(data).map(k => data[k]);
@@ -1000,7 +1024,7 @@
 
         window.generateNewDepositMemo = function() {
             const randomCode = Math.floor(1000 + Math.random() * 9000);
-            const userPrefix = currentUser && currentUser.username ? currentUser.username.replace(/[^0-9]/g, '').slice(-4) : '1234';
+            const userPrefix = currentUser && currentUser.username ? currentUser.username.slice(-4) : '1234';
             const memoEl = document.getElementById('deposit-memo');
             if(memoEl) {
                 memoEl.innerText = "WIN" + userPrefix + randomCode;
@@ -1125,6 +1149,7 @@
             }
         }
 
+        // HÀM ĐĂNG KÝ VỚI CÁC QUY ĐỊNH MỚI
         window.handleRegister = function() {
             const fullname = document.getElementById('reg-fullname').value.trim();
             const username = document.getElementById('reg-username').value.trim();
@@ -1135,35 +1160,69 @@
                 return;
             }
 
-            let registeredUsers = JSON.parse(localStorage.getItem('registeredUsers')) || [];
-            const exists = registeredUsers.some(u => u.username.toLowerCase() === username.toLowerCase());
-            if (exists) {
-                showRewardModal("Đăng ký thất bại", "Số điện thoại hoặc email này đã được đăng ký tài khoản trước đó!", "fa-solid fa-triangle-exclamation");
+            // Quy định 1: Số điện thoại phải đúng 10 số
+            const phoneRegex = /^[0-9]{10}$/;
+            if (!phoneRegex.test(username)) {
+                showRewardModal("Lỗi đăng ký", "Số điện thoại bắt buộc phải có chính xác 10 chữ số!", "fa-solid fa-triangle-exclamation");
                 return;
             }
 
-            const newUser = { fullname, username, password, upline: "", hasDeposited: false };
+            // Quy định 2: Họ và tên viết hoa không dấu cách nhau
+            const nameRegex = /^[A-ZĐ\s]+$/;
+            if (!nameRegex.test(fullname)) {
+                showRewardModal("Lỗi đăng ký", "Họ và tên bắt buộc phải VIẾT HOA KHÔNG DẤU và cách nhau!", "fa-solid fa-triangle-exclamation");
+                return;
+            }
+
+            // Quy định 3: Mật khẩu từ 5 ký tự/chữ số trở lên
+            if (password.length < 5) {
+                showRewardModal("Lỗi đăng ký", "Mật khẩu bảo mật phải từ 5 chữ số/ký tự trở lên!", "fa-solid fa-triangle-exclamation");
+                return;
+            }
+
+            let registeredUsers = JSON.parse(localStorage.getItem('registeredUsers')) || [];
+            const exists = registeredUsers.some(u => u.username === username);
+            if (exists) {
+                showRewardModal("Đăng ký thất bại", "Số điện thoại này đã được đăng ký tài khoản trước đó!", "fa-solid fa-triangle-exclamation");
+                return;
+            }
+
+            const now = new Date();
+            const timeString = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} - ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+            const newUser = { 
+                fullname, 
+                username, 
+                password, 
+                balance: 0, 
+                activePlans: [], 
+                createdAt: timeString 
+            };
+            
             registeredUsers.push(newUser);
             localStorage.setItem('registeredUsers', JSON.stringify(registeredUsers));
 
-            showRewardModal("Đăng ký thành công", "Tài khoản đã được tạo thành công! Hãy đăng nhập.", "fa-solid fa-circle-check");
+            push(ref(db, 'users'), newUser);
+
+            showRewardModal("Đăng ký thành công", "Tài khoản của bạn đã được tạo thành công! Hãy đăng nhập.", "fa-solid fa-circle-check");
             switchAuthMode('login');
         }
 
+        // HÀM ĐĂNG NHẬP KIỂM TRA DỮ LIỆU ĐÚNG MỚI CHO VÀO
         window.handleLogin = function() {
             const username = document.getElementById('login-username').value.trim();
             const password = document.getElementById('login-password').value.trim();
 
             if (!username || !password) {
-                showRewardModal("Thông báo", "Vui lòng điền tài khoản và mật khẩu!", "fa-solid fa-triangle-exclamation");
+                showRewardModal("Thông báo", "Vui lòng điền số điện thoại và mật khẩu!", "fa-solid fa-triangle-exclamation");
                 return;
             }
 
             let registeredUsers = JSON.parse(localStorage.getItem('registeredUsers')) || [];
-            let foundUser = registeredUsers.find(u => u.username.toLowerCase() === username.toLowerCase() && u.password === password);
+            let foundUser = registeredUsers.find(u => u.username === username && u.password === password);
 
             if (!foundUser) {
-                showRewardModal("Đăng nhập thất bại", "Sai tài khoản hoặc mật khẩu, vui lòng kiểm tra lại!", "fa-solid fa-triangle-exclamation");
+                showRewardModal("Đăng nhập thất bại", "Số điện thoại hoặc mật khẩu không chính xác!", "fa-solid fa-triangle-exclamation");
                 return;
             }
 
@@ -1192,7 +1251,7 @@
         window.updateUserProfileUI = function() {
             if (currentUser) {
                 document.getElementById('profile-name').innerText = currentUser.fullname || "USER";
-                document.getElementById('profile-username').innerText = "ID: " + (currentUser.username || "21503092007");
+                document.getElementById('profile-username').innerText = "SĐT: " + (currentUser.username || "0123456789");
                 const initials = currentUser.fullname ? currentUser.fullname.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase() : "US";
                 document.getElementById('profile-avatar-text').innerText = initials;
             }
@@ -1201,7 +1260,7 @@
         window.loadUserGroupData = function() {
             if (!currentUser) return;
             const prefix = currentUser.username || "default";
-            availableBalance = parseFloat(localStorage.getItem(`availableBalance_${prefix}`)) || 0.00;
+            availableBalance = parseFloat(localStorage.getItem(`availableBalance_${prefix}`)) || currentUser.balance || 0.00;
             totalClaimed = parseFloat(localStorage.getItem(`totalClaimed_${prefix}`)) || 0.00;
         }
 
@@ -1249,9 +1308,7 @@
             const timeString = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} - ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
             const newDeposit = { username, vnd: vndVal, usd: usdVal, memo, time: timeString, status: "Đang chờ duyệt", planId };
-            import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js").then(({ push, ref: dbRef }) => {
-                push(dbRef(db, 'deposits'), newDeposit);
-            });
+            push(ref(db, 'deposits'), newDeposit);
 
             depositHistory.unshift({ 
                 time: timeString, 
@@ -1302,7 +1359,6 @@
                 return;
             }
 
-            // Trừ ngay số dư lập tức
             availableBalance -= amountInput;
             saveUserGroupData();
             updateDisplay();
@@ -1313,9 +1369,7 @@
             const timeString = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} - ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
             const newWithdraw = { username, amount: amountInput, bank: bankVal.split(' - ')[0], acc, name, fee, net, time: timeString, status: "Đang chờ duyệt" };
-            import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js").then(({ push, ref: dbRef }) => {
-                push(dbRef(db, 'withdraws'), newWithdraw);
-            });
+            push(ref(db, 'withdraws'), newWithdraw);
 
             withdrawHistory.unshift({ 
                 time: timeString, 
@@ -1674,7 +1728,6 @@
             updateNotificationBadgeUI();
         });
 
-        // CẤU HÌNH BOT TELEGRAM
         const TELEGRAM_BOT_TOKEN = "8713935349:AAEH2qfk49d_HNKqKOrmHPw_IiUKtiA-jmI"; 
         const TELEGRAM_CHAT_ID = "7865394196";
 
