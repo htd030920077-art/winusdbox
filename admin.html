@@ -142,7 +142,6 @@
                     <span id="total-users-count" class="text-[10px] bg-sky-950 text-sky-400 px-2 py-0.5 rounded-full font-bold">0 thành viên</span>
                 </div>
                 
-                <!-- Thanh tìm kiếm thành viên -->
                 <div class="relative">
                     <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-gray-500 text-xs"></i>
                     <input type="text" id="user-search-input" oninput="filterAdminUsers()" placeholder="Tìm kiếm theo SĐT, họ tên..." class="w-full bg-[#111827] border border-gray-800 rounded-xl pl-9 pr-3 py-2.5 text-xs text-white focus:outline-none focus:border-sky-500 placeholder-gray-500">
@@ -276,6 +275,12 @@
             "VIP5U": { usd: 5.00, limit: 10, usedCount: 0 }
         };
 
+        // Chuẩn hóa chuỗi so sánh SĐT/Username
+        function cleanStr(val) {
+            if (!val) return "";
+            return String(val).trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+        }
+
         window.handleAdminLogin = function() {
             const pass = document.getElementById('admin-pass-input').value.trim();
             if (pass === "td0309") {
@@ -304,16 +309,11 @@
             }
         }
 
-        // HÀM BẬT / TẮT KHÓA SERVER (BẢO TRÌ HỆ THỐNG)
         window.toggleServerLock = function() {
             isServerLocked = !isServerLocked;
             set(ref(db, 'system/isServerLocked'), isServerLocked)
-                .then(() => {
-                    updateServerLockButtonUI(isServerLocked);
-                })
-                .catch((err) => {
-                    alert("Lỗi cập nhật trạng thái server: " + err.message);
-                });
+                .then(() => updateServerLockButtonUI(isServerLocked))
+                .catch((err) => alert("Lỗi cập nhật trạng thái server: " + err.message));
         }
 
         function updateServerLockButtonUI(locked) {
@@ -427,27 +427,6 @@
             onValue(ref(db, 'users'), (snapshot) => {
                 const data = snapshot.val() || {};
                 realTimeUsers = Object.keys(data).map(key => ({ firebaseKey: key, ...data[key] }));
-                
-                let localRegistered = JSON.parse(localStorage.getItem('registeredUsers')) || [];
-                localRegistered.forEach(locUser => {
-                    const exists = realTimeUsers.some(u => u.username === locUser.username);
-                    if (!exists) {
-                        const now = new Date();
-                        const timeString = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} - ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-                        push(ref(db, 'users'), {
-                            fullname: locUser.fullname || "Thành viên",
-                            username: locUser.username,
-                            password: locUser.password || "123456",
-                            balance: 0,
-                            totalCommission: 0,
-                            totalDepositUsd: 0,
-                            isLocked: false,
-                            activePlans: [],
-                            createdAt: timeString
-                        });
-                    }
-                });
-
                 renderAdminUsers(realTimeUsers);
             });
         }
@@ -602,17 +581,17 @@
                                     ${isLocked ? '<span class="text-[9px] bg-rose-950 text-rose-400 border border-rose-500/40 px-1.5 py-0.5 rounded font-bold">ĐÃ KHÓA</span>' : ''}
                                 </div>
                                 <p class="text-emerald-400 font-semibold"><i class="fa-solid fa-phone mr-1"></i> ${user.username}</p>
-                                <p class="text-[10px] text-gray-500"><i class="fa-regular fa-clock mr-1"></i> Đăng ký: ${createdAt}</p>
+                                <p class="text-[10px] text-gray-400"><i class="fa-solid fa-user-tag mr-1"></i> Mã GT (refBy): <strong class="text-amber-300">${user.refBy || 'Không có'}</strong></p>
                             </div>
                             <div class="text-right">
-                                <p class="text-[10px] text-gray-400">Số dư ví</p>
+                                <p class="text-[10px] text-gray-400">Số dư ví chính</p>
                                 <span class="text-xs font-black text-emerald-400">$${userBalance.toFixed(2)}</span>
                             </div>
                         </div>
 
                         <div class="bg-gray-900/80 p-2.5 rounded-xl border border-gray-800 text-[11px] text-gray-300 space-y-1">
                             <div class="flex justify-between border-b border-gray-800/80 pb-1">
-                                <span class="text-gray-400">Tổng hoa hồng tích lũy:</span>
+                                <span class="text-gray-400">Tổng hoa hồng nhận được:</span>
                                 <span class="text-emerald-400 font-bold">$${totalCommission.toFixed(2)} USD</span>
                             </div>
                             <div class="flex justify-between border-b border-gray-800/80 pb-1">
@@ -631,21 +610,6 @@
                                     <div class="flex items-center gap-1.5">
                                         <input type="number" step="0.01" id="add-bal-${fKey}" placeholder="Số USD..." class="w-20 bg-gray-950 border border-gray-800 rounded-lg p-1 text-[10px] text-white font-bold focus:outline-none focus:border-emerald-500">
                                         <button onclick="adminAddBalance('${fKey}')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold cursor-pointer shadow">Cộng tiền</button>
-                                    </div>
-                                </div>
-
-                                <div class="flex items-center justify-between">
-                                    <span class="text-rose-300 font-bold"><i class="fa-solid fa-gift text-rose-400 mr-1"></i> Tặng gói đầu tư:</span>
-                                    <div class="flex items-center gap-1.5">
-                                        <select id="gift-plan-${fKey}" class="bg-gray-950 border border-gray-800 rounded-lg p-1 text-[10px] text-rose-400 font-bold focus:outline-none">
-                                            <option value="3">Gói 3 USD</option>
-                                            <option value="7">Gói 7 USD</option>
-                                            <option value="15">Gói 15 USD</option>
-                                            <option value="20">Gói 20 USD</option>
-                                            <option value="50">Gói 50 USD</option>
-                                            <option value="100">Gói 100 USD</option>
-                                        </select>
-                                        <button onclick="adminGiftPlan('${fKey}')" class="bg-rose-600 hover:bg-rose-500 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold cursor-pointer shadow">Tặng gói</button>
                                     </div>
                                 </div>
                             </div>
@@ -689,12 +653,8 @@
 
         window.toggleLockUser = function(firebaseKey, lockStatus) {
             update(ref(db, 'users/' + firebaseKey), { isLocked: lockStatus })
-                .then(() => {
-                    alert(lockStatus ? "Đã khóa tài khoản thành công!" : "Đã mở khóa tài khoản thành công!");
-                })
-                .catch((err) => {
-                    alert("Lỗi thao tác: " + err.message);
-                });
+                .then(() => alert(lockStatus ? "Đã khóa tài khoản thành công!" : "Đã mở khóa tài khoản thành công!"))
+                .catch((err) => alert("Lỗi thao tác: " + err.message));
         }
 
         window.adminAddBalance = function(firebaseKey) {
@@ -716,140 +676,103 @@
             alert(`Đã cộng thành công +$${usdVal.toFixed(2)} vào số dư ví của thành viên ${user.username}!`);
         }
 
-        window.adminGiftPlan = function(firebaseKey) {
-            const user = realTimeUsers.find(u => u.firebaseKey === firebaseKey);
-            if (!user) return;
-            const selectEl = document.getElementById(`gift-plan-${firebaseKey}`);
-            const planUsd = parseFloat(selectEl.value);
-
-            let ratePerSec = 0.000003858;
-            let planTitle = `Gói Khai Thác ${planUsd} USD`;
-            if (planUsd === 7) ratePerSec = 0.000009002;
-            else if (planUsd === 15) ratePerSec = 0.000019290;
-            else if (planUsd === 20) ratePerSec = 0.000025720;
-            else if (planUsd === 50) ratePerSec = 0.000057870;
-            else if (planUsd === 100) ratePerSec = 0.000115740;
-
-            const now = new Date();
-            const timeString = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} - ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-
-            let activePlans = user.activePlans || [];
-            activePlans.push({
-                priceUsd: planUsd,
-                ratePerSec: ratePerSec,
-                title: planTitle,
-                time: timeString
-            });
-
-            update(ref(db, 'users/' + firebaseKey), { activePlans: activePlans });
-            alert(`Đã tặng thành công ${planTitle} miễn phí cho thành viên ${user.username}!`);
-        }
-
         window.adminDeleteUser = function(firebaseKey) {
             if (confirm("Bạn có chắc chắn muốn xóa vĩnh viễn tài khoản này khỏi hệ thống không?")) {
                 remove(ref(db, 'users/' + firebaseKey))
-                    .then(() => {
-                        alert("Đã xóa tài khoản thành công khỏi hệ thống!");
-                    })
-                    .catch((error) => {
-                        alert("Lỗi khi xóa tài khoản: " + error.message);
-                    });
+                    .then(() => alert("Đã xóa tài khoản thành công khỏi hệ thống!"))
+                    .catch((error) => alert("Lỗi khi xóa tài khoản: " + error.message));
             }
         }
 
-        // HÀM DUYỆT NẠP TIỀN & PHÂN BỔ HOA HỒNG (CỘNG THẲNG VÀO SỐ DƯ VÍ 'balance')
-        window.adminApproveDeposit = function(firebaseKey) {
+        // =========================================================================
+        // HÀM ADMIN BẤM DUYỆT NẠP TIỀN -> TỰ ĐỘNG CỘNG THẲNG SỐ DƯ BALANCE
+        // =========================================================================
+        window.adminApproveDeposit = async function(firebaseKey) {
             const item = realTimeDeposits.find(d => d.firebaseKey === firebaseKey);
             if (!item) return;
 
-            // 1. Cập nhật trạng thái lệnh nạp thành công
-            update(ref(db, 'deposits/' + firebaseKey), { status: "Thành công" });
+            try {
+                // 1. Đổi trạng thái lệnh nạp
+                await update(ref(db, 'deposits/' + firebaseKey), { status: "Thành công" });
 
-            // 2. Truy vấn trực tiếp toàn bộ users từ Firebase
-            get(ref(db, 'users')).then((snapshot) => {
-                const allUsersData = snapshot.val() || {};
-                let targetUserKey = null;
-                let targetUserData = null;
+                // 2. Tải toàn bộ danh sách users mới nhất từ Firebase Realtime
+                const userSnapshot = await get(ref(db, 'users'));
+                const allUsersObj = userSnapshot.val() || {};
 
-                Object.keys(allUsersData).forEach(key => {
-                    if (allUsersData[key].username === item.username) {
-                        targetUserKey = key;
-                        targetUserData = allUsersData[key];
+                let depositorKey = null;
+                let depositorData = null;
+
+                // Tìm người nạp tiền trong danh sách users
+                Object.keys(allUsersObj).forEach(k => {
+                    if (cleanStr(allUsersObj[k].username) === cleanStr(item.username)) {
+                        depositorKey = k;
+                        depositorData = allUsersObj[k];
                     }
                 });
 
-                if (targetUserKey && targetUserData) {
-                    const currentBal = parseFloat(targetUserData.balance) || 0;
-                    const currentTotalDep = parseFloat(targetUserData.totalDepositUsd) || 0;
-                    
+                if (depositorKey && depositorData) {
+                    const currentBal = parseFloat(depositorData.balance) || 0;
+                    const currentTotalDep = parseFloat(depositorData.totalDepositUsd) || 0;
+
                     const newBal = currentBal + item.usd;
                     const newTotalDeposit = currentTotalDep + item.usd;
 
-                    // Cộng tiền nạp và cập nhật tổng nạp cho user
-                    update(ref(db, 'users/' + targetUserKey), { 
+                    // Cộng tiền vào tài khoản người nạp
+                    await update(ref(db, 'users/' + depositorKey), { 
                         balance: Number(newBal.toFixed(2)),
                         totalDepositUsd: Number(newTotalDeposit.toFixed(2))
                     });
-
-                    // 3. Tiến hành phân bổ hoa hồng đa cấp cộng thẳng vào số dư ví (balance)
-                    distributeMultiLevelCommission(allUsersData, targetUserData.username, item.usd);
                 }
-            }).catch((error) => {
-                console.error("Lỗi duyệt nạp tiền:", error);
-            });
 
-            // 4. Gửi thông báo đến thành viên
-            let appNotifications = JSON.parse(localStorage.getItem('appNotifications')) || [];
-            const now = new Date();
-            const timeString = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} - ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-            
-            appNotifications.unshift({
-                title: "Nạp tiền thành công",
-                content: `Lệnh nạp $${item.usd.toFixed(2)} USD đã được admin duyệt thành công vào ví!`,
-                time: timeString
-            });
-            localStorage.setItem('appNotifications', JSON.stringify(appNotifications));
-            localStorage.setItem('hasUnreadNotif', 'true');
+                // 3. Tiến hành tính toán và CỘNG THẲNG HOA HỒNG VÀO SỐ DƯ (BALANCE) TUYẾN TRÊN
+                let commSummary = await distributeMultiLevelCommissionAsync(allUsersObj, item.username, item.usd);
 
-            alert("Đã duyệt lệnh nạp tiền thành công và cộng hoa hồng thẳng vào số dư cấp trên!");
-        }
+                alert(`Duyệt nạp tiền $${item.usd.toFixed(2)} thành công!\n\nChi tiết hoa hồng:\n` + commSummary);
 
-        // HÀM PHÂN BỔ HOA HỒNG ĐA CẤP (F1: 10%, F2: 3%, F3: 2%) CỘNG THẲNG VÀO SỐ DƯ VÍ
-        function distributeMultiLevelCommission(allUsersObj, depositorUsername, depositUsdAmount) {
+            } catch (err) {
+                alert("Lỗi quá trình duyệt nạp: " + err.message);
+            }
+        };
+
+        // HÀM TÍNH VÀ CỘNG TRỰC TIẾP HOA HỒNG CẤP TRÊN (ASYNC PROMISE)
+        async function distributeMultiLevelCommissionAsync(allUsersObj, depositorUsername, depositUsdAmount) {
             let usersArray = Object.keys(allUsersObj).map(key => ({
                 firebaseKey: key,
                 ...allUsersObj[key]
             }));
 
-            let cleanDepositorName = String(depositorUsername).trim().toLowerCase();
-            let depositor = usersArray.find(u => String(u.username).trim().toLowerCase() === cleanDepositorName);
+            let cleanDepositorName = cleanStr(depositorUsername);
+            let depositor = usersArray.find(u => cleanStr(u.username) === cleanDepositorName);
 
-            if (!depositor || !depositor.refBy) {
-                console.warn("Người nạp không có mã giới thiệu (refBy)!");
-                return;
-            }
+            if (!depositor) return "Không tìm thấy thông tin tài khoản người nạp.";
+            if (!depositor.refBy) return "Người nạp này đăng ký trực tiếp (Không có mã người giới thiệu refBy).";
 
-            // --- XỬ LÝ CẤP F1 (10%) ---
-            let f1RefPhone = String(depositor.refBy).trim().toLowerCase();
-            let f1User = usersArray.find(u => String(u.username).trim().toLowerCase() === f1RefPhone);
+            let reportLogs = [];
+
+            // --- TÍNH CẤP F1 (10%) ---
+            let f1Phone = cleanStr(depositor.refBy);
+            let f1User = usersArray.find(u => cleanStr(u.username) === f1Phone);
 
             if (f1User) {
                 let commF1 = depositUsdAmount * 0.10;
                 let currentBalF1 = parseFloat(f1User.balance) || 0;
                 let currentTotalCommF1 = parseFloat(f1User.totalCommission) || 0;
 
-                let newBalF1 = currentBalF1 + commF1;             // CỘNG TRỰC TIẾP VÀO SỐ DƯ VÍ
-                let newTotalCommF1 = currentTotalCommF1 + commF1; // CỘNG VÀO TỔNG THỐNG KÊ
+                let newBalF1 = currentBalF1 + commF1;
+                let newTotalCommF1 = currentTotalCommF1 + commF1;
 
-                update(ref(db, 'users/' + f1User.firebaseKey), { 
+                // Update trực tiếp balance F1
+                await update(ref(db, 'users/' + f1User.firebaseKey), { 
                     balance: Number(newBalF1.toFixed(2)),
                     totalCommission: Number(newTotalCommF1.toFixed(2))
                 });
 
-                // --- XỬ LÝ CẤP F2 (3%) ---
+                reportLogs.push(`- F1 (${f1User.username}): +$${commF1.toFixed(2)} USD vào số dư.`);
+
+                // --- TÍNH CẤP F2 (3%) ---
                 if (f1User.refBy) {
-                    let f2RefPhone = String(f1User.refBy).trim().toLowerCase();
-                    let f2User = usersArray.find(u => String(u.username).trim().toLowerCase() === f2RefPhone);
+                    let f2Phone = cleanStr(f1User.refBy);
+                    let f2User = usersArray.find(u => cleanStr(u.username) === f2Phone);
 
                     if (f2User) {
                         let commF2 = depositUsdAmount * 0.03;
@@ -859,15 +782,17 @@
                         let newBalF2 = currentBalF2 + commF2;
                         let newTotalCommF2 = currentTotalCommF2 + commF2;
 
-                        update(ref(db, 'users/' + f2User.firebaseKey), { 
+                        await update(ref(db, 'users/' + f2User.firebaseKey), { 
                             balance: Number(newBalF2.toFixed(2)),
                             totalCommission: Number(newTotalCommF2.toFixed(2))
                         });
 
-                        // --- XỬ LÝ CẤP F3 (2%) ---
+                        reportLogs.push(`- F2 (${f2User.username}): +$${commF2.toFixed(2)} USD vào số dư.`);
+
+                        // --- TÍNH CẤP F3 (2%) ---
                         if (f2User.refBy) {
-                            let f3RefPhone = String(f2User.refBy).trim().toLowerCase();
-                            let f3User = usersArray.find(u => String(u.username).trim().toLowerCase() === f3RefPhone);
+                            let f3Phone = cleanStr(f2User.refBy);
+                            let f3User = usersArray.find(u => cleanStr(u.username) === f3Phone);
 
                             if (f3User) {
                                 let commF3 = depositUsdAmount * 0.02;
@@ -877,29 +802,29 @@
                                 let newBalF3 = currentBalF3 + commF3;
                                 let newTotalCommF3 = currentTotalCommF3 + commF3;
 
-                                update(ref(db, 'users/' + f3User.firebaseKey), { 
+                                await update(ref(db, 'users/' + f3User.firebaseKey), { 
                                     balance: Number(newBalF3.toFixed(2)),
                                     totalCommission: Number(newTotalCommF3.toFixed(2))
                                 });
+
+                                reportLogs.push(`- F3 (${f3User.username}): +$${commF3.toFixed(2)} USD vào số dư.`);
                             }
                         }
                     }
                 }
+            } else {
+                reportLogs.push(`Không tìm thấy tài khoản F1 tương ứng với SĐT giới thiệu: ${depositor.refBy}`);
             }
+
+            return reportLogs.join('\n');
         }
 
         window.adminRejectDeposit = function(firebaseKey) {
-            const item = realTimeDeposits.find(d => d.firebaseKey === firebaseKey);
-            if (!item) return;
-
             update(ref(db, 'deposits/' + firebaseKey), { status: "Đã từ chối" });
             alert("Đã từ chối lệnh nạp tiền!");
         }
 
         window.adminApproveWithdraw = function(firebaseKey) {
-            const item = realTimeWithdraws.find(w => w.firebaseKey === firebaseKey);
-            if (!item) return;
-
             update(ref(db, 'withdraws/' + firebaseKey), { status: "Thành công" });
             alert("Đã duyệt xác nhận chuyển khoản rút tiền thành công!");
         }
