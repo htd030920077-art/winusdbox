@@ -314,7 +314,6 @@
                     <i class="fa-solid fa-list-check text-[#c0f135]"></i> Nhiệm vụ điểm danh
                 </h3>
 
-                <!-- NHIỆM VỤ ĐIỂM DANH HÀNG NGÀY -->
                 <div class="card-dark p-4 rounded-2xl space-y-3 border border-[#c0f135]/30">
                     <div class="flex justify-between items-center">
                         <div>
@@ -369,7 +368,6 @@
                         <span class="text-[10px] bg-[#1a2b10] text-[#c0f135] border border-[#c0f135]/40 px-2.5 py-0.5 rounded-full font-bold">Hoa hồng 3 cấp</span>
                     </div>
 
-                    <!-- MÃ MỜI CỦA BẢN THÂN -->
                     <div class="space-y-2">
                         <label class="text-xs font-bold text-gray-300">Mã mời của bạn (SĐT cá nhân)</label>
                         <div class="flex gap-2">
@@ -761,7 +759,7 @@
                             <p>Số tài khoản: <strong class="text-[#c0f135] select-all">11557000</strong></p>
                             <p>Chủ TK: <strong class="text-white">WIN USDBOX</strong></p>
                             <p>Số tiền: <strong class="text-[#c0f135]" id="qr-display-amount">0 VNĐ</strong></p>
-                            <p>Nội dung CK: <strong class="text-amber-300 select-all font-bold" id="deposit-memo">WIN1234</strong></p>
+                            <p>Nội dung CK: <strong class="text-amber-300 select-all font-bold" id="deposit-memo">SĐT thành viên</strong></p>
                         </div>
                     </div>
                 </div>
@@ -932,7 +930,6 @@
         const ACCOUNT_NO = "11557000"; 
         const ACCOUNT_NAME = "WIN USDBOX";
 
-        // Gói 1 USD: thời hạn 6 ngày. Các gói từ 3 USD trở lên: thời hạn 30 ngày (ẩn hoàn vốn, chỉ hiển thị thời hạn)
         const investmentPlans = [
             { id: 1, priceUsd: 1, ratePerSec: 0.000002315, title: "Gói Khai Thác 1 USD (26k)", durationDays: 6, displayDuration: "6 ngày" },
             { id: 2, priceUsd: 3, ratePerSec: 0.000003858, title: "Gói Khai Thác 3 USD", durationDays: 30, displayDuration: "30 ngày" },
@@ -965,8 +962,8 @@
         let f3Commission = parseFloat(localStorage.getItem('f3Commission')) || 0.00;
 
         let processedDepositKeys = JSON.parse(localStorage.getItem('processedDepositKeys')) || [];
+        let processedCommissionKeys = JSON.parse(localStorage.getItem('processedCommissionKeys')) || [];
 
-        // Kiểm tra thời hạn gói
         function checkPlanExpiration() {
             let planActivatedTime = parseInt(localStorage.getItem('planActivatedTime')) || 0;
             if (activePlan.durationDays && planActivatedTime > 0) {
@@ -1064,6 +1061,7 @@
                 }
                 
                 renderGroupMembers(allUsers);
+                checkAndProcessCommissions(allUsers);
                 updateDisplay();
             });
 
@@ -1086,6 +1084,7 @@
 
                 syncNotifications();
 
+                // KHI ADMIN DUYỆT NẠP THÀNH CÔNG: CHỈ KÍCH HOẠT GÓI KÍCH HOẠT (KHÔNG CỘNG SỐ DƯ VÍ)
                 myDeposits.forEach(dep => {
                     if (dep.status === "Thành công" && !processedDepositKeys.includes(dep.key)) {
                         const targetPlanId = dep.planId || 1;
@@ -1131,6 +1130,73 @@
 
                 syncNotifications();
                 checkAndLockBankInfo(myWithdraws);
+            });
+        }
+
+        function checkAndProcessCommissions(allUsers) {
+            if (!currentUser) return;
+            const myPhone = currentUser.username;
+
+            get(ref(db, 'deposits')).then(snapshot => {
+                const deposits = snapshot.val() || {};
+                let earnedBonusTotal = 0;
+
+                Object.entries(deposits).forEach(([depKey, dep]) => {
+                    if (dep.status === "Thành công" && !processedCommissionKeys.includes(depKey)) {
+                        const depUser = Object.values(allUsers).find(u => u.username === dep.username);
+                        if (!depUser) return;
+
+                        let commAmount = 0;
+                        let levelText = "";
+
+                        // F1
+                        if (depUser.refBy === myPhone) {
+                            commAmount = dep.usd * 0.10;
+                            levelText = "F1";
+                        } 
+                        // F2
+                        else {
+                            const f1User = Object.values(allUsers).find(u => u.username === depUser.refBy);
+                            if (f1User && f1User.refBy === myPhone) {
+                                commAmount = dep.usd * 0.03;
+                                levelText = "F2";
+                            }
+                            // F3
+                            else if (f1User) {
+                                const f2User = Object.values(allUsers).find(u => u.username === f1User.refBy);
+                                if (f2User && f2User.refBy === myPhone) {
+                                    commAmount = dep.usd * 0.02;
+                                    levelText = "F3";
+                                }
+                            }
+                        }
+
+                        if (commAmount > 0) {
+                            earnedBonusTotal += commAmount;
+                            processedCommissionKeys.push(depKey);
+
+                            appNotifications.unshift({
+                                title: "Thưởng Hoa Hồng Mới",
+                                time: dep.time || "Vừa xong",
+                                content: `Bạn nhận được +$${commAmount.toFixed(2)} USD hoa hồng (${levelText}) từ cấp dưới ${dep.username} nạp gói!`
+                            });
+                        }
+                    }
+                });
+
+                if (earnedBonusTotal > 0) {
+                    availableBalance += earnedBonusTotal;
+                    localStorage.setItem('processedCommissionKeys', JSON.stringify(processedCommissionKeys));
+                    saveUserGroupData();
+                    updateDisplay();
+                    syncNotifications();
+
+                    showRewardModal(
+                        "NHẬN HOA HỒNG MỚI", 
+                        `Chúc mừng! Bạn vừa nhận +$${earnedBonusTotal.toFixed(2)} USD hoa hồng cấp dưới cộng trực tiếp vào số dư ví!`, 
+                        "fa-solid fa-coins"
+                    );
+                }
             });
         }
 
@@ -1337,12 +1403,8 @@
             }
         }
 
-        window.openInviteTaskModal = function() {
-            openModal('invite-task-modal');
-        }
-        window.closeInviteTaskModal = function() {
-            closeModal('invite-task-modal');
-        }
+        window.openInviteTaskModal = function() { openModal('invite-task-modal'); }
+        window.closeInviteTaskModal = function() { closeModal('invite-task-modal'); }
 
         window.copyRefLink = function() {
             const input = document.getElementById('ref-link-input');
@@ -1487,12 +1549,12 @@
         }
         window.closeDepositModal = function() { closeModal('deposit-modal'); }
 
+        // ĐỔI MÃ NẠP TIỀN / NỘI DUNG CK THÀNH SĐT THÀNH VIÊN
         window.generateNewDepositMemo = function() {
-            const randomCode = Math.floor(1000 + Math.random() * 9000);
-            const userPrefix = currentUser && currentUser.username ? currentUser.username.slice(-4) : '1234';
+            const userPhone = currentUser && currentUser.username ? currentUser.username : '0123456789';
             const memoEl = document.getElementById('deposit-memo');
             if(memoEl) {
-                memoEl.innerText = "WIN" + userPrefix + randomCode;
+                memoEl.innerText = userPhone;
             }
             updateQrCodeImage();
         }
@@ -1512,7 +1574,7 @@
         window.updateQrCodeImage = function() {
             const vndVal = parseFloat(document.getElementById('deposit-vnd-input').value) || 0;
             const memoEl = document.getElementById('deposit-memo');
-            const memo = memoEl ? memoEl.innerText : "WINUSDBOX";
+            const memo = memoEl ? memoEl.innerText : (currentUser ? currentUser.username : "0123456789");
             
             const qrImg = document.getElementById('dynamic-qr-img');
             if (qrImg) {
@@ -1764,6 +1826,7 @@
             }
         }
 
+        // TẠO LỆNH NẠP MỚI VỚI NỘI DUNG CHUYỂN KHOẢN LÀ SĐT THÀNH VIÊN
         window.submitDeposit = function() {
             const inputElem = document.getElementById('deposit-vnd-input');
             let vndVal = parseFloat(inputElem ? inputElem.value : 0) || 0;
@@ -1773,9 +1836,8 @@
             }
 
             const usdVal = vndVal / USD_TO_VND;
-            const memoElem = document.getElementById('deposit-memo');
-            const memo = memoElem ? memoElem.innerText : "WIN1234";
-            const username = (typeof currentUser !== 'undefined' && currentUser && currentUser.username) ? currentUser.username : "Khách";
+            const username = (typeof currentUser !== 'undefined' && currentUser && currentUser.username) ? currentUser.username : "0123456789";
+            const memo = username; // NỘI DUNG CHUYỂN KHOẢN LÀ SĐT THÀNH VIÊN
             const planTitle = pendingPlanToActivate ? pendingPlanToActivate.title : "Gói nạp tùy chọn";
             const planId = pendingPlanToActivate ? pendingPlanToActivate.id : 1;
 
