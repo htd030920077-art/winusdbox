@@ -645,7 +645,7 @@
 
                     <div class="bg-[#1a2b10] border border-[#c0f135]/30 rounded-xl p-3 text-[11px] space-y-1">
                         <p class="text-[#c0f135] font-semibold"><i class="fa-solid fa-circle-info mr-1"></i> Hướng dẫn:</p>
-                        <p class="text-gray-300 leading-relaxed">Nhập mã quà tặng từ sự kiện hoặc từ kênh Telegram để nhận thưởng trực tiếp vào số dư ví.</p>
+                        <p class="text-gray-300 leading-relaxed">Nhập mã quà tặng từ sự kiện hoặc từ kênh Telegram để nhận thưởng trực tiếp vào số dư ví (Mỗi mã có thể nhập lại 1 lần/ngày).</p>
                     </div>
 
                     <div class="space-y-3 pt-2">
@@ -765,8 +765,8 @@
                 </div>
 
                 <div class="pt-4">
-                    <button onclick="submitDeposit()" class="w-full neon-btn font-extrabold py-3.5 rounded-xl text-sm shadow-lg shadow-lime-500/20 active:scale-95 transition cursor-pointer">
-                        Đã chuyển khoản xong
+                    <button id="btn-submit-deposit" onclick="submitDeposit()" class="w-full bg-gray-800 text-gray-500 font-extrabold py-3.5 rounded-xl text-sm shadow-lg cursor-not-allowed transition" disabled>
+                        Vui lòng chờ chuyển khoản... (30s)
                     </button>
                 </div>
             </div>
@@ -790,7 +790,7 @@
             </div>
         </div>
 
-        <!-- MODAL RÚT TIỀN (ĐÃ CẬP NHẬT ĐẦY ĐỦ NGÂN HÀNG PHỔ BIẾN TẠI VIỆT NAM) -->
+        <!-- MODAL RÚT TIỀN (ĐÃ CẬP NHẬT BANNER ĐIỀU KIỆN NẠP ĐẦU) -->
         <div id="withdraw-modal" class="modal-overlay absolute inset-0 bg-[#090d16]/95 z-50 flex flex-col overflow-y-auto">
             <div class="modal-content card-dark rounded-none p-4 space-y-4 border-b border-[#c0f135]/30 w-full min-h-screen">
                 <div class="flex items-center justify-between py-2 border-b border-gray-800">
@@ -803,9 +803,12 @@
                     </button>
                 </div>
 
-                <div class="bg-[#1a2b10] border border-[#c0f135]/30 rounded-xl p-3 text-[11px] flex justify-between items-center">
-                    <span class="text-[#c0f135] font-semibold"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Điều kiện rút:</span>
-                    <span class="font-bold text-white">Min 0.4 USD | Phí giao dịch 5%</span>
+                <div class="bg-amber-950/40 border border-amber-500/40 rounded-xl p-3 text-[11px] space-y-1">
+                    <div class="flex items-center justify-between text-amber-400 font-bold">
+                        <span><i class="fa-solid fa-shield-halved mr-1"></i> ĐIỀU KIỆN MỞ KHÓA RÚT TIỀN:</span>
+                    </div>
+                    <p class="text-gray-300 leading-relaxed">Yêu cầu tài khoản đã từng **Nạp đầu tối thiểu $1 USD (26.000 VNĐ)** để mở khóa rút tất cả các nguồn tiền (Giftcode, Hoa hồng, Điểm danh & Lãi).</p>
+                    <p class="text-gray-400 pt-0.5">Min rút: <strong class="text-white">0.4 USD</strong> | Phí giao dịch: <strong class="text-white">5%</strong></p>
                 </div>
 
                 <div class="space-y-3">
@@ -946,15 +949,14 @@
         const ACCOUNT_NO = "11557000"; 
         const ACCOUNT_NAME = "WIN USDBOX";
 
-        // MẢNG GÓI ĐẦU TƯ ĐÃ CẬP NHẬT MỐC LÃI HÀNG NGÀY THEO YÊU CẦU MỚI
         const investmentPlans = [
-            { id: 1, priceUsd: 1, ratePerSec: 0.000002315, title: "Gói Khai Thác 1 USD (26k)", durationDays: 6, displayDuration: "6 ngày" },
-            { id: 2, priceUsd: 3, ratePerSec: 0.000005787, title: "Gói Khai Thác 3 USD", durationDays: 30, displayDuration: "30 ngày" }, // 0.5 USD / ngày
-            { id: 3, priceUsd: 7, ratePerSec: 0.000012731, title: "Gói Khai Thác 7 USD", durationDays: 30, displayDuration: "30 ngày" }, // 1.1 USD / ngày
-            { id: 4, priceUsd: 15, ratePerSec: 0.000023148, title: "Gói Khai Thác 15 USD", durationDays: 30, displayDuration: "30 ngày" }, // 2.0 USD / ngày
-            { id: 5, priceUsd: 20, ratePerSec: 0.000034722, title: "Gói Khai Thác 20 USD", durationDays: 30, displayDuration: "30 ngày" }, // 3.0 USD / ngày
-            { id: 6, priceUsd: 50, ratePerSec: 0.000081018, title: "Gói VIP 50 USD", durationDays: 30, displayDuration: "30 ngày" }, // 7.0 USD / ngày
-            { id: 7, priceUsd: 100, ratePerSec: 0.000231481, title: "Gói VIP 100 USD", durationDays: 30, displayDuration: "30 ngày" }  // 20.0 USD / ngày
+            { id: 1, priceUsd: 1, ratePerSec: 0.000003116, title: "Gói Khai Thác 1 USD (26k)", durationDays: 6, displayDuration: "6 ngày" }, 
+            { id: 2, priceUsd: 3, ratePerSec: 0.000005787, title: "Gói Khai Thác 3 USD", durationDays: 30, displayDuration: "30 ngày" }, 
+            { id: 3, priceUsd: 7, ratePerSec: 0.000012731, title: "Gói Khai Thác 7 USD", durationDays: 30, displayDuration: "30 ngày" }, 
+            { id: 4, priceUsd: 15, ratePerSec: 0.000023148, title: "Gói Khai Thác 15 USD", durationDays: 30, displayDuration: "30 ngày" }, 
+            { id: 5, priceUsd: 20, ratePerSec: 0.000034722, title: "Gói Khai Thác 20 USD", durationDays: 30, displayDuration: "30 ngày" }, 
+            { id: 6, priceUsd: 50, ratePerSec: 0.000081018, title: "Gói VIP 50 USD", durationDays: 30, displayDuration: "30 ngày" }, 
+            { id: 7, priceUsd: 100, ratePerSec: 0.000231481, title: "Gói VIP 100 USD", durationDays: 30, displayDuration: "30 ngày" }  
         ];
 
         let liveGiftcodes = {};
@@ -962,7 +964,7 @@
             liveGiftcodes = snapshot.val() || {};
         });
 
-        let usedGiftcodes = JSON.parse(localStorage.getItem('usedGiftcodes')) || [];
+        let usedGiftcodesByDate = JSON.parse(localStorage.getItem('usedGiftcodesByDate')) || {};
         let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
         let currentUserFirebaseKey = null;
 
@@ -980,6 +982,9 @@
 
         let processedDepositKeys = JSON.parse(localStorage.getItem('processedDepositKeys')) || [];
         let processedCommissionKeys = JSON.parse(localStorage.getItem('processedCommissionKeys')) || [];
+
+        let depositTimerInterval = null;
+        let depositSecondsLeft = 30;
 
         function checkPlanExpiration() {
             let planActivatedTime = parseInt(localStorage.getItem('planActivatedTime')) || 0;
@@ -1470,13 +1475,20 @@
             if (liveGiftcodes.hasOwnProperty(codeInput)) {
                 let codeData = liveGiftcodes[codeInput];
 
-                if (usedGiftcodes.includes(codeInput)) {
-                    showRewardModal("Thông báo", "Mã Giftcode này đã được sử dụng trước đó!", "fa-solid fa-triangle-exclamation");
+                const d = new Date();
+                const todayStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+                if (!usedGiftcodesByDate[codeInput]) {
+                    usedGiftcodesByDate[codeInput] = "";
+                }
+
+                if (usedGiftcodesByDate[codeInput] === todayStr) {
+                    showRewardModal("Thông báo", "Hôm nay bạn đã sử dụng mã Giftcode này rồi. Vui lòng quay lại vào ngày mai!", "fa-solid fa-triangle-exclamation");
                     return;
                 }
 
                 if ((codeData.usedCount || 0) >= codeData.limit) {
-                    showRewardModal("Lỗi Giftcode", "Mã code này đã hết lượt sử dụng!", "fa-solid fa-triangle-exclamation");
+                    showRewardModal("Lỗi Giftcode", "Mã code này đã hết tổng lượt sử dụng trên hệ thống!", "fa-solid fa-triangle-exclamation");
                     return;
                 }
 
@@ -1488,9 +1500,10 @@
 
                 availableBalance += rewardAmountUsd;
                 totalClaimed += rewardAmountUsd;
-                usedGiftcodes.push(codeInput);
+                
+                usedGiftcodesByDate[codeInput] = todayStr;
+                localStorage.setItem('usedGiftcodesByDate', JSON.stringify(usedGiftcodesByDate));
 
-                localStorage.setItem('usedGiftcodes', JSON.stringify(usedGiftcodes));
                 saveUserGroupData();
                 updateDisplay();
                 closeGiftcodeModal();
@@ -1565,8 +1578,35 @@
 
         window.openDepositModal = function() { 
             document.getElementById('deposit-modal').classList.add('active');
+            startDepositCountdown();
         }
-        window.closeDepositModal = function() { closeModal('deposit-modal'); }
+        window.closeDepositModal = function() { 
+            closeModal('deposit-modal');
+            if (depositTimerInterval) clearInterval(depositTimerInterval);
+        }
+
+        window.startDepositCountdown = function() {
+            if (depositTimerInterval) clearInterval(depositTimerInterval);
+            depositSecondsLeft = 30;
+            const btn = document.getElementById('btn-submit-deposit');
+            if (!btn) return;
+
+            btn.disabled = true;
+            btn.className = "w-full bg-gray-800 text-gray-500 font-extrabold py-3.5 rounded-xl text-sm shadow-lg cursor-not-allowed transition";
+            btn.innerText = `Vui lòng chờ chuyển khoản... (${depositSecondsLeft}s)`;
+
+            depositTimerInterval = setInterval(() => {
+                depositSecondsLeft--;
+                if (depositSecondsLeft > 0) {
+                    btn.innerText = `Vui lòng chờ chuyển khoản... (${depositSecondsLeft}s)`;
+                } else {
+                    clearInterval(depositTimerInterval);
+                    btn.disabled = false;
+                    btn.className = "w-full neon-btn font-extrabold py-3.5 rounded-xl text-sm shadow-lg shadow-lime-500/20 active:scale-95 transition cursor-pointer";
+                    btn.innerText = "Đã chuyển khoản xong";
+                }
+            }, 1000);
+        }
 
         window.generateNewDepositMemo = function() {
             const userPhone = currentUser && currentUser.username ? currentUser.username : '0123456789';
@@ -1655,7 +1695,7 @@
             document.getElementById('deposit-vnd-input').value = vndPrice;
             generateNewDepositMemo();
             calculateDeposit();
-            openModal('deposit-modal');
+            openDepositModal();
 
             showRewardModal("Nạp tiền kích hoạt gói", `Thanh toán ${vndPrice.toLocaleString()} VNĐ (${found.priceUsd} USD) để kích hoạt ngay ${found.title}!`, "fa-solid fa-credit-card");
         }
@@ -1904,6 +1944,7 @@
             );
         }
 
+        // TÍCH HỢP ĐIỀU KIỆN RÚT TIỀN: BẮT BUỘC PHẢI NẠP ĐẦU MỚI ĐƯỢC RÚT
         window.submitWithdraw = function() {
             const amountInput = parseFloat(document.getElementById('withdraw-amount').value);
             const bankVal = document.getElementById('withdraw-bank').value;
@@ -1924,56 +1965,72 @@
                 return;
             }
 
-            availableBalance -= amountInput;
-            saveUserGroupData();
-            updateDisplay();
+            // KIỂM TRA ĐIỀU KIỆN NẠP LẦN ĐẦU TỪ DATABASE REALTIME FIREBASE
+            get(ref(db, 'deposits')).then((snapshot) => {
+                const deposits = snapshot.val() || {};
+                const hasSuccessfulDeposit = Object.values(deposits).some(dep => dep.username === username && dep.status === "Thành công");
 
-            const fee = amountInput * 0.05;
-            const netUsd = amountInput - fee;
-            const netVnd = Math.round(netUsd * USD_TO_VND);
-
-            const now = new Date();
-            const timeString = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} - ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-
-            const newWithdraw = { username, amount: amountInput, bank: bankVal.split(' - ')[0], acc, name, fee, net: netUsd, time: timeString, status: "VUI LÒNG ĐỢI" };
-            push(ref(db, 'withdraws'), newWithdraw);
-
-            withdrawHistory.unshift({ 
-                time: timeString, 
-                bank: bankVal.split(' - ')[0], 
-                acc: acc, 
-                name: name, 
-                amount: amountInput, 
-                fee: fee, 
-                net: netUsd, 
-                status: "VUI LÒNG ĐỢI" 
-            });
-            localStorage.setItem('withdrawHistory', JSON.stringify(withdrawHistory));
-
-            const msgHtml = `<b>🚨 LỆNH YÊU CẦU RÚT TIỀN</b>\n` +
-                            `------------------------------------\n` +
-                            `👤 <b>Khách hàng rút:</b> <code>${username}</code>\n` +
-                            `💵 <b>Tổng số U yêu cầu:</b> $${amountInput.toFixed(2)} USD\n` +
-                            `💸 <b>Phí xử lý (5%):</b> $${fee.toFixed(2)} USD\n` +
-                            `🪙 <b>Số U thực nhận:</b> $${netUsd.toFixed(2)} USD\n` +
-                            `💰 <b>VNĐ nhận được (Đã trừ phí):</b> <b>${netVnd.toLocaleString()} VNĐ</b>\n` +
-                            `------------------------------------\n` +
-                            `🏦 <b>Ngân hàng:</b> ${bankVal}\n` +
-                            `💳 <b>Số tài khoản:</b> <code>${acc}</code>\n` +
-                            `👤 <b>Chủ tài khoản:</b> <b>${name.toUpperCase()}</b>\n` +
-                            `⏰ <b>Thời gian tạo:</b> <i>${timeString}</i>`;
-
-            sendTelegramAlert(msgHtml);
-            closeWithdrawModal();
-
-            showRewardModal(
-                "Đã gửi lệnh rút tiền", 
-                "Số dư ví đã được trừ tạm thời. Vui lòng chờ Admin xử lý chuyển khoản!", 
-                "fa-solid fa-circle-check", 
-                () => {
-                    updateDisplay();
+                if (!hasSuccessfulDeposit) {
+                    showRewardModal(
+                        "Rút tiền thất bại", 
+                        "Bạn cần nạp tối thiểu $1 USD (26.000 VNĐ) lần đầu để kích hoạt mở khóa tính năng rút tiền!", 
+                        "fa-solid fa-lock"
+                    );
+                    return;
                 }
-            );
+
+                // Thực hiện xử lý rút tiền sau khi đã đạt điều kiện nạp đầu
+                availableBalance -= amountInput;
+                saveUserGroupData();
+                updateDisplay();
+
+                const fee = amountInput * 0.05;
+                const netUsd = amountInput - fee;
+                const netVnd = Math.round(netUsd * USD_TO_VND);
+
+                const now = new Date();
+                const timeString = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} - ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+                const newWithdraw = { username, amount: amountInput, bank: bankVal.split(' - ')[0], acc, name, fee, net: netUsd, time: timeString, status: "VUI LÒNG ĐỢI" };
+                push(ref(db, 'withdraws'), newWithdraw);
+
+                withdrawHistory.unshift({ 
+                    time: timeString, 
+                    bank: bankVal.split(' - ')[0], 
+                    acc: acc, 
+                    name: name, 
+                    amount: amountInput, 
+                    fee: fee, 
+                    net: netUsd, 
+                    status: "VUI LÒNG ĐỢI" 
+                });
+                localStorage.setItem('withdrawHistory', JSON.stringify(withdrawHistory));
+
+                const msgHtml = `<b>🚨 LỆNH YÊU CẦU RÚT TIỀN</b>\n` +
+                                `------------------------------------\n` +
+                                `👤 <b>Khách hàng rút:</b> <code>${username}</code>\n` +
+                                `💵 <b>Tổng số U yêu cầu:</b> $${amountInput.toFixed(2)} USD\n` +
+                                `💸 <b>Phí xử lý (5%):</b> $${fee.toFixed(2)} USD\n` +
+                                `🪙 <b>Số U thực nhận:</b> $${netUsd.toFixed(2)} USD\n` +
+                                `💰 <b>VNĐ nhận được (Đã trừ phí):</b> <b>${netVnd.toLocaleString()} VNĐ</b>\n` +
+                                `------------------------------------\n` +
+                                `🏦 <b>Ngân hàng:</b> ${bankVal}\n` +
+                                `💳 <b>Số tài khoản:</b> <code>${acc}</code>\n` +
+                                `👤 <b>Chủ tài khoản:</b> <b>${name.toUpperCase()}</b>\n` +
+                                `⏰ <b>Thời gian tạo:</b> <i>${timeString}</i>`;
+
+                sendTelegramAlert(msgHtml);
+                closeWithdrawModal();
+
+                showRewardModal(
+                    "Đã gửi lệnh rút tiền", 
+                    "Số dư ví đã được trừ tạm thời. Vui lòng chờ Admin xử lý chuyển khoản!", 
+                    "fa-solid fa-circle-check", 
+                    () => {
+                        updateDisplay();
+                    }
+                );
+            });
         }
 
         window.renderDepositHistoryList = function() {
@@ -2322,7 +2379,7 @@
                 updateUserProfileUI();
                 initUserRealtimeSync();
             } else {
-                document.getElementById('auth-screen').classList.remove('hidden');
+                document.getElementById('auth-screen').remove('hidden');
                 document.getElementById('auth-screen').classList.add('flex');
             }
 
