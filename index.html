@@ -1048,7 +1048,7 @@
                 updateDisplay();
             });
 
-            // LẮNG NGHE ĐƠN NẠP VÀ TỰ ĐỘNG CỘNG TIỀN VÀO SỐ DƯ KHI ADMIN DUYỆT "THÀNH CÔNG"
+            // LẮNG NGHE ĐƠN NẠP VÀ CHỈ KÍCH HOẠT GÓI KHI ADMIN DUYỆT "THÀNH CÔNG" (KHÔNG CỘNG SỐ DƯ)
             onValue(ref(db, 'deposits'), (snapshot) => {
                 const data = snapshot.val() || {};
                 const entries = Object.entries(data);
@@ -1068,21 +1068,18 @@
 
                 syncNotifications();
 
-                // KIỂM TRA ĐƠN ĐÃ ĐƯỢC ADMIN DUYỆT THÀNH CÔNG THÌ CỘNG TIỀN VÀO VÍ
+                // KIỂM TRA ĐƠN ĐÃ ĐƯỢC ADMIN DUYỆT THÀNH CÔNG THÌ KÍCH HOẠT GÓI
                 myDeposits.forEach(dep => {
                     if (dep.status === "Thành công" && !processedDepositKeys.includes(dep.key)) {
-                        // Kích hoạt gói tương ứng
                         const targetPlanId = dep.planId || 1;
                         const matchedPlan = investmentPlans.find(p => p.id === targetPlanId || p.priceUsd === dep.usd) || investmentPlans[0];
                         
+                        // KÍCH HOẠT GÓI KHAI THÁC MỚI
                         activePlanId = matchedPlan.id;
                         activePlan = matchedPlan;
                         localStorage.setItem('activePlanId', activePlanId);
                         
-                        // CỘNG SỐ DƯ VÍ TƯƠNG ỨNG VỚI GÓI NẠP
-                        availableBalance += dep.usd;
-                        
-                        // Đánh dấu đơn nạp đã cộng tiền để không cộng lặp lại
+                        // ĐÁNH DẤU ĐƠN NẠP ĐÃ XỬ LÝ ĐỂ KHÔNG LẶP LẠI
                         processedDepositKeys.push(dep.key);
                         localStorage.setItem('processedDepositKeys', JSON.stringify(processedDepositKeys));
 
@@ -1091,8 +1088,8 @@
                         renderPlansUI();
 
                         showRewardModal(
-                            "NẠP TIỀN THÀNH CÔNG", 
-                            `Lệnh nạp của bạn đã được duyệt! Đã kích hoạt ${matchedPlan.title} và cộng +$${dep.usd.toFixed(2)} U vào số dư ví.`, 
+                            "KÍCH HOẠT GÓI THÀNH CÔNG", 
+                            `Yêu cầu nạp tiền đã được duyệt! Đã kích hoạt gói khai thác: ${matchedPlan.title}.`, 
                             "fa-solid fa-circle-check"
                         );
                     }
@@ -1792,7 +1789,7 @@
 
             showRewardModal(
                 "Đã gửi yêu cầu nạp", 
-                "Vui lòng chờ Admin duyệt để tự động kích hoạt gói và cộng tiền vào số dư ví!", 
+                "Vui lòng chờ Admin duyệt để tự động kích hoạt gói!", 
                 "fa-solid fa-spinner fa-spin", 
                 () => {
                     updateDisplay();
