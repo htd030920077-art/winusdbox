@@ -1061,6 +1061,7 @@
         function initUserRealtimeSync() {
             if (!currentUser) return;
             
+            // Lắng nghe dữ liệu danh sách Users
             onValue(ref(db, 'users'), (snapshot) => {
                 const allUsers = snapshot.val() || {};
                 const foundKey = Object.keys(allUsers).find(k => allUsers[k].username === currentUser.username);
@@ -1088,15 +1089,20 @@
                     }
                 }
                 
-                renderGroupMembers(allUsers);
-                checkAndProcessCommissions(allUsers);
+                // Lắng nghe thêm deposits để tổng hợp nhóm
+                get(ref(db, 'deposits')).then(depSnap => {
+                    const depositsData = depSnap.val() || {};
+                    renderGroupMembers(allUsers, depositsData);
+                });
                 updateDisplay();
             });
 
+            // Lắng nghe dữ liệu NẠP TIỀN Realtime (Đã cập nhật fix tính năng hoa hồng + nhiệm vụ đếm người nạp)
             onValue(ref(db, 'deposits'), (snapshot) => {
                 const data = snapshot.val() || {};
                 const entries = Object.entries(data);
                 
+                // 1. Cập nhật lịch sử nạp cá nhân
                 const myDeposits = entries
                     .filter(([key, d]) => d.username === currentUser.username)
                     .map(([key, d]) => ({ key, ...d }));
@@ -1112,6 +1118,7 @@
 
                 syncNotifications();
 
+                // 2. Kích hoạt gói đầu tư cá nhân khi nạp tiền thành công
                 myDeposits.forEach(dep => {
                     if (dep.status === "Thành công" && !processedDepositKeys.includes(dep.key)) {
                         const targetPlanId = dep.planId || 1;
@@ -1136,8 +1143,16 @@
                         );
                     }
                 });
+
+                // 3. Tự động quét và xử lý HOA HỒNG GIỚI THIỆU Realtime
+                get(ref(db, 'users')).then(userSnap => {
+                    const allUsers = userSnap.val() || {};
+                    checkAndProcessCommissions(allUsers, data);
+                    renderGroupMembers(allUsers, data);
+                });
             });
 
+            // Lắng nghe LỊCH SỬ RÚT TIỀN Realtime
             onValue(ref(db, 'withdraws'), (snapshot) => {
                 const data = snapshot.val() || {};
                 const list = Object.keys(data).map(k => data[k]);
@@ -1160,68 +1175,68 @@
             });
         }
 
-        function checkAndProcessCommissions(allUsers) {
+        // TÍNH HOA HỒNG TỰ ĐỘNG REALTIME DỰA TRÊN ĐƠN NẠP THÀNH CÔNG
+        function checkAndProcessCommissions(allUsers, deposits) {
             if (!currentUser) return;
             const myPhone = currentUser.username;
+            let earnedBonusTotal = 0;
 
-            get(ref(db, 'deposits')).then(snapshot => {
-                const deposits = snapshot.val() || {};
-                let earnedBonusTotal = 0;
+            Object.entries(deposits).forEach(([depKey, dep]) => {
+                if (dep.status === "Thành công" && !processedCommissionKeys.includes(depKey)) {
+                    const depUser = Object.values(allUsers).find(u => u.username === dep.username);
+                    if (!depUser) return;
 
-                Object.entries(deposits).forEach(([depKey, dep]) => {
-                    if (dep.status === "Thành công" && !processedCommissionKeys.includes(depKey)) {
-                        const depUser = Object.values(allUsers).find(u => u.username === dep.username);
-                        if (!depUser) return;
+                    let commAmount = 0;
+                    let levelText = "";
 
-                        let commAmount = 0;
-                        let levelText = "";
-
-                        if (depUser.refBy === myPhone) {
-                            commAmount = dep.usd * 0.15;
-                            levelText = "F1";
-                        } 
-                        else {
-                            const f1User = Object.values(allUsers).find(u => u.username === depUser.refBy);
-                            if (f1User && f1User.refBy === myPhone) {
-                                commAmount = dep.usd * 0.03;
-                                levelText = "F2";
-                            }
-                            else if (f1User) {
-                                const f2User = Object.values(allUsers).find(u => u.username === f1User.refBy);
-                                if (f2User && f2User.refBy === myPhone) {
-                                    commAmount = dep.usd * 0.02;
-                                    levelText = "F3";
-                                }
-                            }
+                    // Kiểm tra F1
+                    if (depUser.refBy === myPhone) {
+                        commAmount = dep.usd * 0.15;
+                        levelText = "F1";
+                    } 
+                    // Kiểm tra F2
+                    else {
+                        const f1User = Object.values(allUsers).find(u => u.username === depUser.refBy);
+                        if (f1User && f1User.refBy === myPhone) {
+                            commAmount = dep.usd * 0.03;
+                            levelText = "F2";
                         }
-
-                        if (commAmount > 0) {
-                            earnedBonusTotal += commAmount;
-                            processedCommissionKeys.push(depKey);
-
-                            appNotifications.unshift({
-                                title: "Thưởng Hoa Hồng Mới",
-                                time: dep.time || "Vừa xong",
-                                content: `Bạn nhận được +$${commAmount.toFixed(2)} USD hoa hồng (${levelText}) từ cấp dưới ${dep.username} nạp gói!`
-                            });
+                        // Kiểm tra F3
+                        else if (f1User) {
+                            const f2User = Object.values(allUsers).find(u => u.username === f1User.refBy);
+                            if (f2User && f2User.refBy === myPhone) {
+                                commAmount = dep.usd * 0.02;
+                                levelText = "F3";
+                            }
                         }
                     }
-                });
 
-                if (earnedBonusTotal > 0) {
-                    availableBalance += earnedBonusTotal;
-                    localStorage.setItem('processedCommissionKeys', JSON.stringify(processedCommissionKeys));
-                    saveUserGroupData();
-                    updateDisplay();
-                    syncNotifications();
+                    if (commAmount > 0) {
+                        earnedBonusTotal += commAmount;
+                        processedCommissionKeys.push(depKey);
 
-                    showRewardModal(
-                        "NHẬN HOA HỒNG MỚI", 
-                        `Chúc mừng! Bạn vừa nhận +$${earnedBonusTotal.toFixed(2)} USD hoa hồng cấp dưới cộng trực tiếp vào số dư ví!`, 
-                        "fa-solid fa-coins"
-                    );
+                        appNotifications.unshift({
+                            title: "Thưởng Hoa Hồng Mới",
+                            time: dep.time || "Vừa xong",
+                            content: `Bạn nhận được +$${commAmount.toFixed(2)} USD hoa hồng (${levelText}) từ cấp dưới ${dep.username} nạp gói!`
+                        });
+                    }
                 }
             });
+
+            if (earnedBonusTotal > 0) {
+                availableBalance += earnedBonusTotal;
+                localStorage.setItem('processedCommissionKeys', JSON.stringify(processedCommissionKeys));
+                saveUserGroupData();
+                updateDisplay();
+                syncNotifications();
+
+                showRewardModal(
+                    "NHẬN HOA HỒNG MỚI", 
+                    `Chúc mừng! Bạn vừa nhận +$${earnedBonusTotal.toFixed(2)} USD hoa hồng cấp dưới cộng trực tiếp vào số dư ví!`, 
+                    "fa-solid fa-coins"
+                );
+            }
         }
 
         window.syncNotifications = function() {
@@ -1266,7 +1281,8 @@
             }
         }
 
-        window.renderGroupMembers = function(allUsers) {
+        // TÍNH TOÁN DANH SÁCH NHÓM & ĐẾM CHÍNH XÁC SỐ F1 NẠP TIỀN
+        window.renderGroupMembers = function(allUsers, depositsData = {}) {
             if (!currentUser) return;
             const myPhone = currentUser.username;
 
@@ -1296,13 +1312,21 @@
                 });
             });
 
+            // Tổng hợp tiền nạp của từng user từ nhánh deposits
+            let userDepositMap = {};
+            Object.values(depositsData).forEach(dep => {
+                if (dep.status === "Thành công") {
+                    userDepositMap[dep.username] = (userDepositMap[dep.username] || 0) + (dep.usd || 0);
+                }
+            });
+
             let calcF1Comm = 0;
             let calcF2Comm = 0;
             let calcF3Comm = 0;
             let f1DepositedCount = 0;
 
             cachedF1List = f1List.map(f1 => {
-                let f1DepositUsd = f1.totalDepositUsd || 0;
+                let f1DepositUsd = userDepositMap[f1.username] || 0;
                 if (f1DepositUsd > 0) {
                     f1DepositedCount++;
                 }
@@ -1318,12 +1342,12 @@
             });
 
             f2List.forEach(f2 => {
-                let f2DepositUsd = f2.totalDepositUsd || 0;
+                let f2DepositUsd = userDepositMap[f2.username] || 0;
                 calcF2Comm += f2DepositUsd * 0.03;
             });
 
             f3List.forEach(f3 => {
-                let f3DepositUsd = f3.totalDepositUsd || 0;
+                let f3DepositUsd = userDepositMap[f3.username] || 0;
                 calcF3Comm += f3DepositUsd * 0.02;
             });
 
@@ -2369,7 +2393,6 @@
                 }
             }
 
-            // TÍCH HỢP FIX LỖI KẸT TÀI KHOẢN TEST
             if (currentUser && currentUser.username) {
                 document.getElementById('auth-screen').classList.add('hidden');
                 document.getElementById('auth-screen').classList.remove('flex');
