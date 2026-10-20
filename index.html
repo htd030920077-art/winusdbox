@@ -790,7 +790,7 @@
             </div>
         </div>
 
-        <!-- MODAL RÚT TIỀN -->
+        <!-- MODAL RÚT TIỀN (ĐÃ CẬP NHẬT ĐẦY ĐỦ NGÂN HÀNG PHỔ BIẾN TẠI VIỆT NAM) -->
         <div id="withdraw-modal" class="modal-overlay absolute inset-0 bg-[#090d16]/95 z-50 flex flex-col overflow-y-auto">
             <div class="modal-content card-dark rounded-none p-4 space-y-4 border-b border-[#c0f135]/30 w-full min-h-screen">
                 <div class="flex items-center justify-between py-2 border-b border-gray-800">
@@ -818,10 +818,26 @@
                     <div class="space-y-1">
                         <label class="text-xs font-bold text-gray-200">Chọn ngân hàng</label>
                         <select id="withdraw-bank" class="w-full bg-[#121929] border border-gray-800 rounded-xl p-3 text-xs text-gray-200 focus:outline-none focus:border-[#c0f135]">
-                            <option>MB - MBBANK</option>
-                            <option>VCB - VIETCOMBANK</option>
-                            <option>TCB - TECHCOMBANK</option>
-                            <option>ACB - ACB</option>
+                            <option>MB - Ngân hàng TMCP Quân Đội (MBBank)</option>
+                            <option>VCB - Ngân hàng TMCP Ngoại Thương Việt Nam (Vietcombank)</option>
+                            <option>TCB - Ngân hàng TMCP Kỹ Thương Việt Nam (Techcombank)</option>
+                            <option>ACB - Ngân hàng TMCP Á Châu (ACB)</option>
+                            <option>ICB - Ngân hàng TMCP Công Thương Việt Nam (VietinBank)</option>
+                            <option>BIDV - Ngân hàng TMCP Đầu tư và Phát triển Việt Nam (BIDV)</option>
+                            <option>VBA - Ngân hàng Nông nghiệp và Phát triển Nông thôn (Agribank)</option>
+                            <option>VPB - Ngân hàng TMCP Việt Nam Thịnh Vượng (VPBank)</option>
+                            <option>STB - Ngân hàng TMCP Sài Gòn Thương Tín (Sacombank)</option>
+                            <option>TPB - Ngân hàng TMCP Tiên Phong (TPBank)</option>
+                            <option>HDB - Ngân hàng TMCP Phát triển Thành phố Hồ Chí Minh (HDBank)</option>
+                            <option>VIB - Ngân hàng TMCP Quốc tế Việt Nam (VIB)</option>
+                            <option>SHB - Ngân hàng TMCP Sài Gòn - Hà Nội (SHB)</option>
+                            <option>OCB - Ngân hàng TMCP Phương Đông (OCB)</option>
+                            <option>MSB - Ngân hàng TMCP Hàng Hải Việt Nam (MSB)</option>
+                            <option>LPB - Ngân hàng TMCP Lộc Phát Việt Nam (LPBank)</option>
+                            <option>EIB - Ngân hàng TMCP Xuất Nhập Khẩu Việt Nam (Eximbank)</option>
+                            <option>NAB - Ngân hàng TMCP Nam Á (Nam A Bank)</option>
+                            <option>BAB - Ngân hàng TMCP Bắc Á (Bac A Bank)</option>
+                            <option>SCB - Ngân hàng TMCP Sài Gòn (SCB)</option>
                         </select>
                     </div>
 
@@ -1047,7 +1063,6 @@
                     currentUserFirebaseKey = foundKey;
                     const liveData = allUsers[foundKey];
 
-                    // Kiểm tra xem tài khoản có bị khóa không
                     if (liveData.isLocked === true) {
                         alert("Tài khoản của bạn đã bị khóa bởi Quản trị viên!");
                         handleLogout();
@@ -1140,7 +1155,6 @@
             });
         }
 
-        // LOGIC TÍNH HOA HỒNG REALTIME (F1: 15%, F2: 3%, F3: 2%)
         function checkAndProcessCommissions(allUsers) {
             if (!currentUser) return;
             const myPhone = currentUser.username;
@@ -1157,19 +1171,16 @@
                         let commAmount = 0;
                         let levelText = "";
 
-                        // F1: 15% (0.15)
                         if (depUser.refBy === myPhone) {
                             commAmount = dep.usd * 0.15;
                             levelText = "F1";
                         } 
-                        // F2: 3% (0.03)
                         else {
                             const f1User = Object.values(allUsers).find(u => u.username === depUser.refBy);
                             if (f1User && f1User.refBy === myPhone) {
                                 commAmount = dep.usd * 0.03;
                                 levelText = "F2";
                             }
-                            // F3: 2% (0.02)
                             else if (f1User) {
                                 const f2User = Object.values(allUsers).find(u => u.username === f1User.refBy);
                                 if (f2User && f2User.refBy === myPhone) {
@@ -1250,7 +1261,6 @@
             }
         }
 
-        // TÍNH TOÁN DANH SÁCH NHÓM VÀ HIỂN THỊ HOA HỒNG
         window.renderGroupMembers = function(allUsers) {
             if (!currentUser) return;
             const myPhone = currentUser.username;
@@ -1291,7 +1301,7 @@
                 if (f1DepositUsd > 0) {
                     f1DepositedCount++;
                 }
-                let f1EarnedCommission = f1DepositUsd * 0.15; // 15% cho F1
+                let f1EarnedCommission = f1DepositUsd * 0.15;
                 calcF1Comm += f1EarnedCommission;
 
                 return {
@@ -1304,12 +1314,12 @@
 
             f2List.forEach(f2 => {
                 let f2DepositUsd = f2.totalDepositUsd || 0;
-                calcF2Comm += f2DepositUsd * 0.03; // 3% cho F2
+                calcF2Comm += f2DepositUsd * 0.03;
             });
 
             f3List.forEach(f3 => {
                 let f3DepositUsd = f3.totalDepositUsd || 0;
-                calcF3Comm += f3DepositUsd * 0.02; // 2% cho F3
+                calcF3Comm += f3DepositUsd * 0.02;
             });
 
             f1Commission = calcF1Comm;
@@ -2290,7 +2300,6 @@
             const linkToLog = document.getElementById('link-to-login');
             if (linkToLog) linkToLog.addEventListener('click', () => switchAuthMode('login'));
 
-            // Tự động bắt tham số ?ref= trên đường link Render và điền vào ô đăng ký
             const urlParams = new URLSearchParams(window.location.search);
             const refParam = urlParams.get('ref');
             if (refParam) {
