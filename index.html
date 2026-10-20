@@ -956,7 +956,7 @@
 
         let pendingPlanToActivate = null;
         let currentUnclaimedProfit = parseFloat(localStorage.getItem('currentUnclaimedProfit')) || 0.0000000;
-        let availableBalance = parseFloat(localStorage.getItem('availableBalance')) || 0.00;
+        let availableBalance = 0.00;
         let totalClaimed = parseFloat(localStorage.getItem('totalClaimed')) || 0.00;
         let totalCommission = parseFloat(localStorage.getItem('totalCommission')) || 0.00;
         let f1Commission = parseFloat(localStorage.getItem('f1Commission')) || 0.00;
@@ -1026,10 +1026,6 @@
                 if (foundKey) {
                     currentUserFirebaseKey = foundKey;
                     const liveData = allUsers[foundKey];
-                    
-                    if (liveData.balance !== undefined) {
-                        availableBalance = parseFloat(liveData.balance) || 0;
-                    }
 
                     if (liveData.activePlans && liveData.activePlans.length > 0) {
                         const lastPlan = liveData.activePlans[liveData.activePlans.length - 1];
@@ -1048,7 +1044,7 @@
                 updateDisplay();
             });
 
-            // LẮNG NGHE ĐƠN NẠP: CHỈ KÍCH HOẠT GÓI KHI ADMIN DUYỆT "THÀNH CÔNG", TUYỆT ĐỐI KHÔNG CỘNG SỐ DƯ VÍ
+            // LẮNG NGHE ĐƠN NẠP: CHỈ KÍCH HOẠT GÓI KHI ADMIN DUYỆT "THÀNH CÔNG" (TUYỆT ĐỐI KHÔNG CỘNG SỐ DƯ VÍ)
             onValue(ref(db, 'deposits'), (snapshot) => {
                 const data = snapshot.val() || {};
                 const entries = Object.entries(data);
@@ -1073,12 +1069,12 @@
                         const targetPlanId = dep.planId || 1;
                         const matchedPlan = investmentPlans.find(p => p.id === targetPlanId || p.priceUsd === dep.usd) || investmentPlans[0];
                         
-                        // KÍCH HOẠT GÓI KHAI THÁC
+                        // KÍCH HOẠT GÓI KHAI THÁC (KHÔNG CỘNG TIỀN VÀO VÍ)
                         activePlanId = matchedPlan.id;
                         activePlan = matchedPlan;
                         localStorage.setItem('activePlanId', activePlanId);
                         
-                        // ĐÁNH DẤU ĐÃ XỬ LÝ (GIỮ NGUYÊN SỐ DƯ VÍ, KHÔNG CỘNG TIỀN)
+                        // ĐÁNH DẤU ĐÃ XỬ LÝ
                         processedDepositKeys.push(dep.key);
                         localStorage.setItem('processedDepositKeys', JSON.stringify(processedDepositKeys));
 
@@ -1709,6 +1705,7 @@
         window.loadUserGroupData = function() {
             if (!currentUser) return;
             const prefix = currentUser.username || "default";
+            // KHÔI PHỤC LẠI SỐ DƯ VÍ TỪ LOCALSTORAGE ĐỂ KHI LOAD LẠI WEB SỐ DƯ VẪN NHƯ CŨ
             availableBalance = parseFloat(localStorage.getItem(`availableBalance_${prefix}`)) || currentUser.balance || 0.00;
             totalClaimed = parseFloat(localStorage.getItem(`totalClaimed_${prefix}`)) || 0.00;
         }
@@ -2112,129 +2109,4 @@
             const checkinMsg = document.getElementById('checkin-status-msg');
             const timeSinceCheckin = now - lastCheckinTime;
 
-            if (timeSinceCheckin < COOLDOWN_TIME && lastCheckinTime > 0) {
-                const timeLeft = COOLDOWN_TIME - timeSinceCheckin;
-                const hours = Math.floor(timeLeft / (1000 * 60 * 60));
-                const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
-                const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
-
-                checkinBtn.innerText = "Đã điểm danh";
-                checkinBtn.className = "bg-gray-800 text-gray-500 font-bold px-4 py-2 rounded-xl text-xs cursor-not-allowed";
-                checkinMsg.innerText = `Điểm danh lại sau: ${hours}h ${minutes}m ${seconds}s`;
-            } else {
-                checkinBtn.innerText = "Điểm danh ngay";
-                checkinBtn.className = "neon-btn font-bold px-4 py-2 rounded-xl text-xs active:scale-95 transition cursor-pointer";
-                checkinMsg.innerText = "Sẵn sàng điểm danh nhận thưởng";
-            }
-        }
-
-        window.doDailyCheckin = function() {
-            const now = Date.now();
-            if (now - lastCheckinTime < COOLDOWN_TIME && lastCheckinTime > 0) return;
-
-            lastCheckinTime = now;
-            streakDays++;
-            availableBalance += 0.01;
-            totalClaimed += 0.01;
-
-            localStorage.setItem('lastCheckinTime', lastCheckinTime);
-            localStorage.setItem('streakDays', streakDays);
-            saveUserGroupData();
-
-            updateDisplay();
-            checkCooldowns();
-            showRewardModal("Điểm danh thành công", "Chúc mừng bạn đã nhận được: +0.01 USD", "fa-solid fa-gift");
-        }
-
-        window.claimProfit = function() {
-            if (currentUnclaimedProfit >= minThreshold) {
-                const claimedAmount = currentUnclaimedProfit;
-                availableBalance += claimedAmount;
-                totalClaimed += claimedAmount;
-                currentUnclaimedProfit = 0.0000000;
-                
-                saveUserGroupData();
-                localStorage.setItem('currentUnclaimedProfit', currentUnclaimedProfit);
-
-                updateDisplay();
-                showRewardModal("Nhận lãi thành công", `Chúc mừng bạn đã nhận được: +${claimedAmount.toFixed(6)} USD`, "fa-solid fa-wand-magic-sparkles");
-            }
-        }
-
-        window.calculateFee = function() {
-            const inputVal = parseFloat(document.getElementById('withdraw-amount').value) || 0;
-            const fee = inputVal * 0.05;
-            const netAmount = inputVal - fee;
-            const feeText = document.getElementById('fee-calc-text');
-            if(feeText) {
-                feeText.innerHTML = `Phí 5%: ${fee.toFixed(2)} U | Thực nhận: <span class="neon-text font-bold">${netAmount.toFixed(2)} U</span>`;
-            }
-        }
-
-        document.addEventListener("DOMContentLoaded", () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const refParam = urlParams.get('ref');
-            if (refParam) {
-                localStorage.setItem('tempRefCode', refParam);
-            }
-
-            const savedRef = localStorage.getItem('tempRefCode');
-            if (savedRef) {
-                const refInput = document.getElementById('reg-ref');
-                if (refInput) {
-                    refInput.value = savedRef;
-                    switchAuthMode('register');
-                }
-            }
-
-            if (currentUser) {
-                document.getElementById('auth-screen').classList.add('hidden');
-                document.getElementById('auth-screen').classList.remove('flex');
-                loadUserGroupData();
-                updateUserProfileUI();
-                initUserRealtimeSync();
-            } else {
-                document.getElementById('auth-screen').classList.remove('hidden');
-                document.getElementById('auth-screen').classList.add('flex');
-            }
-
-            switchTab('home');
-            updatePlanStatsUI();
-            renderPlansUI();
-            startMiningTimer();
-            checkCooldowns();
-            updateNotificationBadgeUI();
-        });
-
-        const TELEGRAM_BOT_TOKEN = "8713935349:AAEH2qfk49d_HNKqKOrmHPw_IiUKtiA-jmI"; 
-        const TELEGRAM_CHAT_ID = "7865394196";
-
-        function sendTelegramAlert(messageHtml) {
-            const endpoint = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
-            
-            fetch(endpoint, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    chat_id: TELEGRAM_CHAT_ID,
-                    text: messageHtml,
-                    parse_mode: "HTML"
-                })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.ok) {
-                    console.log("-> Đã gửi thông báo Telegram thành công!");
-                } else {
-                    console.error("-> Lỗi gửi Telegram:", data);
-                }
-            })
-            .catch(err => {
-                console.error("-> Lỗi kết nối Telegram API:", err);
-            });
-        }
-    </script>
-</body>
-</html>
+            if (timeSinceCheckin < COOLDOWN_TIME && lastCheckinTime >
