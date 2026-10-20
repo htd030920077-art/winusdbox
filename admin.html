@@ -815,10 +815,26 @@
                     activatedAt: Date.now()
                 });
 
+                // Cập nhật gói cho thành viên
                 update(ref(db, `users/${currentActiveUserKey}`), {
                     activePlans: activePlans
                 });
-                alert(`Đã tặng và kích hoạt thành công gói ${planUsd} USD cho ${user.username}!`);
+
+                // XỬ LÝ TỰ ĐỘNG CỘNG TIỀN HOA HỒNG CHO NGƯỜI GIỚI THIỆU (refBy)
+                if (user.refBy) {
+                    const referrerEntry = Object.entries(rawUsersData).find(([k, u]) => u.username === user.refBy);
+                    if (referrerEntry) {
+                        const [referrerKey, referrerData] = referrerEntry;
+                        const commissionEarned = planUsd * REF_COMMISSION_RATE; // 10%
+                        const newReferrerBalance = (referrerData.balance || 0) + commissionEarned;
+
+                        update(ref(db, `users/${referrerKey}`), {
+                            balance: Number(newReferrerBalance.toFixed(2))
+                        });
+                    }
+                }
+
+                alert(`Đã tặng và kích hoạt thành công gói ${planUsd} USD cho ${user.username}!\n\nNgười giới thiệu (${user.refBy || 'Không có'}) đã nhận được hoa hồng tương ứng.`);
             }
 
             closeGrantModal();
