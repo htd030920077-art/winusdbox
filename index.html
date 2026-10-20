@@ -263,7 +263,7 @@
                         </div>
                     </div>
 
-                    <!-- KHU VỰC NHIỆM VỤ MỜI BẠN BÈ -->
+                    <!-- KHU VỰC NHIỆM VỤ MỜI BẠN BÈ (CẬP NHẬT F1 15%) -->
                     <div onclick="openInviteTaskModal()" class="card-dark rounded-2xl p-3.5 border border-gray-800 flex flex-col justify-between cursor-pointer hover:border-[#c0f135]/40 transition relative overflow-hidden bg-gradient-to-br from-[#121929] to-[#162215]">
                         <div class="absolute -right-3 -bottom-3 text-[#c0f135]/10 text-7xl font-black select-none pointer-events-none">
                             <i class="fa-solid fa-user-group"></i>
@@ -278,7 +278,7 @@
                                 Nhiệm Vụ Mời Bạn Bè
                             </h4>
                             <p class="text-[10px] text-gray-300 leading-tight">
-                                Nhận hoa hồng F1 (10%), F2 (3%), F3 (2%) cộng thẳng vào số dư.
+                                Nhận hoa hồng F1 (15%), F2 (3%), F3 (2%) cộng thẳng vào số dư.
                             </p>
                         </div>
 
@@ -358,7 +358,7 @@
                 </div>
             </section>
 
-            <!-- 3. NHÓM -->
+            <!-- 3. NHÓM (CẬP NHẬT F1 15%) -->
             <section id="tab-group" class="tab-pane hidden space-y-4">
                 <div class="card-dark rounded-3xl p-5 border border-[#c0f135]/30 space-y-4">
                     <div class="flex items-center justify-between border-b border-gray-800 pb-3">
@@ -386,7 +386,7 @@
 
                     <div class="grid grid-cols-3 gap-2 pt-2">
                         <div class="bg-gray-900/90 border border-gray-800 p-2.5 rounded-2xl text-center">
-                            <p class="text-[10px] text-gray-400">Hoa hồng F1 (10%)</p>
+                            <p class="text-[10px] text-gray-400">Hoa hồng F1 (15%)</p>
                             <p id="f1-commission-val" class="text-xs font-black text-[#c0f135] mt-1">$0.00</p>
                         </div>
                         <div class="bg-gray-900/90 border border-gray-800 p-2.5 rounded-2xl text-center">
@@ -930,7 +930,7 @@
         const ACCOUNT_NO = "11557000"; 
         const ACCOUNT_NAME = "WIN USDBOX";
 
-        // MẢNG GÓI ĐẦU TƯ ĐÃ ĐƯỢC CẬP NHẬT TỐC ĐỘ TRẢ LÃI THEO YÊU CẦU
+        // MẢNG GÓI ĐẦU TƯ ĐÃ ĐƯỢC CẬP NHẬT TỐC ĐỘ TRẢ LÃI
         const investmentPlans = [
             { id: 1, priceUsd: 1, ratePerSec: 0.000002315, title: "Gói Khai Thác 1 USD (26k)", durationDays: 6, displayDuration: "6 ngày" },
             { id: 2, priceUsd: 3, ratePerSec: 0.000009259, title: "Gói Khai Thác 3 USD", durationDays: 30, displayDuration: "30 ngày" }, // 0.8 USD / ngày
@@ -1140,6 +1140,7 @@
             });
         }
 
+        // LOGIC TÍNH HOA HỒNG REALTIME ĐÃ ĐƯỢC CẬP NHẬT F1 LÊN 15%
         function checkAndProcessCommissions(allUsers) {
             if (!currentUser) return;
             const myPhone = currentUser.username;
@@ -1156,19 +1157,19 @@
                         let commAmount = 0;
                         let levelText = "";
 
-                        // F1
+                        // F1: Tăng lên 15% (0.15)
                         if (depUser.refBy === myPhone) {
-                            commAmount = dep.usd * 0.10;
+                            commAmount = dep.usd * 0.15;
                             levelText = "F1";
                         } 
-                        // F2
+                        // F2: Giữ nguyên 3% (0.03)
                         else {
                             const f1User = Object.values(allUsers).find(u => u.username === depUser.refBy);
                             if (f1User && f1User.refBy === myPhone) {
                                 commAmount = dep.usd * 0.03;
                                 levelText = "F2";
                             }
-                            // F3
+                            // F3: Giữ nguyên 2% (0.02)
                             else if (f1User) {
                                 const f2User = Object.values(allUsers).find(u => u.username === f1User.refBy);
                                 if (f2User && f2User.refBy === myPhone) {
@@ -1249,6 +1250,7 @@
             }
         }
 
+        // TÍNH TOÁN DANH SÁCH NHÓM VÀ HIỂN THỊ HOA HỒNG (F1 CẬP NHẬT 15%)
         window.renderGroupMembers = function(allUsers) {
             if (!currentUser) return;
             const myPhone = currentUser.username;
@@ -1289,7 +1291,7 @@
                 if (f1DepositUsd > 0) {
                     f1DepositedCount++;
                 }
-                let f1EarnedCommission = f1DepositUsd * 0.10; 
+                let f1EarnedCommission = f1DepositUsd * 0.15; // 15% cho F1
                 calcF1Comm += f1EarnedCommission;
 
                 return {
@@ -1302,12 +1304,12 @@
 
             f2List.forEach(f2 => {
                 let f2DepositUsd = f2.totalDepositUsd || 0;
-                calcF2Comm += f2DepositUsd * 0.03; 
+                calcF2Comm += f2DepositUsd * 0.03; // 3% cho F2
             });
 
             f3List.forEach(f3 => {
                 let f3DepositUsd = f3.totalDepositUsd || 0;
-                calcF3Comm += f3DepositUsd * 0.02; 
+                calcF3Comm += f3DepositUsd * 0.02; // 2% cho F3
             });
 
             f1Commission = calcF1Comm;
@@ -1745,7 +1747,6 @@
                 return;
             }
 
-            // Kiểm tra trực tiếp trên Firebase xem tài khoản có bị Admin khóa không trước khi cho phép đăng nhập
             get(ref(db, 'users')).then((snapshot) => {
                 const allUsers = snapshot.val() || {};
                 const foundUserKey = Object.keys(allUsers).find(k => allUsers[k].username === username && allUsers[k].password === password);
@@ -1792,7 +1793,6 @@
                 const initials = currentUser.username ? currentUser.username.slice(-2) : "US";
                 document.getElementById('profile-avatar-text').innerText = initials;
                 
-                // CẬP NHẬT CHUẨN XÁC DOMAIN: https://winusdbox.onrender.com/
                 const refLinkInput = document.getElementById('ref-link-input');
                 if (refLinkInput) {
                     refLinkInput.value = `https://winusdbox.onrender.com/?ref=${currentUser.username}`;
