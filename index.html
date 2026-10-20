@@ -807,7 +807,7 @@
                     <div class="flex items-center justify-between text-amber-400 font-bold">
                         <span><i class="fa-solid fa-shield-halved mr-1"></i> ĐIỀU KIỆN MỞ KHÓA RÚT TIỀN:</span>
                     </div>
-                    <p class="text-gray-300 leading-relaxed">Yêu cầu tài khoản đã từng <strong>Nạp đầu tối thiểu $1 USD (26.000 VNĐ)</strong> để mở khóa rút tất cả các nguồn tiền (Giftcode, Hoa hồng, Điểm danh & Lãi).</p>
+                    <p class="text-gray-300 leading-relaxed">Yêu cầu tài khoản chỉ cần có ít nhất <strong>1 gói đầu tư đang hoạt động</strong> (Nạp hoặc được Admin kích hoạt gói) để mở khóa rút tất cả các nguồn tiền.</p>
                     <p class="text-gray-400 pt-0.5">Min rút: <strong class="text-white">0.4 USD</strong> | Phí giao dịch: <strong class="text-white">5%</strong></p>
                 </div>
 
@@ -1059,10 +1059,10 @@
         });
 
         function initUserRealtimeSync() {
-            if (!currentUser) return;
+            if (!currentUser || !currentUser.username) return;
             
-            // Lắng nghe dữ liệu danh sách Users
             onValue(ref(db, 'users'), (snapshot) => {
+                if (!currentUser || !currentUser.username) return;
                 const allUsers = snapshot.val() || {};
                 const foundKey = Object.keys(allUsers).find(k => allUsers[k].username === currentUser.username);
                 if (foundKey) {
@@ -1073,6 +1073,12 @@
                         alert("Tài khoản của bạn đã bị khóa bởi Quản trị viên!");
                         handleLogout();
                         return;
+                    }
+
+                    if (liveData.balance !== undefined && Math.abs(liveData.balance - availableBalance) > 0.001) {
+                        availableBalance = liveData.balance;
+                        saveUserGroupData();
+                        updateDisplay();
                     }
 
                     if (liveData.activePlans && liveData.activePlans.length > 0) {
@@ -1089,7 +1095,6 @@
                     }
                 }
                 
-                // Lắng nghe thêm deposits để tổng hợp nhóm
                 get(ref(db, 'deposits')).then(depSnap => {
                     const depositsData = depSnap.val() || {};
                     renderGroupMembers(allUsers, depositsData);
@@ -1097,12 +1102,11 @@
                 updateDisplay();
             });
 
-            // Lắng nghe dữ liệu NẠP TIỀN Realtime (Đã cập nhật fix tính năng hoa hồng + nhiệm vụ đếm người nạp)
             onValue(ref(db, 'deposits'), (snapshot) => {
+                if (!currentUser || !currentUser.username) return;
                 const data = snapshot.val() || {};
                 const entries = Object.entries(data);
                 
-                // 1. Cập nhật lịch sử nạp cá nhân
                 const myDeposits = entries
                     .filter(([key, d]) => d.username === currentUser.username)
                     .map(([key, d]) => ({ key, ...d }));
@@ -1118,7 +1122,6 @@
 
                 syncNotifications();
 
-                // 2. Kích hoạt gói đầu tư cá nhân khi nạp tiền thành công
                 myDeposits.forEach(dep => {
                     if (dep.status === "Thành công" && !processedDepositKeys.includes(dep.key)) {
                         const targetPlanId = dep.planId || 1;
@@ -1144,7 +1147,6 @@
                     }
                 });
 
-                // 3. Tự động quét và xử lý HOA HỒNG GIỚI THIỆU Realtime
                 get(ref(db, 'users')).then(userSnap => {
                     const allUsers = userSnap.val() || {};
                     checkAndProcessCommissions(allUsers, data);
@@ -1152,8 +1154,8 @@
                 });
             });
 
-            // Lắng nghe LỊCH SỬ RÚT TIỀN Realtime
             onValue(ref(db, 'withdraws'), (snapshot) => {
+                if (!currentUser || !currentUser.username) return;
                 const data = snapshot.val() || {};
                 const list = Object.keys(data).map(k => data[k]);
                 const myWithdraws = list.filter(w => w.username === currentUser.username);
@@ -1175,11 +1177,12 @@
             });
         }
 
-        // TÍNH HOA HỒNG TỰ ĐỘNG REALTIME DỰA TRÊN ĐƠN NẠP THÀNH CÔNG
         function checkAndProcessCommissions(allUsers, deposits) {
-            if (!currentUser) return;
+            if (!currentUser || !currentUser.username) return;
             const myPhone = currentUser.username;
             let earnedBonusTotal = 0;
+            let lastCommLevel = "F1";
+            let lastSubUserPhone = "";
 
             Object.entries(deposits).forEach(([depKey, dep]) => {
                 if (dep.status === "Thành công" && !processedCommissionKeys.includes(depKey)) {
@@ -1188,37 +1191,39 @@
 
                     let commAmount = 0;
                     let levelText = "";
+                    let receiverPhone = "";
 
-                    // Kiểm tra F1
-                    if (depUser.refBy === myPhone) {
+                    const f1User = Object.values(allUsers).find(u => u.username === depUser.refBy);
+                    if (f1User && f1User.username === myPhone) {
                         commAmount = dep.usd * 0.15;
                         levelText = "F1";
-                    } 
-                    // Kiểm tra F2
-                    else {
-                        const f1User = Object.values(allUsers).find(u => u.username === depUser.refBy);
-                        if (f1User && f1User.refBy === myPhone) {
+                        receiverPhone = f1User.username;
+                    } else if (f1User) {
+                        const f2User = Object.values(allUsers).find(u => u.username === f1User.refBy);
+                        if (f2User && f2User.username === myPhone) {
                             commAmount = dep.usd * 0.03;
                             levelText = "F2";
-                        }
-                        // Kiểm tra F3
-                        else if (f1User) {
-                            const f2User = Object.values(allUsers).find(u => u.username === f1User.refBy);
-                            if (f2User && f2User.refBy === myPhone) {
+                            receiverPhone = f2User.username;
+                        } else if (f2User) {
+                            const f3User = Object.values(allUsers).find(u => u.username === f1User.refBy);
+                            if (f3User && f3User.username === myPhone) {
                                 commAmount = dep.usd * 0.02;
                                 levelText = "F3";
+                                receiverPhone = f3User.username;
                             }
                         }
                     }
 
-                    if (commAmount > 0) {
+                    if (commAmount > 0 && receiverPhone === myPhone) {
                         earnedBonusTotal += commAmount;
+                        lastCommLevel = levelText;
+                        lastSubUserPhone = dep.username;
                         processedCommissionKeys.push(depKey);
 
                         appNotifications.unshift({
                             title: "Thưởng Hoa Hồng Mới",
                             time: dep.time || "Vừa xong",
-                            content: `Bạn nhận được +$${commAmount.toFixed(2)} USD hoa hồng (${levelText}) từ cấp dưới ${dep.username} nạp gói!`
+                            content: `Bạn nhận được +$${commAmount.toFixed(2)} USD hoa hồng (${levelText}) từ thành viên ${dep.username} nạp gói!`
                         });
                     }
                 }
@@ -1232,8 +1237,8 @@
                 syncNotifications();
 
                 showRewardModal(
-                    "NHẬN HOA HỒNG MỚI", 
-                    `Chúc mừng! Bạn vừa nhận +$${earnedBonusTotal.toFixed(2)} USD hoa hồng cấp dưới cộng trực tiếp vào số dư ví!`, 
+                    "THƯỞNG HOA HỒNG MỚI!", 
+                    `Admin vừa duyệt đơn nạp của tuyến dưới (${lastSubUserPhone}). Bạn nhận ngay +$${earnedBonusTotal.toFixed(2)} USD hoa hồng (${lastCommLevel}) cộng thẳng vào số dư ví!`, 
                     "fa-solid fa-coins"
                 );
             }
@@ -1281,9 +1286,8 @@
             }
         }
 
-        // TÍNH TOÁN DANH SÁCH NHÓM & ĐẾM CHÍNH XÁC SỐ F1 NẠP TIỀN
         window.renderGroupMembers = function(allUsers, depositsData = {}) {
-            if (!currentUser) return;
+            if (!currentUser || !currentUser.username) return;
             const myPhone = currentUser.username;
 
             let f1List = [];
@@ -1312,7 +1316,6 @@
                 });
             });
 
-            // Tổng hợp tiền nạp của từng user từ nhánh deposits
             let userDepositMap = {};
             Object.values(depositsData).forEach(dep => {
                 if (dep.status === "Thành công") {
@@ -1362,9 +1365,6 @@
             document.getElementById('f3-commission-val').innerText = `$${f3Commission.toFixed(2)}`;
             document.getElementById('profile-total-commission').innerText = `$${totalCommission.toFixed(2)}`;
 
-            const f1DepCountEl = document.getElementById('f1-deposit-count');
-            if(f1DepCountEl) f1DepCountEl.innerText = f1DepositedCount;
-            
             const modalF1DepCountEl = document.getElementById('modal-f1-deposit-count');
             if(modalF1DepCountEl) modalF1DepCountEl.innerText = f1DepositedCount;
 
@@ -1408,23 +1408,25 @@
             const milestones = [3, 10, 20, 50, 100];
             const rewards = { 3: 0.1, 10: 1.0, 20: 2.0, 50: 5.0, 100: 10.0 };
 
+            const currentCount = parseInt(f1DepositedCount) || 0;
+
             milestones.forEach(goal => {
                 const btn = document.getElementById(`modal-invite-btn-${goal}`);
                 if (!btn) return;
 
-                const isClaimed = claimedInviteTasks.includes(goal);
-                const hasReached = f1DepositedCount >= goal;
+                const isClaimed = claimedInviteTasks.includes(goal) || claimedInviteTasks.includes(Number(goal));
+                const hasReached = currentCount >= goal;
 
                 if (isClaimed) {
                     btn.innerText = "Đã nhận";
                     btn.className = "bg-gray-800 text-gray-500 font-bold px-3 py-1.5 rounded-lg text-[11px] cursor-not-allowed";
                     btn.disabled = true;
                 } else if (hasReached) {
-                    btn.innerText = `Nhận ${rewards[goal]}U`;
-                    btn.className = "neon-btn font-extrabold px-3 py-1.5 rounded-lg text-[11px] active:scale-95 cursor-pointer shadow";
+                    btn.innerText = `Nhận +${rewards[goal]}U`;
+                    btn.className = "neon-btn font-extrabold px-3 py-1.5 rounded-lg text-[11px] active:scale-95 cursor-pointer shadow-lg shadow-lime-500/20";
                     btn.disabled = false;
                 } else {
-                    btn.innerText = `Chưa đạt (${f1DepositedCount}/${goal})`;
+                    btn.innerText = `Chưa đạt (${currentCount}/${goal})`;
                     btn.className = "bg-gray-800/80 text-gray-500 font-semibold px-3 py-1.5 rounded-lg text-[11px] cursor-not-allowed";
                     btn.disabled = true;
                 }
@@ -1433,20 +1435,25 @@
 
         window.claimInviteTask = function(goal) {
             const rewards = { 3: 0.1, 10: 1.0, 20: 2.0, 50: 5.0, 100: 10.0 };
-            if (claimedInviteTasks.includes(goal)) return;
+            const targetGoal = Number(goal);
 
-            const f1DepositedCount = parseInt(document.getElementById('modal-f1-deposit-count').innerText) || 0;
-            if (f1DepositedCount >= goal) {
-                claimedInviteTasks.push(goal);
+            if (claimedInviteTasks.includes(targetGoal)) return;
+
+            const f1CountEl = document.getElementById('modal-f1-deposit-count');
+            const f1DepositedCount = parseInt(f1CountEl ? f1CountEl.innerText : 0) || 0;
+
+            if (f1DepositedCount >= targetGoal) {
+                claimedInviteTasks.push(targetGoal);
                 localStorage.setItem('claimedInviteTasks', JSON.stringify(claimedInviteTasks));
 
-                const rewardVal = rewards[goal];
+                const rewardVal = rewards[targetGoal];
                 availableBalance += rewardVal;
                 totalClaimed += rewardVal;
+
                 saveUserGroupData();
                 updateDisplay();
 
-                showRewardModal("Nhận thưởng thành công", `Chúc mừng bạn nhận được +${rewardVal} USD từ nhiệm vụ mời ${goal} F1 nạp tiền!`, "fa-solid fa-gift");
+                showRewardModal("NHẬN THƯỞNG THÀNH CÔNG", `Chúc mừng bạn nhận được +${rewardVal} USD từ nhiệm vụ mời ${targetGoal} F1 nạp tiền!`, "fa-solid fa-gift");
                 updateInviteTaskButtonsUI(f1DepositedCount);
             }
         }
@@ -1782,34 +1789,34 @@
                 return;
             }
 
-            let registeredUsers = JSON.parse(localStorage.getItem('registeredUsers')) || [];
-            const exists = registeredUsers.some(u => u.username === username);
-            if (exists) {
-                showRewardModal("Đăng ký thất bại", "Số điện thoại này đã được đăng ký tài khoản trước đó!", "fa-solid fa-triangle-exclamation");
-                return;
-            }
+            get(ref(db, 'users')).then((snapshot) => {
+                const allUsers = snapshot.val() || {};
+                const exists = Object.values(allUsers).some(u => u.username === username);
 
-            const now = new Date();
-            const timeString = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} - ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+                if (exists) {
+                    showRewardModal("Đăng ký thất bại", "Số điện thoại này đã được đăng ký tài khoản trước đó!", "fa-solid fa-triangle-exclamation");
+                    return;
+                }
 
-            const newUser = { 
-                fullname: "MEMBER " + username.slice(-4), 
-                username, 
-                password, 
-                refBy: refBy || "",
-                balance: 0, 
-                totalDepositUsd: 0,
-                activePlans: [], 
-                createdAt: timeString 
-            };
-            
-            registeredUsers.push(newUser);
-            localStorage.setItem('registeredUsers', JSON.stringify(registeredUsers));
+                const now = new Date();
+                const timeString = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} - ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
-            push(ref(db, 'users'), newUser);
+                const newUser = { 
+                    fullname: "MEMBER " + username.slice(-4), 
+                    username, 
+                    password, 
+                    refBy: refBy || "",
+                    balance: 0, 
+                    totalDepositUsd: 0,
+                    activePlans: [], 
+                    createdAt: timeString 
+                };
+                
+                push(ref(db, 'users'), newUser);
 
-            showRewardModal("Đăng ký thành công", "Tài khoản của bạn đã được tạo thành công! Hãy đăng nhập.", "fa-solid fa-circle-check");
-            switchAuthMode('login');
+                showRewardModal("Đăng ký thành công", "Tài khoản của bạn đã được tạo thành công! Hãy đăng nhập.", "fa-solid fa-circle-check");
+                switchAuthMode('login');
+            });
         }
 
         window.handleLogin = function() {
@@ -1851,20 +1858,27 @@
             });
         }
 
+        // HÀM ĐĂNG XUẤT ĐÃ SỬA LỖI (CLEAR SESSION SẠCH SẼ 100%)
         window.handleLogout = function() {
-            showRewardModal("Xác nhận đăng xuất", "Bạn có chắc chắn muốn thoát phiên làm việc?", "fa-solid fa-right-from-bracket", () => {
+            showRewardModal("Xác nhận đăng xuất", "Thoát tài khoản hiện tại để đăng nhập lại?", "fa-solid fa-right-from-bracket", () => {
                 localStorage.removeItem('currentUser');
+                localStorage.removeItem('activePlanId');
+                localStorage.removeItem('planActivatedTime');
                 currentUser = null;
+                currentUserFirebaseKey = null;
+                
+                // Mở màn hình Auth Đăng Nhập
                 document.getElementById('auth-screen').classList.remove('hidden');
                 document.getElementById('auth-screen').classList.add('flex');
+                switchAuthMode('login');
             });
         }
 
         window.updateUserProfileUI = function() {
-            if (currentUser) {
+            if (currentUser && currentUser.username) {
                 document.getElementById('profile-name').innerText = currentUser.fullname || "MEMBER";
-                document.getElementById('profile-username').innerText = "SĐT: " + (currentUser.username || "0123456789");
-                const initials = currentUser.username ? currentUser.username.slice(-2) : "US";
+                document.getElementById('profile-username').innerText = "SĐT: " + currentUser.username;
+                const initials = currentUser.username.slice(-2);
                 document.getElementById('profile-avatar-text').innerText = initials;
                 
                 const refLinkInput = document.getElementById('ref-link-input');
@@ -1880,21 +1894,21 @@
         }
 
         window.loadUserGroupData = function() {
-            if (!currentUser) return;
-            const prefix = currentUser.username || "default";
+            if (!currentUser || !currentUser.username) return;
+            const prefix = currentUser.username;
             availableBalance = parseFloat(localStorage.getItem(`availableBalance_${prefix}`)) || currentUser.balance || 0.00;
             totalClaimed = parseFloat(localStorage.getItem(`totalClaimed_${prefix}`)) || 0.00;
         }
 
         window.saveUserGroupData = function() {
-            if (!currentUser) return;
-            const prefix = currentUser.username || "default";
+            if (!currentUser || !currentUser.username) return;
+            const prefix = currentUser.username;
             localStorage.setItem(`availableBalance_${prefix}`, availableBalance);
             localStorage.setItem(`totalClaimed_${prefix}`, totalClaimed);
 
             if (currentUserFirebaseKey) {
                 update(ref(db, 'users/' + currentUserFirebaseKey), {
-                    balance: Number(availableBalance.toFixed(2))
+                    balance: Number(availableBalance.toFixed(3))
                 });
             }
         }
@@ -1988,14 +2002,17 @@
                 return;
             }
 
-            get(ref(db, 'deposits')).then((snapshot) => {
-                const deposits = snapshot.val() || {};
-                const hasSuccessfulDeposit = Object.values(deposits).some(dep => dep.username === username && dep.status === "Thành công");
+            const isLocalPlanActive = (typeof activePlan !== 'undefined' && activePlan && activePlan.priceUsd > 0);
 
-                if (!hasSuccessfulDeposit) {
+            get(ref(db, 'users')).then((userSnap) => {
+                const allUsers = userSnap.val() || {};
+                const userObj = Object.values(allUsers).find(u => u.username === username);
+                const isDbPlanActive = userObj && userObj.activePlans && userObj.activePlans.length > 0;
+
+                if (!isLocalPlanActive && !isDbPlanActive) {
                     showRewardModal(
                         "Rút tiền thất bại", 
-                        "Bạn cần nạp tối thiểu $1 USD (26.000 VNĐ) lần đầu để kích hoạt mở khóa tính năng rút tiền!", 
+                        "Tài khoản của bạn cần có ít nhất 1 gói đầu tư đang hoạt động để mở khóa tính năng rút tiền!", 
                         "fa-solid fa-lock"
                     );
                     return;
@@ -2365,6 +2382,7 @@
             }
         }
 
+        // KHỞI TẠO VÀ XỬ LÝ LINK MỜI REF CHUẨN XÁC
         document.addEventListener("DOMContentLoaded", () => {
             const btnLogin = document.getElementById('btn-login-action');
             if (btnLogin) btnLogin.addEventListener('click', handleLogin);
@@ -2378,6 +2396,7 @@
             const linkToLog = document.getElementById('link-to-login');
             if (linkToLog) linkToLog.addEventListener('click', () => switchAuthMode('login'));
 
+            // Xử lý link giới thiệu ?ref=
             const urlParams = new URLSearchParams(window.location.search);
             const refParam = urlParams.get('ref');
             if (refParam) {
@@ -2389,10 +2408,10 @@
                 const refInput = document.getElementById('reg-ref');
                 if (refInput) {
                     refInput.value = savedRef;
-                    switchAuthMode('register');
                 }
             }
 
+            // Kiểm tra trạng thái đăng nhập
             if (currentUser && currentUser.username) {
                 document.getElementById('auth-screen').classList.add('hidden');
                 document.getElementById('auth-screen').classList.remove('flex');
@@ -2404,6 +2423,13 @@
                 currentUser = null;
                 document.getElementById('auth-screen').classList.remove('hidden');
                 document.getElementById('auth-screen').classList.add('flex');
+                
+                // Nếu được mở từ link Ref mà chưa có tài khoản -> Tự động chuyển sang form Đăng Ký
+                if (refParam || savedRef) {
+                    switchAuthMode('register');
+                } else {
+                    switchAuthMode('login');
+                }
             }
 
             switchTab('home');
