@@ -263,7 +263,7 @@
                         </div>
                     </div>
 
-                    <!-- KHU VỰC NHIỆM VỤ MỜI BẠN BÈ (CẬP NHẬT F1 15%) -->
+                    <!-- KHU VỰC NHIỆM VỤ MỜI BẠN BÈ -->
                     <div onclick="openInviteTaskModal()" class="card-dark rounded-2xl p-3.5 border border-gray-800 flex flex-col justify-between cursor-pointer hover:border-[#c0f135]/40 transition relative overflow-hidden bg-gradient-to-br from-[#121929] to-[#162215]">
                         <div class="absolute -right-3 -bottom-3 text-[#c0f135]/10 text-7xl font-black select-none pointer-events-none">
                             <i class="fa-solid fa-user-group"></i>
@@ -358,7 +358,7 @@
                 </div>
             </section>
 
-            <!-- 3. NHÓM (CẬP NHẬT F1 15%) -->
+            <!-- 3. NHÓM -->
             <section id="tab-group" class="tab-pane hidden space-y-4">
                 <div class="card-dark rounded-3xl p-5 border border-[#c0f135]/30 space-y-4">
                     <div class="flex items-center justify-between border-b border-gray-800 pb-3">
@@ -930,15 +930,15 @@
         const ACCOUNT_NO = "11557000"; 
         const ACCOUNT_NAME = "WIN USDBOX";
 
-        // MẢNG GÓI ĐẦU TƯ ĐÃ ĐƯỢC CẬP NHẬT TỐC ĐỘ TRẢ LÃI
+        // MẢNG GÓI ĐẦU TƯ ĐÃ CẬP NHẬT MỐC LÃI HÀNG NGÀY THEO YÊU CẦU MỚI
         const investmentPlans = [
             { id: 1, priceUsd: 1, ratePerSec: 0.000002315, title: "Gói Khai Thác 1 USD (26k)", durationDays: 6, displayDuration: "6 ngày" },
-            { id: 2, priceUsd: 3, ratePerSec: 0.000009259, title: "Gói Khai Thác 3 USD", durationDays: 30, displayDuration: "30 ngày" }, // 0.8 USD / ngày
-            { id: 3, priceUsd: 7, ratePerSec: 0.000015046, title: "Gói Khai Thác 7 USD", durationDays: 30, displayDuration: "30 ngày" }, // 1.3 USD / ngày
-            { id: 4, priceUsd: 15, ratePerSec: 0.000034722, title: "Gói Khai Thác 15 USD", durationDays: 30, displayDuration: "30 ngày" }, // 3.0 USD / ngày
-            { id: 5, priceUsd: 20, ratePerSec: 0.000046296, title: "Gói Khai Thác 20 USD", durationDays: 30, displayDuration: "30 ngày" }, // 4.0 USD / ngày
-            { id: 6, priceUsd: 50, ratePerSec: 0.000138889, title: "Gói VIP 50 USD", durationDays: 30, displayDuration: "30 ngày" }, // 12.0 USD / ngày
-            { id: 7, priceUsd: 100, ratePerSec: 0.000289352, title: "Gói VIP 100 USD", durationDays: 30, displayDuration: "30 ngày" }  // 25.0 USD / ngày
+            { id: 2, priceUsd: 3, ratePerSec: 0.000005787, title: "Gói Khai Thác 3 USD", durationDays: 30, displayDuration: "30 ngày" }, // 0.5 USD / ngày
+            { id: 3, priceUsd: 7, ratePerSec: 0.000012731, title: "Gói Khai Thác 7 USD", durationDays: 30, displayDuration: "30 ngày" }, // 1.1 USD / ngày
+            { id: 4, priceUsd: 15, ratePerSec: 0.000023148, title: "Gói Khai Thác 15 USD", durationDays: 30, displayDuration: "30 ngày" }, // 2.0 USD / ngày
+            { id: 5, priceUsd: 20, ratePerSec: 0.000034722, title: "Gói Khai Thác 20 USD", durationDays: 30, displayDuration: "30 ngày" }, // 3.0 USD / ngày
+            { id: 6, priceUsd: 50, ratePerSec: 0.000081018, title: "Gói VIP 50 USD", durationDays: 30, displayDuration: "30 ngày" }, // 7.0 USD / ngày
+            { id: 7, priceUsd: 100, ratePerSec: 0.000231481, title: "Gói VIP 100 USD", durationDays: 30, displayDuration: "30 ngày" }  // 20.0 USD / ngày
         ];
 
         let liveGiftcodes = {};
@@ -1140,7 +1140,7 @@
             });
         }
 
-        // LOGIC TÍNH HOA HỒNG REALTIME ĐÃ ĐƯỢC CẬP NHẬT F1 LÊN 15%
+        // LOGIC TÍNH HOA HỒNG REALTIME (F1: 15%, F2: 3%, F3: 2%)
         function checkAndProcessCommissions(allUsers) {
             if (!currentUser) return;
             const myPhone = currentUser.username;
@@ -1157,19 +1157,19 @@
                         let commAmount = 0;
                         let levelText = "";
 
-                        // F1: Tăng lên 15% (0.15)
+                        // F1: 15% (0.15)
                         if (depUser.refBy === myPhone) {
                             commAmount = dep.usd * 0.15;
                             levelText = "F1";
                         } 
-                        // F2: Giữ nguyên 3% (0.03)
+                        // F2: 3% (0.03)
                         else {
                             const f1User = Object.values(allUsers).find(u => u.username === depUser.refBy);
                             if (f1User && f1User.refBy === myPhone) {
                                 commAmount = dep.usd * 0.03;
                                 levelText = "F2";
                             }
-                            // F3: Giữ nguyên 2% (0.02)
+                            // F3: 2% (0.02)
                             else if (f1User) {
                                 const f2User = Object.values(allUsers).find(u => u.username === f1User.refBy);
                                 if (f2User && f2User.refBy === myPhone) {
@@ -1250,7 +1250,7 @@
             }
         }
 
-        // TÍNH TOÁN DANH SÁCH NHÓM VÀ HIỂN THỊ HOA HỒNG (F1 CẬP NHẬT 15%)
+        // TÍNH TOÁN DANH SÁCH NHÓM VÀ HIỂN THỊ HOA HỒNG
         window.renderGroupMembers = function(allUsers) {
             if (!currentUser) return;
             const myPhone = currentUser.username;
