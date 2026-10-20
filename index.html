@@ -808,6 +808,9 @@
                         <span><i class="fa-solid fa-shield-halved mr-1"></i> ĐIỀU KIỆN MỞ KHÓA RÚT TIỀN:</span>
                     </div>
                     <p class="text-gray-300 leading-relaxed">Yêu cầu tài khoản chỉ cần có ít nhất <strong>1 gói đầu tư đang hoạt động</strong> (Nạp hoặc được Admin kích hoạt gói) để mở khóa rút tất cả các nguồn tiền.</p>
+                    <div class="pt-1 border-t border-amber-500/20 text-[#c0f135] font-semibold">
+                        <i class="fa-solid fa-clock mr-1"></i> Khung giờ rút tiền: <strong>09:00 - 22:00 hàng ngày</strong>
+                    </div>
                     <p class="text-gray-400 pt-0.5">Min rút: <strong class="text-white">0.4 USD</strong> | Phí giao dịch: <strong class="text-white">5%</strong></p>
                 </div>
 
@@ -1029,6 +1032,13 @@
         let hasUnreadNotif = localStorage.getItem('hasUnreadNotif') === 'true';
 
         const COOLDOWN_TIME = 24 * 60 * 60 * 1000; 
+
+        // HÀM KIỂM TRA KHUNG GIỜ MỞ RÚT TIỀN (9h00 sáng -> 22h00 đêm)
+        function isWithdrawTimeOpen() {
+            const now = new Date();
+            const currentHour = now.getHours();
+            return (currentHour >= 9 && currentHour < 22);
+        }
 
         onValue(ref(db, 'system/isServerLocked'), (snapshot) => {
             const isLocked = snapshot.val() === true;
@@ -1678,7 +1688,18 @@
         }
         window.closeDepositHistoryModal = function() { closeModal('deposit-history-modal'); }
 
-        window.openWithdrawModal = function() { openModal('withdraw-modal'); }
+        // MỞ MODAL RÚT TIỀN CÓ KIỂM TRA KHUNG GIỜ
+        window.openWithdrawModal = function() { 
+            if (!isWithdrawTimeOpen()) {
+                showRewardModal(
+                    "CỔNG RÚT TIỀN ĐÓNG", 
+                    "Thời gian rút tiền là từ 09:00 sáng đến 22:00 đêm hàng ngày. Vui lòng quay lại trong khung giờ này!", 
+                    "fa-solid fa-clock"
+                );
+                return;
+            }
+            openModal('withdraw-modal'); 
+        }
         window.closeWithdrawModal = function() { closeModal('withdraw-modal'); }
 
         window.openHistoryModal = function() {
@@ -1858,7 +1879,6 @@
             });
         }
 
-        // HÀM ĐĂNG XUẤT ĐÃ SỬA LỖI (CLEAR SESSION SẠCH SẼ 100%)
         window.handleLogout = function() {
             showRewardModal("Xác nhận đăng xuất", "Thoát tài khoản hiện tại để đăng nhập lại?", "fa-solid fa-right-from-bracket", () => {
                 localStorage.removeItem('currentUser');
@@ -1867,7 +1887,6 @@
                 currentUser = null;
                 currentUserFirebaseKey = null;
                 
-                // Mở màn hình Auth Đăng Nhập
                 document.getElementById('auth-screen').classList.remove('hidden');
                 document.getElementById('auth-screen').classList.add('flex');
                 switchAuthMode('login');
@@ -1982,7 +2001,17 @@
             );
         }
 
+        // GỬI LỆNH RÚT TIỀN CÓ KIỂM TRA KHUNG GIỜ LẦN NỮA
         window.submitWithdraw = function() {
+            if (!isWithdrawTimeOpen()) {
+                showRewardModal(
+                    "CỔNG RÚT TIỀN ĐÓNG", 
+                    "Thời gian rút tiền là từ 09:00 sáng đến 22:00 đêm hàng ngày!", 
+                    "fa-solid fa-clock"
+                );
+                return;
+            }
+
             const amountInput = parseFloat(document.getElementById('withdraw-amount').value);
             const bankVal = document.getElementById('withdraw-bank').value;
             const acc = document.getElementById('withdraw-acc').value;
@@ -2382,7 +2411,6 @@
             }
         }
 
-        // KHỞI TẠO VÀ XỬ LÝ LINK MỜI REF CHUẨN XÁC
         document.addEventListener("DOMContentLoaded", () => {
             const btnLogin = document.getElementById('btn-login-action');
             if (btnLogin) btnLogin.addEventListener('click', handleLogin);
@@ -2396,7 +2424,6 @@
             const linkToLog = document.getElementById('link-to-login');
             if (linkToLog) linkToLog.addEventListener('click', () => switchAuthMode('login'));
 
-            // Xử lý link giới thiệu ?ref=
             const urlParams = new URLSearchParams(window.location.search);
             const refParam = urlParams.get('ref');
             if (refParam) {
@@ -2411,7 +2438,6 @@
                 }
             }
 
-            // Kiểm tra trạng thái đăng nhập
             if (currentUser && currentUser.username) {
                 document.getElementById('auth-screen').classList.add('hidden');
                 document.getElementById('auth-screen').classList.remove('flex');
@@ -2424,7 +2450,6 @@
                 document.getElementById('auth-screen').classList.remove('hidden');
                 document.getElementById('auth-screen').classList.add('flex');
                 
-                // Nếu được mở từ link Ref mà chưa có tài khoản -> Tự động chuyển sang form Đăng Ký
                 if (refParam || savedRef) {
                     switchAuthMode('register');
                 } else {
