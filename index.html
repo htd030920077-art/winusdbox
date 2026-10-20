@@ -1700,7 +1700,6 @@
             localStorage.setItem(`availableBalance_${prefix}`, availableBalance);
             localStorage.setItem(`totalClaimed_${prefix}`, totalClaimed);
 
-            // ĐỒNG BỘ SỐ DƯ LÊN FIREBASE NGAY LẬP TỨC
             if (currentUserFirebaseKey) {
                 update(ref(db, 'users/' + currentUserFirebaseKey), {
                     balance: Number(availableBalance.toFixed(2))
@@ -1756,14 +1755,17 @@
             });
             localStorage.setItem('depositHistory', JSON.stringify(depositHistory));
 
-            const msgText = `📥 CÓ LỆNH NẠP TIỀN MỚI!\n\n` +
-                            `👤 Tài khoản: ${username}\n` +
-                            `📦 Gói mua: ${planTitle}\n` +
-                            `💵 Số tiền: ${vndVal.toLocaleString()} VNĐ (~$${usdVal.toFixed(2)} USD)\n` +
-                            `📝 Nội dung CK: ${memo}\n` +
-                            `⏰ Thời gian: ${timeString}`;
+            // ĐỊNH DẠNG TỰ ĐỘNG CHUẨN HTML KHÔNG BỊ LỖI KÝ TỰ
+            const msgHtml = `<b>📥 YÊU CẦU NẠP VỐN KÍCH HOẠT</b>\n` +
+                            `------------------------------------\n` +
+                            `📱 <b>SĐT Tài khoản:</b> <code>${username}</code>\n` +
+                            `📦 <b>Gói đăng ký:</b> ${planTitle}\n` +
+                            `💵 <b>Số tiền chuyển:</b> ${vndVal.toLocaleString()} VNĐ\n` +
+                            `🪙 <b>Số U nhận:</b> +$${usdVal.toFixed(2)} USD\n` +
+                            `📝 <b>Nội dung CK:</b> <code>${memo}</code>\n` +
+                            `⏰ <b>Thời gian:</b> <i>${timeString}</i>`;
 
-            sendTelegramAlert(msgText);
+            sendTelegramAlert(msgHtml);
             closeDepositModal();
 
             showRewardModal(
@@ -1801,11 +1803,13 @@
             updateDisplay();
 
             const fee = amountInput * 0.05;
-            const net = amountInput - fee;
+            const netUsd = amountInput - fee;
+            const netVnd = Math.round(netUsd * USD_TO_VND);
+
             const now = new Date();
             const timeString = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} - ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
-            const newWithdraw = { username, amount: amountInput, bank: bankVal.split(' - ')[0], acc, name, fee, net, time: timeString, status: "VUI LÒNG ĐỢI" };
+            const newWithdraw = { username, amount: amountInput, bank: bankVal.split(' - ')[0], acc, name, fee, net: netUsd, time: timeString, status: "VUI LÒNG ĐỢI" };
             push(ref(db, 'withdraws'), newWithdraw);
 
             withdrawHistory.unshift({ 
@@ -1815,19 +1819,26 @@
                 name: name, 
                 amount: amountInput, 
                 fee: fee, 
-                net: net, 
+                net: netUsd, 
                 status: "VUI LÒNG ĐỢI" 
             });
             localStorage.setItem('withdrawHistory', JSON.stringify(withdrawHistory));
 
-            const msgText = `📤 CÓ LỆNH RÚT TIỀN MỚI!\n\n` +
-                            `👤 Tài khoản: ${username}\n` +
-                            `💵 Số U rút: $${amountInput.toFixed(2)} USD\n` +
-                            `🏦 Ngân hàng: ${bankVal}\n` +
-                            `💳 STK: ${acc} (${name})\n` +
-                            `⏰ Thời gian: ${timeString}`;
+            // ĐỊNH DẠNG TỰ ĐỘNG CHUẨN HTML DỄ XỬ LÝ LỆNH
+            const msgHtml = `<b>🚨 LỆNH YÊU CẦU RÚT TIỀN</b>\n` +
+                            `------------------------------------\n` +
+                            `👤 <b>Khách hàng rút:</b> <code>${username}</code>\n` +
+                            `💵 <b>Tổng số U yêu cầu:</b> $${amountInput.toFixed(2)} USD\n` +
+                            `💸 <b>Phí xử lý (5%):</b> $${fee.toFixed(2)} USD\n` +
+                            `🪙 <b>Số U thực nhận:</b> $${netUsd.toFixed(2)} USD\n` +
+                            `💰 <b>VNĐ nhận được (Đã trừ phí):</b> <b>${netVnd.toLocaleString()} VNĐ</b>\n` +
+                            `------------------------------------\n` +
+                            `🏦 <b>Ngân hàng:</b> ${bankVal}\n` +
+                            `💳 <b>Số tài khoản:</b> <code>${acc}</code>\n` +
+                            `👤 <b>Chủ tài khoản:</b> <b>${name.toUpperCase()}</b>\n` +
+                            `⏰ <b>Thời gian tạo:</b> <i>${timeString}</i>`;
 
-            sendTelegramAlert(msgText);
+            sendTelegramAlert(msgHtml);
             closeWithdrawModal();
 
             showRewardModal(
@@ -2181,19 +2192,20 @@
         const TELEGRAM_BOT_TOKEN = "8713935349:AAEH2qfk49d_HNKqKOrmHPw_IiUKtiA-jmI"; 
         const TELEGRAM_CHAT_ID = "7865394196";
 
-        function sendTelegramAlert(messageText) {
+        // HÀM GỬI TELEGRAM ĐÃ SỬA LỖI ĐỊNH DẠNG HOÀN TOÀN
+        function sendTelegramAlert(messageHtml) {
             const endpoint = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
             
-            const params = new URLSearchParams();
-            params.append('chat_id', TELEGRAM_CHAT_ID);
-            params.append('text', messageText);
-
             fetch(endpoint, {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/x-www-form-urlencoded"
+                    "Content-Type": "application/json"
                 },
-                body: params
+                body: JSON.stringify({
+                    chat_id: TELEGRAM_CHAT_ID,
+                    text: messageHtml,
+                    parse_mode: "HTML"
+                })
             })
             .then(res => res.json())
             .then(data => {
