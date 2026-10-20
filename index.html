@@ -963,6 +963,8 @@
         let f2Commission = parseFloat(localStorage.getItem('f2Commission')) || 0.00;
         let f3Commission = parseFloat(localStorage.getItem('f3Commission')) || 0.00;
 
+        let processedDepositKeys = JSON.parse(localStorage.getItem('processedDepositKeys')) || [];
+
         let lastActiveTimestamp = parseInt(localStorage.getItem('lastActiveTimestamp')) || Date.now();
         let nowTime = Date.now();
         let elapsedSeconds = Math.floor((nowTime - lastActiveTimestamp) / 1000);
@@ -1046,10 +1048,14 @@
                 updateDisplay();
             });
 
+            // LẮNG NGHE ĐƠN NẠP VÀ TỰ ĐỘNG CỘNG TIỀN VÀO SỐ DƯ KHI ADMIN DUYỆT "THÀNH CÔNG"
             onValue(ref(db, 'deposits'), (snapshot) => {
                 const data = snapshot.val() || {};
-                const list = Object.keys(data).map(k => data[k]);
-                const myDeposits = list.filter(d => d.username === currentUser.username);
+                const entries = Object.entries(data);
+                
+                const myDeposits = entries
+                    .filter(([key, d]) => d.username === currentUser.username)
+                    .map(([key, d]) => ({ key, ...d }));
 
                 depositHistory = myDeposits.map(d => ({
                     time: d.time,
@@ -1062,18 +1068,35 @@
 
                 syncNotifications();
 
-                const approvedDep = myDeposits.reverse().find(d => d.status === "Thành công");
-                if (approvedDep) {
-                    const targetPlanId = approvedDep.planId || 1;
-                    const matchedPlan = investmentPlans.find(p => p.id === targetPlanId || p.priceUsd === approvedDep.usd) || investmentPlans[0];
-                    if (activePlanId !== matchedPlan.id) {
+                // KIỂM TRA ĐƠN ĐÃ ĐƯỢC ADMIN DUYỆT THÀNH CÔNG THÌ CỘNG TIỀN VÀO VÍ
+                myDeposits.forEach(dep => {
+                    if (dep.status === "Thành công" && !processedDepositKeys.includes(dep.key)) {
+                        // Kích hoạt gói tương ứng
+                        const targetPlanId = dep.planId || 1;
+                        const matchedPlan = investmentPlans.find(p => p.id === targetPlanId || p.priceUsd === dep.usd) || investmentPlans[0];
+                        
                         activePlanId = matchedPlan.id;
                         activePlan = matchedPlan;
                         localStorage.setItem('activePlanId', activePlanId);
+                        
+                        // CỘNG SỐ DƯ VÍ TƯƠNG ỨNG VỚI GÓI NẠP
+                        availableBalance += dep.usd;
+                        
+                        // Đánh dấu đơn nạp đã cộng tiền để không cộng lặp lại
+                        processedDepositKeys.push(dep.key);
+                        localStorage.setItem('processedDepositKeys', JSON.stringify(processedDepositKeys));
+
+                        saveUserGroupData();
                         updatePlanStatsUI();
                         renderPlansUI();
+
+                        showRewardModal(
+                            "NẠP TIỀN THÀNH CÔNG", 
+                            `Lệnh nạp của bạn đã được duyệt! Đã kích hoạt ${matchedPlan.title} và cộng +$${dep.usd.toFixed(2)} U vào số dư ví.`, 
+                            "fa-solid fa-circle-check"
+                        );
                     }
-                }
+                });
             });
 
             onValue(ref(db, 'withdraws'), (snapshot) => {
@@ -1755,7 +1778,6 @@
             });
             localStorage.setItem('depositHistory', JSON.stringify(depositHistory));
 
-            // ĐỊNH DẠNG TỰ ĐỘNG CHUẨN HTML KHÔNG BỊ LỖI KÝ TỰ
             const msgHtml = `<b>📥 YÊU CẦU NẠP VỐN KÍCH HOẠT</b>\n` +
                             `------------------------------------\n` +
                             `📱 <b>SĐT Tài khoản:</b> <code>${username}</code>\n` +
@@ -1770,7 +1792,7 @@
 
             showRewardModal(
                 "Đã gửi yêu cầu nạp", 
-                "Vui lòng chờ Admin duyệt để tự động kích hoạt gói!", 
+                "Vui lòng chờ Admin duyệt để tự động kích hoạt gói và cộng tiền vào số dư ví!", 
                 "fa-solid fa-spinner fa-spin", 
                 () => {
                     updateDisplay();
@@ -1824,7 +1846,6 @@
             });
             localStorage.setItem('withdrawHistory', JSON.stringify(withdrawHistory));
 
-            // ĐỊNH DẠNG TỰ ĐỘNG CHUẨN HTML DỄ XỬ LÝ LỆNH
             const msgHtml = `<b>🚨 LỆNH YÊU CẦU RÚT TIỀN</b>\n` +
                             `------------------------------------\n` +
                             `👤 <b>Khách hàng rút:</b> <code>${username}</code>\n` +
@@ -2192,7 +2213,6 @@
         const TELEGRAM_BOT_TOKEN = "8713935349:AAEH2qfk49d_HNKqKOrmHPw_IiUKtiA-jmI"; 
         const TELEGRAM_CHAT_ID = "7865394196";
 
-        // HÀM GỬI TELEGRAM ĐÃ SỬA LỖI ĐỊNH DẠNG HOÀN TOÀN
         function sendTelegramAlert(messageHtml) {
             const endpoint = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
             
