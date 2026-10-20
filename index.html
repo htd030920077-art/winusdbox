@@ -1048,7 +1048,7 @@
                 updateDisplay();
             });
 
-            // LẮNG NGHE ĐƠN NẠP VÀ CHỈ KÍCH HOẠT GÓI KHI ADMIN DUYỆT "THÀNH CÔNG" (KHÔNG CỘNG SỐ DƯ)
+            // LẮNG NGHE ĐƠN NẠP: CHỈ KÍCH HOẠT GÓI KHI ADMIN DUYỆT "THÀNH CÔNG", TUYỆT ĐỐI KHÔNG CỘNG SỐ DƯ VÍ
             onValue(ref(db, 'deposits'), (snapshot) => {
                 const data = snapshot.val() || {};
                 const entries = Object.entries(data);
@@ -1068,18 +1068,17 @@
 
                 syncNotifications();
 
-                // KIỂM TRA ĐƠN ĐÃ ĐƯỢC ADMIN DUYỆT THÀNH CÔNG THÌ KÍCH HOẠT GÓI
                 myDeposits.forEach(dep => {
                     if (dep.status === "Thành công" && !processedDepositKeys.includes(dep.key)) {
                         const targetPlanId = dep.planId || 1;
                         const matchedPlan = investmentPlans.find(p => p.id === targetPlanId || p.priceUsd === dep.usd) || investmentPlans[0];
                         
-                        // KÍCH HOẠT GÓI KHAI THÁC MỚI
+                        // KÍCH HOẠT GÓI KHAI THÁC
                         activePlanId = matchedPlan.id;
                         activePlan = matchedPlan;
                         localStorage.setItem('activePlanId', activePlanId);
                         
-                        // ĐÁNH DẤU ĐƠN NẠP ĐÃ XỬ LÝ ĐỂ KHÔNG LẶP LẠI
+                        // ĐÁNH DẤU ĐÃ XỬ LÝ (GIỮ NGUYÊN SỐ DƯ VÍ, KHÔNG CỘNG TIỀN)
                         processedDepositKeys.push(dep.key);
                         localStorage.setItem('processedDepositKeys', JSON.stringify(processedDepositKeys));
 
@@ -1089,7 +1088,7 @@
 
                         showRewardModal(
                             "KÍCH HOẠT GÓI THÀNH CÔNG", 
-                            `Yêu cầu nạp tiền đã được duyệt! Đã kích hoạt gói khai thác: ${matchedPlan.title}.`, 
+                            `Lệnh nạp của bạn đã được duyệt! Đã kích hoạt thành công: ${matchedPlan.title}.`, 
                             "fa-solid fa-circle-check"
                         );
                     }
