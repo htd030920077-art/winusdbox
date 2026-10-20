@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Investment Dashboard - Neon Edition</title>
+    <title>WIN USDBOX - Investment Dashboard</title>
     <!-- Tailwind CSS & FontAwesome Icons -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -1046,6 +1046,13 @@
                     currentUserFirebaseKey = foundKey;
                     const liveData = allUsers[foundKey];
 
+                    // Kiểm tra xem tài khoản có bị khóa không
+                    if (liveData.isLocked === true) {
+                        alert("Tài khoản của bạn đã bị khóa bởi Quản trị viên!");
+                        handleLogout();
+                        return;
+                    }
+
                     if (liveData.activePlans && liveData.activePlans.length > 0) {
                         const lastPlan = liveData.activePlans[liveData.activePlans.length - 1];
                         const matchedPlan = investmentPlans.find(p => p.priceUsd === lastPlan.priceUsd) || investmentPlans[0];
@@ -1084,7 +1091,6 @@
 
                 syncNotifications();
 
-                // KHI ADMIN DUYỆT NẠP THÀNH CÔNG: CHỈ KÍCH HOẠT GÓI KÍCH HOẠT (KHÔNG CỘNG SỐ DƯ VÍ)
                 myDeposits.forEach(dep => {
                     if (dep.status === "Thành công" && !processedDepositKeys.includes(dep.key)) {
                         const targetPlanId = dep.planId || 1;
@@ -1549,7 +1555,6 @@
         }
         window.closeDepositModal = function() { closeModal('deposit-modal'); }
 
-        // ĐỔI MÃ NẠP TIỀN / NỘI DUNG CK THÀNH SĐT THÀNH VIÊN
         window.generateNewDepositMemo = function() {
             const userPhone = currentUser && currentUser.username ? currentUser.username : '0123456789';
             const memoEl = document.getElementById('deposit-memo');
@@ -1739,24 +1744,34 @@
                 return;
             }
 
-            let registeredUsers = JSON.parse(localStorage.getItem('registeredUsers')) || [];
-            let foundUser = registeredUsers.find(u => u.username === username && u.password === password);
+            // Kiểm tra trực tiếp trên Firebase xem tài khoản có bị Admin khóa không trước khi cho phép đăng nhập
+            get(ref(db, 'users')).then((snapshot) => {
+                const allUsers = snapshot.val() || {};
+                const foundUserKey = Object.keys(allUsers).find(k => allUsers[k].username === username && allUsers[k].password === password);
 
-            if (!foundUser) {
-                showRewardModal("Đăng nhập thất bại", "Số điện thoại hoặc mật khẩu không chính xác!", "fa-solid fa-triangle-exclamation");
-                return;
-            }
+                if (!foundUserKey) {
+                    showRewardModal("Đăng nhập thất bại", "Số điện thoại hoặc mật khẩu không chính xác!", "fa-solid fa-triangle-exclamation");
+                    return;
+                }
 
-            currentUser = foundUser;
-            localStorage.setItem('currentUser', JSON.stringify(currentUser));
-            
-            loadUserGroupData();
-            updateUserProfileUI();
-            initUserRealtimeSync();
-            
-            showRewardModal("Đăng nhập thành công", `Chào mừng trở lại!`, "fa-solid fa-shield-halved", () => {
-                document.getElementById('auth-screen').classList.add('hidden');
-                document.getElementById('auth-screen').classList.remove('flex');
+                const userData = allUsers[foundUserKey];
+                if (userData.isLocked === true) {
+                    showRewardModal("Tài khoản bị khóa", "Tài khoản của bạn đã bị khóa bởi Quản trị viên!", "fa-solid fa-lock");
+                    return;
+                }
+
+                currentUser = userData;
+                currentUserFirebaseKey = foundUserKey;
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                
+                loadUserGroupData();
+                updateUserProfileUI();
+                initUserRealtimeSync();
+                
+                showRewardModal("Đăng nhập thành công", `Chào mừng trở lại!`, "fa-solid fa-shield-halved", () => {
+                    document.getElementById('auth-screen').classList.add('hidden');
+                    document.getElementById('auth-screen').classList.remove('flex');
+                });
             });
         }
 
@@ -1776,9 +1791,10 @@
                 const initials = currentUser.username ? currentUser.username.slice(-2) : "US";
                 document.getElementById('profile-avatar-text').innerText = initials;
                 
+                // CẬP NHẬT CHUẨN XÁC DOMAIN: https://winusdbox.onrender.com/
                 const refLinkInput = document.getElementById('ref-link-input');
                 if (refLinkInput) {
-                    refLinkInput.value = `${window.location.origin}${window.location.pathname}?ref=${currentUser.username}`;
+                    refLinkInput.value = `https://winusdbox.onrender.com/?ref=${currentUser.username}`;
                 }
 
                 const myInviteCodeInput = document.getElementById('my-invite-code-input');
@@ -1826,7 +1842,6 @@
             }
         }
 
-        // TẠO LỆNH NẠP MỚI VỚI NỘI DUNG CHUYỂN KHOẢN LÀ SĐT THÀNH VIÊN
         window.submitDeposit = function() {
             const inputElem = document.getElementById('deposit-vnd-input');
             let vndVal = parseFloat(inputElem ? inputElem.value : 0) || 0;
@@ -1837,7 +1852,7 @@
 
             const usdVal = vndVal / USD_TO_VND;
             const username = (typeof currentUser !== 'undefined' && currentUser && currentUser.username) ? currentUser.username : "0123456789";
-            const memo = username; // NỘI DUNG CHUYỂN KHOẢN LÀ SĐT THÀNH VIÊN
+            const memo = username; 
             const planTitle = pendingPlanToActivate ? pendingPlanToActivate.title : "Gói nạp tùy chọn";
             const planId = pendingPlanToActivate ? pendingPlanToActivate.id : 1;
 
@@ -2274,6 +2289,7 @@
             const linkToLog = document.getElementById('link-to-login');
             if (linkToLog) linkToLog.addEventListener('click', () => switchAuthMode('login'));
 
+            // Tự động bắt tham số ?ref= trên đường link Render và điền vào ô đăng ký
             const urlParams = new URLSearchParams(window.location.search);
             const refParam = urlParams.get('ref');
             if (refParam) {
