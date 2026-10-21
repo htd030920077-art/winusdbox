@@ -3,747 +3,294 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WIN USDBOX - Investment & Admin System</title>
+    <title>WIN USDBOX - Web Admin Control Center</title>
     <!-- Tailwind CSS & FontAwesome Icons -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --bg-main: #0b0f19;
+            --bg-main: #070b14;
             --neon-green: #c0f135;
         }
         body {
             background-color: var(--bg-main);
             color: #ffffff;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            user-select: none;
-            -webkit-user-select: none;
-            -webkit-touch-callout: none;
-        }
-        .grid-bg {
-            background-image: linear-gradient(rgba(192, 241, 53, 0.02) 1px, transparent 1px),
-                              linear-gradient(90deg, rgba(192, 241, 53, 0.02) 1px, transparent 1px);
-            background-size: 20px 20px;
         }
         .card-dark {
-            background: rgba(18, 26, 43, 0.85);
+            background: rgba(15, 23, 42, 0.9);
             border: 1px solid rgba(192, 241, 53, 0.15);
         }
         .neon-btn { background-color: var(--neon-green); color: #000; }
         .neon-text { color: var(--neon-green); }
-
-        .modal-overlay {
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.2s ease-in-out;
-            align-items: flex-start !important;
-            padding: 0 !important;
-        }
-        .modal-overlay.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
-        .modal-content {
-            transform: scale(0.98);
-            transition: transform 0.2s ease-out;
-            margin-top: 0 !important;
-            width: 100% !important;
-            max-width: 448px !important;
-            min-height: 100vh !important;
-            border-radius: 0 !important;
-            overflow-y: auto;
-            padding: 16px;
-        }
-        .modal-overlay.active .modal-content {
-            transform: scale(1);
-        }
-
-        @keyframes popupFadeIn {
-            from { opacity: 0; transform: scale(0.90); }
-            to { opacity: 1; transform: scale(1); }
-        }
-        .animate-popup {
-            animation: popupFadeIn 0.2s ease-out forwards;
-        }
-
-        .progress-ring-circle {
-            transition: stroke-dashoffset 0.3s linear;
-            transform: rotate(-90deg);
-            transform-origin: 50% 50%;
-        }
     </style>
 </head>
-<body class="flex justify-center min-h-screen">
+<body class="min-h-screen pb-12">
 
-    <div class="w-full max-w-md bg-[#0b0f19] flex flex-col justify-between min-h-screen relative grid-bg pb-20 shadow-2xl border-x border-gray-800 overflow-hidden">
-
-        <!-- AUTH SCREEN -->
-        <div id="auth-screen" class="fixed inset-0 bg-[#0b0f19] z-[100] flex items-center justify-center p-6 overflow-y-auto">
-            <div class="w-full max-w-sm space-y-6 my-auto">
-                <div class="text-center space-y-2">
-                    <div class="w-16 h-16 bg-gradient-to-tr from-emerald-500 to-[#c0f135] rounded-2xl mx-auto flex items-center justify-center text-gray-950 text-3xl font-black shadow-lg shadow-lime-500/25">
-                        <i class="fa-solid fa-cube"></i>
-                    </div>
-                    <h1 class="text-2xl font-black text-white tracking-wide">WIN USDBOX</h1>
-                    <p class="text-xs text-gray-400">Hệ thống đầu tư & khai thác tài sản số</p>
+    <!-- LOGIN SCREEN -->
+    <div id="login-screen" class="fixed inset-0 bg-[#070b14] z-[999] flex items-center justify-center p-4">
+        <div class="card-dark p-6 rounded-3xl w-full max-w-sm space-y-5 border border-[#c0f135]/30 shadow-2xl">
+            <div class="text-center space-y-2">
+                <div class="w-14 h-14 bg-[#c0f135] text-gray-950 rounded-2xl mx-auto flex items-center justify-center text-2xl font-black">
+                    <i class="fa-solid fa-user-shield"></i>
                 </div>
-
-                <div id="login-form" class="space-y-4">
-                    <div class="space-y-1">
-                        <label class="text-xs font-bold text-gray-300">Số điện thoại</label>
-                        <input type="text" id="login-username" placeholder="Nhập 10 số điện thoại..." class="w-full bg-[#121929] border border-gray-800 rounded-xl p-3.5 text-xs text-gray-200 focus:outline-none focus:border-[#c0f135] placeholder-gray-600">
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-xs font-bold text-gray-300">Mật khẩu</label>
-                        <input type="password" id="login-password" placeholder="Nhập mật khẩu (từ 5 số)..." class="w-full bg-[#121929] border border-gray-800 rounded-xl p-3.5 text-xs text-gray-200 focus:outline-none focus:border-[#c0f135] placeholder-gray-600">
-                    </div>
-                    <button type="button" id="btn-login-action" class="w-full neon-btn font-extrabold py-3.5 rounded-xl text-xs tracking-wider shadow-lg shadow-lime-500/20 active:scale-95 transition cursor-pointer">
-                        ĐĂNG NHẬP
-                    </button>
-                    <div class="text-center pt-2 flex justify-between items-center text-xs">
-                        <p class="text-gray-400">Chưa có tài khoản? <span id="link-to-register" class="neon-text font-bold cursor-pointer hover:underline">Đăng ký ngay</span></p>
-                        <span onclick="openAdminLoginModal()" class="text-amber-400 font-bold cursor-pointer hover:underline"><i class="fa-solid fa-user-shield"></i> Admin Panel</span>
-                    </div>
+                <h1 class="text-xl font-black tracking-wide text-white">ADMIN PANEL</h1>
+                <p class="text-xs text-gray-400">Hệ thống quản trị WIN USDBOX</p>
+            </div>
+            <div class="space-y-3">
+                <div>
+                    <label class="text-xs font-bold text-gray-300">Mật khẩu Quản trị viên</label>
+                    <input type="password" id="admin-password" placeholder="Nhập mật khẩu Admin..." class="w-full bg-[#111827] border border-gray-800 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-[#c0f135]">
                 </div>
-
-                <div id="register-form" class="space-y-4 hidden">
-                    <div class="space-y-1">
-                        <label class="text-xs font-bold text-gray-300">Số điện thoại (Chính xác 10 chữ số)</label>
-                        <input type="text" id="reg-username" placeholder="Nhập 10 số điện thoại..." class="w-full bg-[#121929] border border-gray-800 rounded-xl p-3.5 text-xs text-gray-200 focus:outline-none focus:border-[#c0f135] placeholder-gray-600" maxlength="10">
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-xs font-bold text-gray-300">Mật khẩu (Từ 5 chữ số trở lên)</label>
-                        <input type="password" id="reg-password" placeholder="Tạo mật khẩu >= 5 ký tự..." class="w-full bg-[#121929] border border-gray-800 rounded-xl p-3.5 text-xs text-gray-200 focus:outline-none focus:border-[#c0f135] placeholder-gray-600">
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-xs font-bold text-gray-300">Mã giới thiệu (SĐT người mời - Không bắt buộc)</label>
-                        <input type="text" id="reg-ref" placeholder="Nhập SĐT người giới thiệu nếu có..." class="w-full bg-[#121929] border border-gray-800 rounded-xl p-3.5 text-xs text-gray-200 focus:outline-none focus:border-[#c0f135] placeholder-gray-600" maxlength="10">
-                    </div>
-                    <button type="button" id="btn-register-action" class="w-full neon-btn font-extrabold py-3.5 rounded-xl text-xs tracking-wider shadow-lg shadow-lime-500/20 active:scale-95 transition cursor-pointer">
-                        ĐĂNG KÝ TÀI KHOẢN
-                    </button>
-                    <div class="text-center pt-2">
-                        <p class="text-xs text-gray-400">Đã có tài khoản? <span id="link-to-login" class="neon-text font-bold cursor-pointer hover:underline">Đăng nhập</span></p>
-                    </div>
-                </div>
+                <button onclick="handleAdminLogin()" class="w-full neon-btn font-extrabold py-3 rounded-xl text-xs tracking-wider shadow-lg active:scale-95 transition cursor-pointer">
+                    ĐĂNG NHẬP ADMIN
+                </button>
             </div>
         </div>
+    </div>
 
-        <!-- HEADER TOP BAR -->
-        <header class="w-full px-4 py-3 flex items-center justify-between border-b border-gray-800/60 bg-[#0b0f19]/90 sticky top-0 z-30">
-            <div class="flex items-center gap-2">
-                <div class="w-7 h-7 bg-[#c0f135] rounded-lg flex items-center justify-center text-gray-950 font-black text-xs shadow">
-                    <i class="fa-solid fa-cube"></i>
+    <!-- MAIN ADMIN DASHBOARD -->
+    <div id="admin-dashboard" class="max-w-6xl mx-auto px-4 py-6 space-y-6 hidden">
+
+        <!-- HEADER -->
+        <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-gray-800">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-[#c0f135] text-gray-950 font-black rounded-xl flex items-center justify-center text-lg">
+                    <i class="fa-solid fa-shield-halved"></i>
                 </div>
-                <span class="font-black text-sm tracking-wider text-white">WINUSDBOX</span>
+                <div>
+                    <h1 class="font-black text-lg tracking-wide text-white">WIN USDBOX - REALTIME ADMIN CONTROL</h1>
+                    <p class="text-xs text-gray-400">Quản lý nạp rút, gói đầu tư, chi tiết hoa hồng & Giftcode thời gian thực</p>
+                </div>
             </div>
-            
             <div class="flex items-center gap-2">
-                <button onclick="openAdminLoginModal()" class="px-2.5 py-1.5 rounded-xl bg-amber-950/60 border border-amber-500/30 text-amber-400 text-xs font-semibold flex items-center gap-1.5 hover:bg-amber-900/60 transition cursor-pointer">
-                    <i class="fa-solid fa-user-shield"></i> <span>Admin</span>
+                <button onclick="toggleServerLock()" id="btn-server-lock" class="px-3 py-2 rounded-xl bg-gray-800 border border-amber-500/40 text-amber-400 text-xs font-bold flex items-center gap-2 hover:bg-gray-700 transition cursor-pointer">
+                    <i class="fa-solid fa-lock"></i> <span id="server-lock-text">Bật bảo trì Web</span>
                 </button>
-                <div class="relative">
-                    <button onclick="openNotificationModal()" class="w-10 h-10 rounded-xl bg-gray-900 border border-gray-800 flex items-center justify-center text-gray-300 hover:text-white transition relative cursor-pointer">
-                        <i class="fa-solid fa-bell text-sm"></i>
-                        <span id="notif-badge" class="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full hidden"></span>
-                        <span id="notif-badge-solid" class="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full hidden"></span>
-                    </button>
-                </div>
+                <button onclick="adminLogout()" class="px-3 py-2 rounded-xl bg-red-950/60 border border-red-500/30 text-red-400 text-xs font-bold flex items-center gap-2 hover:bg-red-900/60 transition cursor-pointer">
+                    <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
+                </button>
             </div>
         </header>
 
-        <!-- MAIN CONTENT -->
-        <main class="p-4 space-y-4 overflow-y-auto flex-1">
+        <!-- STATS OVERVIEW -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div class="card-dark p-4 rounded-2xl">
+                <p class="text-xs text-gray-400">Tổng Thành Viên</p>
+                <p id="stat-total-users" class="text-xl font-black neon-text mt-1">0</p>
+            </div>
+            <div class="card-dark p-4 rounded-2xl">
+                <p class="text-xs text-gray-400">Đơn Nạp Chờ Duyệt</p>
+                <p id="stat-pending-deposits" class="text-xl font-black text-amber-400 mt-1">0</p>
+            </div>
+            <div class="card-dark p-4 rounded-2xl">
+                <p class="text-xs text-gray-400">Đơn Rút Chờ Duyệt</p>
+                <p id="stat-pending-withdraws" class="text-xl font-black text-rose-400 mt-1">0</p>
+            </div>
+            <div class="card-dark p-4 rounded-2xl">
+                <p class="text-xs text-gray-400">Tổng Giftcode Đang Chạy</p>
+                <p id="stat-total-giftcodes" class="text-xl font-black text-sky-400 mt-1">0</p>
+            </div>
+        </div>
 
-            <!-- 1. TRANG CHỦ -->
-            <section id="tab-home" class="tab-pane space-y-4">
-                <div class="card-dark rounded-3xl p-5 border border-[#c0f135]/20 shadow-xl text-center space-y-4">
-                    <div class="flex justify-between items-center">
-                        <div class="flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 rounded-full bg-[#c0f135] animate-pulse"></span>
-                            <span class="text-xs font-semibold text-gray-300">Lãi khai thác tích lũy</span>
-                        </div>
-                        <span id="active-plan-badge" class="text-xs bg-[#122112] text-[#c0f135] border border-[#c0f135]/40 px-3 py-1 rounded-full font-bold flex items-center gap-1.5">
-                            <i class="fa-solid fa-chart-line text-[11px]"></i> Chưa kích hoạt gói
-                        </span>
-                    </div>
+        <!-- TABS NAVIGATION -->
+        <div class="flex border-b border-gray-800 gap-2 overflow-x-auto pb-2">
+            <button onclick="switchAdminTab('deposits')" class="admin-tab-btn px-4 py-2 rounded-xl text-xs font-bold bg-[#c0f135] text-gray-950 cursor-pointer" data-tab="deposits">
+                <i class="fa-solid fa-arrow-down-long mr-1"></i> Duyệt Nạp Tiền
+            </button>
+            <button onclick="switchAdminTab('withdraws')" class="admin-tab-btn px-4 py-2 rounded-xl text-xs font-bold text-gray-400 hover:text-white cursor-pointer" data-tab="withdraws">
+                <i class="fa-solid fa-arrow-up-long mr-1"></i> Duyệt Rút Tiền
+            </button>
+            <button onclick="switchAdminTab('users')" class="admin-tab-btn px-4 py-2 rounded-xl text-xs font-bold text-gray-400 hover:text-white cursor-pointer" data-tab="users">
+                <i class="fa-solid fa-users mr-1"></i> QL Thành Viên & Hoa Hồng Realtime
+            </button>
+            <button onclick="switchAdminTab('giftcodes')" class="admin-tab-btn px-4 py-2 rounded-xl text-xs font-bold text-gray-400 hover:text-white cursor-pointer" data-tab="giftcodes">
+                <i class="fa-solid fa-ticket mr-1"></i> Tạo Giftcode Realtime
+            </button>
+        </div>
 
-                    <div class="relative w-56 h-56 mx-auto flex items-center justify-center my-2">
-                        <svg class="w-full h-full filter drop-shadow-[0_0_10px_rgba(192,241,53,0.2)]" viewBox="0 0 120 120">
-                            <circle cx="60" cy="60" r="50" stroke="#121d30" stroke-width="7" fill="none" />
-                            <circle id="mining-progress-circle" class="progress-ring-circle" cx="60" cy="60" r="50" 
-                                    stroke="url(#gradient-ring)" stroke-width="8" stroke-linecap="round" fill="none" 
-                                    stroke-dasharray="314.159" stroke-dashoffset="314.159" />
-                            <defs>
-                                <linearGradient id="gradient-ring" x1="0%" y1="0%" x2="100%" y2="100%">
-                                    <stop offset="0%" stop-color="#10b981" />
-                                    <stop offset="100%" stop-color="#c0f135" />
-                                </linearGradient>
-                            </defs>
-                        </svg>
+        <!-- 1. QUẢN LÝ NẠP TIỀN -->
+        <section id="tab-deposits" class="admin-pane space-y-4">
+            <h2 class="font-bold text-sm text-white flex items-center gap-2">
+                <i class="fa-solid fa-receipt neon-text"></i> Danh Sách Yêu Cầu Nạp Vốn Kích Hoạt
+            </h2>
+            <div id="deposit-requests-list" class="space-y-3">
+                <p class="text-center text-xs text-gray-500 py-8">Đang tải danh sách nạp tiền...</p>
+            </div>
+        </section>
 
-                        <div class="absolute inset-0 flex flex-col items-center justify-center space-y-1 p-4">
-                            <i class="fa-solid fa-microchip text-[#c0f135] text-lg mb-1"></i>
-                            <span class="text-[10px] text-gray-400 font-medium">Lãi chưa nhận</span>
-                            <h1 class="text-xl font-black tracking-tight text-white leading-none">
-                                +$<span id="unclaimed-profit-int">0.</span><span id="unclaimed-profit-dec" class="neon-text">0000000</span>
-                            </h1>
-                            <div class="pt-1.5">
-                                <span id="ring-percent-text" class="text-[11px] font-extrabold text-[#c0f135] bg-[#1a2b10] border border-[#c0f135]/40 px-2 py-0.5 rounded-full">
-                                    0% / 0.1U
-                                </span>
-                            </div>
-                        </div>
-                    </div>
+        <!-- 2. QUẢN LÝ RÚT TIỀN -->
+        <section id="tab-withdraws" class="admin-pane space-y-4 hidden">
+            <h2 class="font-bold text-sm text-white flex items-center gap-2">
+                <i class="fa-solid fa-money-bill-transfer text-rose-400"></i> Danh Sách Yêu Cầu Rút Tiền Ngân Hàng
+            </h2>
+            <div id="withdraw-requests-list" class="space-y-3">
+                <p class="text-center text-xs text-gray-500 py-8">Đang tải danh sách rút tiền...</p>
+            </div>
+        </section>
 
-                    <div class="text-[11px] text-gray-400 flex justify-between items-center px-2 pt-1">
-                        <span>Nhận tối thiểu: <strong class="text-white">0,01 USD</strong></span>
-                        <span id="profit-status" class="text-gray-500 font-medium">Chưa đủ tối thiểu (0.01U)</span>
-                    </div>
+        <!-- 3. QUẢN LÝ THÀNH VIÊN REALTIME -->
+        <section id="tab-users" class="admin-pane space-y-4 hidden">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <h2 class="font-bold text-sm text-white flex items-center gap-2">
+                    <i class="fa-solid fa-users-gear neon-text"></i> Quản Lý Chi Tiết Thành Viên & Hoa Hồng Từng Cấp
+                </h2>
+                <input type="text" id="search-user-input" oninput="renderUsersList()" placeholder="Tìm theo SĐT thành viên..." class="bg-[#111827] border border-gray-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#c0f135] w-full md:w-64">
+            </div>
 
-                    <div class="grid grid-cols-3 gap-2">
-                        <div class="bg-gray-900/80 p-2.5 rounded-2xl border border-gray-800 text-center">
-                            <p class="text-[10px] text-gray-400 font-medium">Tốc độ / giây</p>
-                            <p id="stat-rate-sec" class="text-xs font-extrabold text-white mt-0.5">+0.0000000U</p>
-                        </div>
-                        <div class="bg-gray-900/80 p-2.5 rounded-2xl border border-gray-800 text-center">
-                            <p class="text-[10px] text-gray-400 font-medium">Ước tính / giờ</p>
-                            <p id="stat-rate-hour" class="text-xs font-extrabold text-white mt-0.5">+0.00000U</p>
-                        </div>
-                        <div class="bg-gray-900/80 p-2.5 rounded-2xl border border-gray-800 text-center">
-                            <p class="text-[10px] text-gray-400 font-medium">Ước tính / ngày</p>
-                            <p id="stat-rate-day" class="text-xs font-extrabold text-[#c0f135] mt-0.5">+0.00000U</p>
-                        </div>
-                    </div>
+            <div id="admin-users-list" class="space-y-3">
+                <p class="text-center text-xs text-gray-500 py-8">Đang tải danh sách thành viên...</p>
+            </div>
+        </section>
 
-                    <div class="grid grid-cols-2 gap-3 pt-1">
-                        <button id="claim-btn" onclick="claimProfit()" class="bg-gray-800 text-gray-500 font-bold py-3 rounded-2xl text-xs flex items-center justify-center gap-2 transition cursor-not-allowed" disabled>
-                            <i class="fa-solid fa-wand-magic-sparkles"></i> Nhận lãi
-                        </button>
-                        <button onclick="scrollToPlans()" class="bg-gray-800/90 text-gray-200 border border-gray-700 font-bold py-3 rounded-2xl text-xs flex items-center justify-center gap-2 transition active:scale-95 hover:bg-gray-700/80 cursor-pointer">
-                            <i class="fa-solid fa-layer-group"></i> Nâng cấp gói
-                        </button>
-                    </div>
-                </div>
+        <!-- 4. QUẢN LÝ TẠO GIFTCODE REALTIME -->
+        <section id="tab-giftcodes" class="admin-pane space-y-4 hidden">
+            <div class="card-dark p-5 rounded-3xl border border-[#c0f135]/30 space-y-4">
+                <h2 class="font-bold text-sm text-white flex items-center gap-2">
+                    <i class="fa-solid fa-gift text-sky-400"></i> Tạo Mã Giftcode Thời Gian Thực
+                </h2>
 
-                <div class="grid grid-cols-2 gap-3">
-                    <div class="space-y-3">
-                        <div class="card-dark rounded-2xl p-3 border border-gray-800/80">
-                            <div class="flex justify-between items-center mb-1">
-                                <span class="text-[11px] text-gray-400 font-medium">Số dư khả dụng</span>
-                                <div class="w-5 h-5 rounded-full bg-[#c0f135]/20 text-[#c0f135] flex items-center justify-center text-[10px] font-bold">
-                                    <i class="fa-solid fa-dollar-sign"></i>
-                                </div>
-                            </div>
-                            <p class="text-lg font-black text-white" id="available-balance">$0.00</p>
-                            <div class="mt-2 pt-1.5 border-t border-gray-800/80 flex justify-between items-center text-[9px]">
-                                <span class="text-gray-400">Đã nhận</span>
-                                <span class="neon-text font-bold" id="total-claimed">+$0.00 U</span>
-                            </div>
-                        </div>
-
-                        <div class="card-dark rounded-2xl p-3 border border-gray-800/80">
-                            <div class="flex justify-between items-center mb-1">
-                                <span class="text-[11px] text-gray-400 font-medium">Gói đang chạy</span>
-                                <div class="w-5 h-5 rounded-full bg-[#c0f135]/20 text-[#c0f135] flex items-center justify-center text-[10px]">
-                                    <i class="fa-solid fa-lock"></i>
-                                </div>
-                            </div>
-                            <p id="active-plan-usd" class="text-lg font-black text-gray-400">Chưa có</p>
-                            <div class="mt-2 pt-1.5 border-t border-gray-800/80 flex justify-between items-center text-[9px]">
-                                <span class="text-[#c0f135] font-bold" id="active-plan-rate">0.0000000U/s</span>
-                                <span class="text-gray-400" id="active-plan-duration">-</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div onclick="openInviteTaskModal()" class="card-dark rounded-2xl p-3.5 border border-gray-800 flex flex-col justify-between cursor-pointer hover:border-[#c0f135]/40 transition relative overflow-hidden bg-gradient-to-br from-[#121929] to-[#162215]">
-                        <div class="absolute -right-3 -bottom-3 text-[#c0f135]/10 text-7xl font-black select-none pointer-events-none">
-                            <i class="fa-solid fa-user-group"></i>
-                        </div>
-                        
-                        <div class="space-y-2 relative z-10">
-                            <div class="flex items-center justify-between">
-                                <span class="text-[10px] bg-[#1a2b10] text-[#c0f135] font-bold px-2 py-0.5 rounded-full border border-[#c0f135]/30">HOẠT ĐỘNG</span>
-                                <i class="fa-solid fa-users text-xs text-[#c0f135]"></i>
-                            </div>
-                            <h4 class="font-extrabold text-sm text-white">
-                                Nhiệm Vụ Mời Bạn Bè
-                            </h4>
-                            <p class="text-[10px] text-gray-300 leading-tight">
-                                Nhận hoa hồng F1 (10%) cộng thẳng vào số dư.
-                            </p>
-                        </div>
-
-                        <div class="pt-3 border-t border-gray-800/80 mt-2 flex items-center justify-between text-[10px] text-gray-400 relative z-10">
-                            <span>Chi tiết nhóm</span>
-                            <span class="text-[#c0f135] font-bold">Xem ngay <i class="fa-solid fa-chevron-right text-[9px]"></i></span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="pt-1">
-                    <button onclick="openWithdrawModal()" class="w-full bg-gray-800 border border-[#c0f135]/40 text-[#c0f135] font-extrabold py-3.5 rounded-2xl text-sm flex items-center justify-center gap-2 shadow-lg transition active:scale-95 cursor-pointer hover:bg-gray-700">
-                        <i class="fa-solid fa-arrow-down-to-bracket"></i> Rút tiền về ngân hàng
-                    </button>
-                </div>
-
-                <div id="investment-plans-section" class="space-y-4 pt-2">
-                    <div class="flex justify-between items-center px-1">
-                        <h3 class="font-bold text-sm text-white flex items-center gap-2">
-                            <i class="fa-solid fa-microchip text-[#c0f135]"></i> Các Gói Đầu Tư Khai Thác
-                        </h3>
-                        <span class="text-[10px] text-gray-400">Tỷ giá: 1U = 26.000 VNĐ</span>
-                    </div>
-
-                    <div id="plans-container" class="space-y-7"></div>
-                </div>
-            </section>
-
-            <!-- 2. NHIỆM VỤ -->
-            <section id="tab-tasks" class="tab-pane hidden space-y-4">
-                <h3 class="font-bold text-lg mb-2 flex items-center gap-2">
-                    <i class="fa-solid fa-list-check text-[#c0f135]"></i> Nhiệm vụ điểm danh
-                </h3>
-
-                <div class="card-dark p-4 rounded-2xl space-y-3 border border-[#c0f135]/30">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <p class="font-bold text-sm text-white">Điểm danh hàng ngày</p>
-                            <p class="text-xs text-gray-400 mt-0.5">Chuỗi liên tục: <span id="streak-days" class="neon-text font-bold">0</span> ngày</p>
-                        </div>
-                        <span class="text-xs bg-[#1a2b10] text-[#c0f135] border border-[#c0f135]/40 px-2.5 py-1 rounded-full font-bold">
-                            +0.01 USD / ngày
-                        </span>
-                    </div>
-                    
-                    <div class="flex items-center justify-between pt-2 border-t border-gray-800">
-                        <span id="checkin-status-msg" class="text-[11px] text-gray-400">Sẵn sàng điểm danh nhận thưởng</span>
-                        <button id="checkin-btn" onclick="doDailyCheckin()" class="neon-btn font-bold px-4 py-2 rounded-xl text-xs active:scale-95 transition cursor-pointer">
-                            Điểm danh ngay
-                        </button>
-                    </div>
-                </div>
-            </section>
-
-            <!-- 3. NHÓM -->
-            <section id="tab-group" class="tab-pane hidden space-y-4">
-                <div class="card-dark rounded-3xl p-5 border border-[#c0f135]/30 space-y-4">
-                    <div class="flex items-center justify-between border-b border-gray-800 pb-3">
-                        <h3 class="font-bold text-sm text-white flex items-center gap-2">
-                            <i class="fa-solid fa-users text-[#c0f135]"></i> Hệ Thống Mời Bạn Bè
-                        </h3>
-                        <span class="text-[10px] bg-[#1a2b10] text-[#c0f135] border border-[#c0f135]/40 px-2.5 py-0.5 rounded-full font-bold">Hoa hồng 10%</span>
-                    </div>
-
-                    <div class="space-y-2">
-                        <label class="text-xs font-bold text-gray-300">Mã mời của bạn (SĐT cá nhân)</label>
-                        <div class="flex gap-2">
-                            <input type="text" id="my-invite-code-input" readonly class="w-full bg-[#121929] border border-gray-800 rounded-xl p-2.5 text-xs text-[#c0f135] font-mono font-bold focus:outline-none">
-                            <button onclick="copyMyInviteCode()" class="neon-btn font-bold px-4 rounded-xl text-xs active:scale-95 transition cursor-pointer">Sao chép mã</button>
-                        </div>
-                    </div>
-
-                    <div class="space-y-2">
-                        <label class="text-xs font-bold text-gray-300">Link giới thiệu của bạn</label>
-                        <div class="flex gap-2">
-                            <input type="text" id="ref-link-input" readonly class="w-full bg-[#121929] border border-gray-800 rounded-xl p-2.5 text-xs text-[#c0f135] font-mono focus:outline-none">
-                            <button onclick="copyRefLink()" class="neon-btn font-bold px-4 rounded-xl text-xs active:scale-95 transition cursor-pointer">Sao chép link</button>
-                        </div>
-                    </div>
-
-                    <div class="bg-gray-900/90 border border-gray-800 p-3 rounded-2xl text-center">
-                        <p class="text-xs text-gray-400">Tổng hoa hồng F1 (10%)</p>
-                        <p id="f1-commission-val" class="text-sm font-black text-[#c0f135] mt-1">$0.00</p>
-                    </div>
-                </div>
-
-                <div class="space-y-3">
-                    <div class="flex justify-between items-center px-1">
-                        <h4 class="font-bold text-xs text-white flex items-center gap-1.5">
-                            <i class="fa-solid fa-list text-[#c0f135]"></i> Danh sách thành viên F1 trực tiếp
-                        </h4>
-                        <span id="f1-count-badge" class="text-[10px] text-gray-400">0 thành viên</span>
-                    </div>
-
-                    <div id="f1-member-list" class="space-y-2.5">
-                        <p class="text-center text-xs text-gray-500 py-6">Chưa có thành viên F1 nào.</p>
-                    </div>
-                </div>
-            </section>
-
-            <!-- 4. TÔI -->
-            <section id="tab-profile" class="tab-pane hidden space-y-4">
-                <div class="bg-gradient-to-r from-emerald-900 via-gray-900 to-[#122b10] border border-[#c0f135]/30 rounded-3xl p-6 text-center shadow-xl space-y-3">
-                    <div class="w-20 h-20 bg-[#c0f135] text-gray-950 font-extrabold text-2xl rounded-full flex items-center justify-center mx-auto shadow-md shadow-lime-500/20" id="profile-avatar-text">
-                        US
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div>
+                        <label class="text-xs font-bold text-gray-300">Mã Giftcode (VD: WIN100)</label>
+                        <input type="text" id="new-gift-code" placeholder="NHẬP MÃ CODE..." class="w-full bg-[#111827] border border-gray-800 rounded-xl p-3 text-xs text-white focus:outline-none uppercase focus:border-[#c0f135] mt-1">
                     </div>
                     <div>
-                        <h2 class="text-xl font-black text-white tracking-wide" id="profile-name">MEMBER</h2>
-                        <div class="flex items-center justify-center gap-2 mt-1">
-                            <span class="text-xs text-gray-300" id="profile-username">SĐT: 0123456789</span>
-                            <span class="text-[10px] bg-[#c0f135] text-gray-950 font-bold px-2 py-0.5 rounded-full">VIP 1</span>
-                        </div>
+                        <label class="text-xs font-bold text-gray-300">Giá Trị Thưởng (USD)</label>
+                        <input type="number" step="0.01" id="new-gift-usd" placeholder="Nhập số USD thưởng..." class="w-full bg-[#111827] border border-gray-800 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-[#c0f135] mt-1">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-300">Số Lượt Sử Dụng Tối Đa</label>
+                        <input type="number" id="new-gift-limit" value="100" placeholder="Số lượt tối đa..." class="w-full bg-[#111827] border border-gray-800 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-[#c0f135] mt-1">
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-3">
-                    <div class="card-dark rounded-2xl p-4 text-center">
-                        <p class="text-xs text-gray-400">Số Dư Ví</p>
-                        <p class="text-lg font-black text-[#c0f135] mt-1" id="profile-balance">$0.00</p>
-                    </div>
-                    <div class="card-dark rounded-2xl p-4 text-center">
-                        <p class="text-xs text-gray-400">Tổng Hoa Hồng Tích Lũy</p>
-                        <p class="text-lg font-black text-[#c0f135] mt-1" id="profile-total-commission">$0.00</p>
-                    </div>
-                </div>
+                <button onclick="createNewGiftcode()" class="neon-btn font-extrabold px-6 py-3 rounded-xl text-xs active:scale-95 transition cursor-pointer">
+                    <i class="fa-solid fa-plus mr-1"></i> TẠO & PHÁT HÀNH GIFTCODE
+                </button>
+            </div>
 
-                <div class="space-y-2">
-                    <div class="flex items-center gap-2 text-xs font-bold text-gray-300 px-1">
-                        <i class="fa-solid fa-wallet text-[#c0f135]"></i>
-                        <span>Quản Lý Số Dư</span>
-                    </div>
-                    <div onclick="openWithdrawModal()" class="card-dark rounded-2xl p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/60 transition">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-[#c0f135]/10 border border-[#c0f135]/30 text-[#c0f135] flex items-center justify-center">
-                                <i class="fa-solid fa-money-bill-transfer"></i>
-                            </div>
-                            <span class="text-sm font-bold text-white">Rút Tiền Về Ngân Hàng</span>
-                        </div>
-                        <i class="fa-solid fa-chevron-right text-xs text-gray-500"></i>
-                    </div>
-
-                    <div onclick="openCashFlowModal()" class="card-dark rounded-2xl p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/60 transition">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-[#c0f135]/10 border border-[#c0f135]/30 text-[#c0f135] flex items-center justify-center">
-                                <i class="fa-solid fa-receipt"></i>
-                            </div>
-                            <span class="text-sm font-bold text-white">Lịch Sử Dòng Tiền</span>
-                        </div>
-                        <i class="fa-solid fa-chevron-right text-xs text-gray-500"></i>
-                    </div>
-                </div>
-
-                <div class="space-y-2">
-                    <div class="flex items-center gap-2 text-xs font-bold text-gray-300 px-1">
-                        <i class="fa-solid fa-user-gear text-[#c0f135]"></i>
-                        <span>Cài Đặt & Tiện Ích</span>
-                    </div>
-
-                    <div class="space-y-2">
-                        <div onclick="openGiftcodeModal()" class="card-dark rounded-2xl p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-800/60 transition">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-xl bg-[#c0f135]/10 border border-[#c0f135]/30 text-[#c0f135] flex items-center justify-center">
-                                    <i class="fa-solid fa-ticket"></i>
-                                </div>
-                                <span class="text-sm font-bold text-white">Nhập Mã Giftcode</span>
-                            </div>
-                            <i class="fa-solid fa-chevron-right text-xs text-gray-500"></i>
-                        </div>
-
-                        <div onclick="handleLogout()" class="card-dark rounded-2xl p-3.5 flex items-center justify-between cursor-pointer hover:bg-red-950/30 transition border-red-500/20">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-xl bg-red-950/60 border border-red-500/20 text-red-400 flex items-center justify-center">
-                                    <i class="fa-solid fa-right-from-bracket"></i>
-                                </div>
-                                <div>
-                                    <p class="text-sm font-bold text-red-400">Đăng Xuất</p>
-                                    <p class="text-[11px] text-gray-400">Thoát phiên đăng nhập hiện tại</p>
-                                </div>
-                            </div>
-                            <i class="fa-solid fa-chevron-right text-xs text-gray-500"></i>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-        </main>
-
-        <!-- ADMIN MODAL DASHBOARD -->
-        <div id="admin-panel-modal" class="modal-overlay absolute inset-0 bg-[#070b14] z-[200] flex flex-col overflow-y-auto">
-            <div class="modal-content card-dark rounded-none p-4 space-y-4 border-b border-[#c0f135]/30 w-full min-h-screen">
-                
-                <!-- ADMIN LOGIN SCREEN -->
-                <div id="admin-login-sub-screen" class="my-auto py-12">
-                    <div class="card-dark p-6 rounded-3xl w-full max-w-sm mx-auto space-y-5 border border-[#c0f135]/30 shadow-2xl">
-                        <div class="text-center space-y-2">
-                            <div class="w-14 h-14 bg-[#c0f135] text-gray-950 rounded-2xl mx-auto flex items-center justify-center text-2xl font-black">
-                                <i class="fa-solid fa-user-shield"></i>
-                            </div>
-                            <h1 class="text-xl font-black tracking-wide text-white">ADMIN PANEL</h1>
-                            <p class="text-xs text-gray-400">Hệ thống quản trị WIN USDBOX</p>
-                        </div>
-                        <div class="space-y-3">
-                            <div>
-                                <label class="text-xs font-bold text-gray-300">Mật khẩu Quản trị viên</label>
-                                <input type="password" id="admin-password" placeholder="Nhập mật khẩu Admin..." class="w-full bg-[#111827] border border-gray-800 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-[#c0f135]">
-                            </div>
-                            <button onclick="handleAdminLogin()" class="w-full neon-btn font-extrabold py-3 rounded-xl text-xs tracking-wider shadow-lg active:scale-95 transition cursor-pointer">
-                                ĐĂNG NHẬP ADMIN
-                            </button>
-                            <button onclick="closeAdminLoginModal()" class="w-full bg-gray-800 text-gray-300 font-bold py-2.5 rounded-xl text-xs cursor-pointer">
-                                Quay lại trang chủ
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ADMIN MAIN DASHBOARD SCREEN -->
-                <div id="admin-main-sub-screen" class="space-y-6 hidden">
-                    <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-gray-800">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 bg-[#c0f135] text-gray-950 font-black rounded-xl flex items-center justify-center text-lg">
-                                <i class="fa-solid fa-shield-halved"></i>
-                            </div>
-                            <div>
-                                <h1 class="font-black text-sm tracking-wide text-white">ADMIN CONTROL CENTER</h1>
-                                <p class="text-[10px] text-gray-400">Quản lý nạp rút, thành viên & Giftcode realtime</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <button onclick="toggleServerLock()" id="btn-server-lock" class="px-2.5 py-1.5 rounded-xl bg-gray-800 border border-amber-500/40 text-amber-400 text-xs font-bold flex items-center gap-1.5 hover:bg-gray-700 transition cursor-pointer">
-                                <i class="fa-solid fa-lock"></i> <span id="server-lock-text">Bật bảo trì</span>
-                            </button>
-                            <button onclick="adminLogout()" class="px-2.5 py-1.5 rounded-xl bg-red-950/60 border border-red-500/30 text-red-400 text-xs font-bold flex items-center gap-1.5 hover:bg-red-900/60 transition cursor-pointer">
-                                <i class="fa-solid fa-right-from-bracket"></i> Thoát
-                            </button>
-                        </div>
-                    </header>
-
-                    <!-- STATS OVERVIEW -->
-                    <div class="grid grid-cols-2 gap-2">
-                        <div class="card-dark p-3 rounded-2xl">
-                            <p class="text-[11px] text-gray-400">Tổng Thành Viên</p>
-                            <p id="stat-total-users" class="text-base font-black neon-text mt-0.5">0</p>
-                        </div>
-                        <div class="card-dark p-3 rounded-2xl">
-                            <p class="text-[11px] text-gray-400">Đơn Nạp Chờ</p>
-                            <p id="stat-pending-deposits" class="text-base font-black text-amber-400 mt-0.5">0</p>
-                        </div>
-                        <div class="card-dark p-3 rounded-2xl">
-                            <p class="text-[11px] text-gray-400">Đơn Rút Chờ</p>
-                            <p id="stat-pending-withdraws" class="text-base font-black text-rose-400 mt-0.5">0</p>
-                        </div>
-                        <div class="card-dark p-3 rounded-2xl">
-                            <p class="text-[11px] text-gray-400">Giftcode Chạy</p>
-                            <p id="stat-total-giftcodes" class="text-base font-black text-sky-400 mt-0.5">0</p>
-                        </div>
-                    </div>
-
-                    <!-- ADMIN TABS -->
-                    <div class="flex border-b border-gray-800 gap-1.5 overflow-x-auto pb-2 text-xs">
-                        <button onclick="switchAdminTab('deposits')" class="admin-tab-btn px-3 py-1.5 rounded-xl font-bold bg-[#c0f135] text-gray-950 cursor-pointer" data-tab="deposits">Nạp Tiền</button>
-                        <button onclick="switchAdminTab('withdraws')" class="admin-tab-btn px-3 py-1.5 rounded-xl font-bold text-gray-400 hover:text-white cursor-pointer" data-tab="withdraws">Rút Tiền</button>
-                        <button onclick="switchAdminTab('users')" class="admin-tab-btn px-3 py-1.5 rounded-xl font-bold text-gray-400 hover:text-white cursor-pointer" data-tab="users">Thành Viên</button>
-                        <button onclick="switchAdminTab('giftcodes')" class="admin-tab-btn px-3 py-1.5 rounded-xl font-bold text-gray-400 hover:text-white cursor-pointer" data-tab="giftcodes">Giftcode</button>
-                    </div>
-
-                    <!-- 1. DUYỆT NẠP -->
-                    <section id="tab-deposits" class="admin-pane space-y-3">
-                        <h2 class="font-bold text-xs text-white"><i class="fa-solid fa-receipt neon-text"></i> Danh Sách Nạp Vốn</h2>
-                        <div id="deposit-requests-list" class="space-y-2"></div>
-                    </section>
-
-                    <!-- 2. DUYỆT RÚT -->
-                    <section id="tab-withdraws" class="admin-pane space-y-3 hidden">
-                        <h2 class="font-bold text-xs text-white"><i class="fa-solid fa-money-bill-transfer text-rose-400"></i> Danh Sách Rút Tiền</h2>
-                        <div id="withdraw-requests-list" class="space-y-2"></div>
-                    </section>
-
-                    <!-- 3. QUẢN LÝ THÀNH VIÊN -->
-                    <section id="tab-users" class="admin-pane space-y-3 hidden">
-                        <input type="text" id="search-user-input" oninput="renderUsersList()" placeholder="Tìm SĐT thành viên..." class="w-full bg-[#111827] border border-gray-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#c0f135]">
-                        <div id="admin-users-list" class="space-y-2"></div>
-                    </section>
-
-                    <!-- 4. QUẢN LÝ GIFTCODE -->
-                    <section id="tab-giftcodes" class="admin-pane space-y-3 hidden">
-                        <div class="card-dark p-4 rounded-2xl border border-[#c0f135]/30 space-y-3 text-xs">
-                            <h2 class="font-bold text-white"><i class="fa-solid fa-gift text-sky-400"></i> Tạo Giftcode Mới</h2>
-                            <input type="text" id="new-gift-code" placeholder="MÃ CODE (VD: WIN100)" class="w-full bg-[#111827] border border-gray-800 rounded-xl p-2.5 text-white uppercase focus:border-[#c0f135]">
-                            <input type="number" step="0.01" id="new-gift-usd" placeholder="Số USD thưởng..." class="w-full bg-[#111827] border border-gray-800 rounded-xl p-2.5 text-white focus:border-[#c0f135]">
-                            <input type="number" id="new-gift-limit" value="100" placeholder="Số lượt tối đa..." class="w-full bg-[#111827] border border-gray-800 rounded-xl p-2.5 text-white focus:border-[#c0f135]">
-                            <button onclick="createNewGiftcode()" class="w-full neon-btn font-extrabold py-2.5 rounded-xl cursor-pointer">TẠO GIFTCODE</button>
-                        </div>
-                        <div id="giftcodes-list" class="space-y-2"></div>
-                    </section>
-
-                    <button onclick="closeAdminLoginModal()" class="w-full bg-gray-800 text-white font-bold py-3 rounded-xl text-xs cursor-pointer mt-4">
-                        Quay về giao diện người chơi
-                    </button>
+            <div class="space-y-3 pt-2">
+                <h3 class="font-bold text-xs text-gray-300">Danh Sách Mã Giftcode Hiện Có</h3>
+                <div id="giftcodes-list" class="space-y-2">
+                    <p class="text-center text-xs text-gray-500 py-6">Chưa có Giftcode nào.</p>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <!-- MODALS THÀNH VIÊN VÀ NẠP RÚT CHO USER -->
-        <div id="invite-task-modal" class="modal-overlay absolute inset-0 bg-[#090d16]/95 z-[90] flex flex-col overflow-y-auto">
-            <div class="modal-content card-dark rounded-none p-4 space-y-4 border-b border-[#c0f135]/30 w-full min-h-screen flex flex-col justify-between">
-                <div class="space-y-4">
-                    <div class="flex items-center justify-between py-2 border-b border-gray-800">
-                        <button onclick="closeInviteTaskModal()" class="w-8 h-8 rounded-lg bg-gray-900 border border-gray-700 flex items-center justify-center text-gray-300 hover:text-white cursor-pointer">
-                            <i class="fa-solid fa-chevron-left text-sm"></i>
-                        </button>
-                        <h2 class="text-base font-bold text-[#c0f135] tracking-wide">Nhiệm vụ mời bạn bè</h2>
-                        <div class="w-8"></div>
-                    </div>
-                    <p class="text-xs text-gray-300">Nhận hoa hồng F1 trực tiếp (10%) cộng thẳng vào ví số dư khi tuyến dưới mua gói đầu tư.</p>
-                </div>
-                <button onclick="closeInviteTaskModal()" class="w-full bg-gray-800 border border-gray-700 text-white font-bold py-3 rounded-xl text-xs cursor-pointer">Đóng</button>
-            </div>
-        </div>
-
-        <div id="giftcode-modal" class="modal-overlay absolute inset-0 bg-[#090d16]/95 z-50 flex flex-col overflow-y-auto">
-            <div class="modal-content card-dark rounded-none p-4 space-y-4 border-b border-[#c0f135]/30 w-full min-h-screen flex flex-col justify-between">
-                <div class="space-y-4">
-                    <div class="flex items-center justify-between py-2 border-b border-gray-800">
-                        <button onclick="closeGiftcodeModal()" class="w-8 h-8 rounded-lg bg-gray-900 border border-gray-700 flex items-center justify-center text-gray-300 hover:text-white cursor-pointer">
-                            <i class="fa-solid fa-chevron-left text-sm"></i>
-                        </button>
-                        <h2 class="text-base font-bold text-[#c0f135] tracking-wide">Nhập Mã Giftcode</h2>
-                        <div class="w-8"></div>
-                    </div>
-                    <input type="text" id="giftcode-input" placeholder="Nhập mã code của bạn..." class="w-full bg-[#121929] border border-gray-800 rounded-xl p-3 text-xs text-gray-200 uppercase focus:border-[#c0f135]">
-                    <button onclick="submitGiftcode()" class="w-full neon-btn font-extrabold py-3.5 rounded-xl text-sm cursor-pointer">Nhận Quà</button>
-                </div>
-                <button onclick="closeGiftcodeModal()" class="w-full bg-gray-800 border border-gray-700 text-white font-bold py-3 rounded-xl text-xs cursor-pointer">Đóng</button>
-            </div>
-        </div>
-
-        <div id="notification-modal" class="modal-overlay absolute inset-0 bg-[#090d16]/95 z-[80] flex flex-col overflow-y-auto">
-            <div class="modal-content card-dark rounded-none p-4 space-y-4 border-b border-[#c0f135]/30 w-full min-h-screen">
-                <div class="flex items-center justify-between py-2 border-b border-gray-800">
-                    <button onclick="closeNotificationModal()" class="w-8 h-8 rounded-lg bg-gray-900 border border-gray-700 flex items-center justify-center text-gray-300 cursor-pointer">
-                        <i class="fa-solid fa-chevron-left text-sm"></i>
-                    </button>
-                    <h2 class="text-base font-bold text-[#c0f135] tracking-wide">Hệ thống thông báo</h2>
-                    <div class="w-8"></div>
-                </div>
-                <div id="notification-list" class="space-y-3"></div>
-                <button onclick="closeNotificationModal()" class="w-full bg-gray-800 border border-gray-700 text-white font-bold py-3 rounded-xl text-xs cursor-pointer mt-6">Đóng</button>
-            </div>
-        </div>
-
-        <div id="cash-flow-modal" class="modal-overlay absolute inset-0 bg-[#090d16]/95 z-[70] flex flex-col overflow-y-auto">
-            <div class="modal-content card-dark rounded-none p-4 space-y-4 border-b border-[#c0f135]/30 w-full min-h-screen">
-                <div class="flex items-center justify-between py-2 border-b border-gray-800">
-                    <button onclick="closeCashFlowModal()" class="w-8 h-8 rounded-lg bg-gray-900 border border-gray-700 flex items-center justify-center text-gray-300 cursor-pointer">
-                        <i class="fa-solid fa-chevron-left text-sm"></i>
-                    </button>
-                    <h2 class="text-base font-bold text-[#c0f135] tracking-wide">Lịch sử dòng tiền</h2>
-                    <div class="w-8"></div>
-                </div>
-                <div id="cash-flow-list" class="space-y-3"></div>
-                <button onclick="closeCashFlowModal()" class="w-full bg-gray-800 border border-gray-700 text-white font-bold py-3 rounded-xl text-xs cursor-pointer mt-6">Đóng</button>
-            </div>
-        </div>
-
-        <div id="deposit-modal" class="modal-overlay absolute inset-0 bg-[#090d16]/95 z-50 flex flex-col overflow-y-auto">
-            <div class="modal-content card-dark rounded-none p-4 space-y-4 border-b border-[#c0f135]/30 w-full min-h-screen">
-                <div class="flex items-center justify-between py-2 border-b border-gray-800">
-                    <button onclick="closeDepositModal()" class="w-8 h-8 rounded-lg bg-gray-900 border border-gray-700 flex items-center justify-center text-gray-300 cursor-pointer">
-                        <i class="fa-solid fa-chevron-left text-sm"></i>
-                    </button>
-                    <h2 class="text-base font-bold text-[#c0f135] tracking-wide">Nạp tiền kích hoạt gói</h2>
-                    <button onclick="openDepositHistoryModal()" class="text-xs bg-gray-900 border border-[#c0f135]/30 text-[#c0f135] px-2.5 py-1.5 rounded-lg cursor-pointer">Lịch sử</button>
-                </div>
-                
-                <div class="space-y-3">
-                    <input type="number" id="deposit-vnd-input" readonly class="w-full bg-[#121929] border border-gray-800 rounded-xl p-3 text-xs text-gray-200">
-                    <p id="deposit-calc-text" class="text-[11px] text-gray-400">Quy đổi: <span class="neon-text font-bold">0.00 U</span></p>
-                    <div class="flex flex-col items-center justify-center bg-white p-4 rounded-2xl">
-                        <img id="dynamic-qr-img" src="" alt="QR" class="w-56 h-56 object-contain rounded-xl">
-                    </div>
-                    <div class="bg-gray-900/90 border border-gray-800 rounded-2xl p-3.5 space-y-1 text-xs text-gray-300">
-                        <p>STK: <strong class="text-[#c0f135]">11557000</strong> (VietinBank)</p>
-                        <p>Chủ TK: <strong class="text-white">WIN USDBOX</strong></p>
-                        <p>Nội dung: <strong class="text-amber-300 font-bold" id="deposit-memo">SEVQR...</strong></p>
-                    </div>
-                </div>
-                <button id="btn-submit-deposit" onclick="submitDeposit()" class="w-full bg-gray-800 text-gray-500 font-extrabold py-3.5 rounded-xl text-sm cursor-not-allowed" disabled>Đang chờ...</button>
-            </div>
-        </div>
-
-        <div id="deposit-history-modal" class="modal-overlay absolute inset-0 bg-[#090d16]/95 z-[60] flex flex-col overflow-y-auto">
-            <div class="modal-content card-dark rounded-none p-4 space-y-4 border-b border-[#c0f135]/30 w-full min-h-screen">
-                <div class="flex items-center justify-between py-2 border-b border-gray-800">
-                    <button onclick="closeDepositHistoryModal()" class="w-8 h-8 rounded-lg bg-gray-900 border border-gray-700 flex items-center justify-center text-gray-300 cursor-pointer"><i class="fa-solid fa-chevron-left"></i></button>
-                    <h2 class="text-base font-bold text-[#c0f135]">Lịch sử nạp tiền</h2>
-                    <div class="w-8"></div>
-                </div>
-                <div id="deposit-history-list" class="space-y-3"></div>
-                <button onclick="closeDepositHistoryModal()" class="w-full bg-gray-800 text-white font-bold py-3 rounded-xl text-xs cursor-pointer mt-6">Đóng</button>
-            </div>
-        </div>
-
-        <div id="withdraw-modal" class="modal-overlay absolute inset-0 bg-[#090d16]/95 z-50 flex flex-col overflow-y-auto">
-            <div class="modal-content card-dark rounded-none p-4 space-y-4 border-b border-[#c0f135]/30 w-full min-h-screen">
-                <div class="flex items-center justify-between py-2 border-b border-gray-800">
-                    <button onclick="closeWithdrawModal()" class="w-8 h-8 rounded-lg bg-gray-900 border border-gray-700 flex items-center justify-center text-gray-300 cursor-pointer"><i class="fa-solid fa-chevron-left"></i></button>
-                    <h2 class="text-base font-bold text-[#c0f135]">Rút tiền về ngân hàng</h2>
-                    <button onclick="openHistoryModal()" class="text-xs bg-gray-900 border border-[#c0f135]/30 text-[#c0f135] px-2 py-1 rounded-lg cursor-pointer">Lịch sử</button>
-                </div>
-                <div class="space-y-3 text-xs">
-                    <input type="number" id="withdraw-amount" oninput="calculateFee()" placeholder="Số U muốn rút..." class="w-full bg-[#121929] border border-gray-800 rounded-xl p-3 text-white focus:border-[#c0f135]">
-                    <p id="fee-calc-text" class="text-gray-400">Phí 5%</p>
-                    <select id="withdraw-bank" class="w-full bg-[#121929] border border-gray-800 rounded-xl p-3 text-white">
-                        <option>MB - MBBank</option><option>VCB - Vietcombank</option><option>TCB - Techcombank</option><option>ICB - VietinBank</option>
-                    </select>
-                    <input type="text" id="withdraw-acc" placeholder="Số tài khoản..." class="w-full bg-[#121929] border border-gray-800 rounded-xl p-3 text-white">
-                    <input type="text" id="withdraw-name" placeholder="Chủ tài khoản (Không dấu)..." class="w-full bg-[#121929] border border-gray-800 rounded-xl p-3 text-white uppercase">
-                </div>
-                <button onclick="submitWithdraw()" class="w-full neon-btn font-extrabold py-3.5 rounded-xl text-sm cursor-pointer">Gửi lệnh rút</button>
-            </div>
-        </div>
-
-        <div id="history-modal" class="modal-overlay absolute inset-0 bg-[#090d16]/95 z-[60] flex flex-col overflow-y-auto">
-            <div class="modal-content card-dark rounded-none p-4 space-y-4 border-b border-[#c0f135]/30 w-full min-h-screen">
-                <div class="flex items-center justify-between py-2 border-b border-gray-800">
-                    <button onclick="closeHistoryModal()" class="w-8 h-8 rounded-lg bg-gray-900 border border-gray-700 flex items-center justify-center text-gray-300 cursor-pointer"><i class="fa-solid fa-chevron-left"></i></button>
-                    <h2 class="text-base font-bold text-[#c0f135]">Lịch sử rút tiền</h2>
-                    <div class="w-8"></div>
-                </div>
-                <div id="history-list" class="space-y-3"></div>
-                <button onclick="closeHistoryModal()" class="w-full bg-gray-800 text-white font-bold py-3 rounded-xl text-xs cursor-pointer mt-6">Đóng</button>
-            </div>
-        </div>
-
-        <!-- REWARD MODAL -->
-        <div id="reward-modal" class="fixed inset-0 bg-black/80 z-[110] hidden items-center justify-center p-4">
-            <div class="bg-[#121929] border border-[#c0f135]/40 rounded-3xl p-6 w-full max-w-xs text-center shadow-2xl relative space-y-4 animate-popup">
-                <div class="w-16 h-16 bg-[#c0f135] rounded-2xl mx-auto flex items-center justify-center text-gray-950 text-2xl shadow-lg">
-                    <i id="reward-modal-icon" class="fa-solid fa-gift"></i>
-                </div>
-                <div class="space-y-2">
-                    <h3 class="text-base font-bold text-gray-200" id="reward-modal-title">Thông báo</h3>
-                    <div class="bg-gray-900/80 border border-[#c0f135]/30 py-2.5 px-4 rounded-xl inline-block w-full">
-                        <span id="reward-modal-amount" class="text-xs font-bold text-white">Nội dung</span>
-                    </div>
-                </div>
-                <button onclick="closeRewardModal()" class="w-full neon-btn font-extrabold py-3 rounded-xl text-xs cursor-pointer">XÁC NHẬN</button>
-            </div>
-        </div>
-
-        <!-- BOTTOM NAVIGATION -->
-        <nav class="fixed bottom-0 w-full max-w-md bg-[#0b0f19]/95 border-t border-gray-800 py-2 px-4 grid grid-cols-4 z-20">
-            <button onclick="switchTab('home')" class="nav-item flex flex-col items-center justify-center gap-1 text-xs text-gray-500 transition cursor-pointer" data-target="home">
-                <i class="fa-solid fa-house-chimney text-base"></i><span>Home</span>
-            </button>
-            <button onclick="switchTab('tasks')" class="nav-item flex flex-col items-center justify-center gap-1 text-xs text-gray-500 transition cursor-pointer" data-target="tasks">
-                <i class="fa-solid fa-list-check text-base"></i><span>Nhiệm vụ</span>
-            </button>
-            <button onclick="switchTab('group')" class="nav-item flex flex-col items-center justify-center gap-1 text-xs text-gray-500 transition cursor-pointer" data-target="group">
-                <i class="fa-solid fa-user-group text-base"></i><span>Nhóm</span>
-            </button>
-            <button onclick="switchTab('profile')" class="nav-item flex flex-col items-center justify-center gap-1 text-xs text-gray-500 transition cursor-pointer" data-target="profile">
-                <i class="fa-solid fa-user text-base"></i><span>Tôi</span>
-            </button>
-        </nav>
     </div>
 
-    <!-- JAVASCRIPT LOGIC TRỌN VẸN (USER & ADMIN PANEL) -->
+    <!-- MODAL CHỈNH SỬA TOÀN BỘ THÔNG TIN THÀNH VIÊN -->
+    <div id="edit-user-modal" class="fixed inset-0 bg-black/80 z-[1000] hidden items-center justify-center p-4">
+        <div class="card-dark rounded-3xl p-6 w-full max-w-lg space-y-4 border border-[#c0f135]/40 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b border-gray-800 pb-3">
+                <h3 class="font-bold text-sm text-[#c0f135]"><i class="fa-solid fa-user-pen mr-1"></i> Chỉnh Sửa Thông Tin Thành Viên</h3>
+                <button onclick="closeEditUserModal()" class="text-gray-400 hover:text-white cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="space-y-3">
+                <div>
+                    <label class="text-xs font-bold text-gray-300">Số Điện Thoại (Tài Khoản)</label>
+                    <input type="text" id="edit-phone" class="w-full bg-[#111827] border border-gray-800 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-[#c0f135] mt-1">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-gray-300">Mật Khẩu Đăng Nhập</label>
+                    <input type="text" id="edit-password" placeholder="Nhập mật khẩu mới..." class="w-full bg-[#111827] border border-gray-800 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-[#c0f135] mt-1">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-gray-300">Họ và Tên</label>
+                    <input type="text" id="edit-fullname" class="w-full bg-[#111827] border border-gray-800 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-[#c0f135] mt-1">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="text-xs font-bold text-gray-300">Ngân Hàng Rút Tiền</label>
+                        <input type="text" id="edit-bank" placeholder="VD: MBBANK" class="w-full bg-[#111827] border border-gray-800 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-[#c0f135] mt-1">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-300">Số Tài Khoản (STK)</label>
+                        <input type="text" id="edit-acc" placeholder="Nhập STK..." class="w-full bg-[#111827] border border-gray-800 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-[#c0f135] mt-1">
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex gap-2 pt-2">
+                <button onclick="closeEditUserModal()" class="w-1/2 bg-gray-800 text-gray-300 font-bold py-3 rounded-xl text-xs cursor-pointer">Hủy</button>
+                <button onclick="saveFullUserInfo()" class="w-1/2 neon-btn font-extrabold py-3 rounded-xl text-xs active:scale-95 transition cursor-pointer">LƯU THÔNG TIN</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL XEM CHI TIẾT BẠN BÈ ĐÃ MỜI & HOA HỒNG (REALTIME) -->
+    <div id="invited-friends-modal" class="fixed inset-0 bg-black/80 z-[1000] hidden items-center justify-center p-4">
+        <div class="card-dark rounded-3xl p-6 w-full max-w-xl space-y-4 border border-sky-500/40 shadow-2xl max-h-[85vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b border-gray-800 pb-3">
+                <div>
+                    <h3 class="font-bold text-sm text-sky-400"><i class="fa-solid fa-users-viewfinder mr-1"></i> Danh Sách Mời & Hoa Hồng Chi Tiết Realtime</h3>
+                    <p class="text-[11px] text-gray-400" id="invited-modal-subtitle">Thành viên: ...</p>
+                </div>
+                <button onclick="closeInvitedFriendsModal()" class="text-gray-400 hover:text-white cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="bg-gray-900/80 p-3 rounded-xl border border-gray-800 flex justify-between items-center text-xs">
+                <span>Tổng số người đã mời: <strong id="invited-count" class="text-sky-400 font-bold">0 người</strong></span>
+                <span>Tổng hoa hồng từ cấp dưới: <strong id="invited-commission" class="text-[#c0f135] font-bold">$0.00 USD</strong></span>
+            </div>
+
+            <div id="invited-friends-list" class="space-y-2 text-xs max-h-64 overflow-y-auto pr-1">
+                <p class="text-center text-gray-500 py-4">Chưa có thông tin.</p>
+            </div>
+
+            <button onclick="closeInvitedFriendsModal()" class="w-full bg-gray-800 text-gray-300 font-bold py-2.5 rounded-xl text-xs cursor-pointer">Đóng</button>
+        </div>
+    </div>
+
+    <!-- MODAL CỘNG / TRỪ / XÓA TIỀN VÍ & TẶNG GÓI -->
+    <div id="grant-modal" class="fixed inset-0 bg-black/80 z-[1000] hidden items-center justify-center p-4">
+        <div class="card-dark rounded-3xl p-6 w-full max-w-md space-y-4 border border-[#c0f135]/40 shadow-2xl">
+            <div class="flex justify-between items-center border-b border-gray-800 pb-3">
+                <h3 id="grant-modal-title" class="font-bold text-sm text-[#c0f135]">Quản Lý Số Dư & Gói</h3>
+                <button onclick="closeGrantModal()" class="text-gray-400 hover:text-white cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="space-y-3">
+                <p class="text-xs text-gray-300">Thành viên: <strong id="grant-target-phone" class="text-white">0987654321</strong></p>
+                
+                <div id="grant-type-add-balance-box" class="space-y-2 hidden">
+                    <label class="text-xs font-bold text-emerald-400">Số USD muốn TẶNG THÊM vào ví</label>
+                    <input type="number" step="0.01" id="grant-add-balance-amount" placeholder="Nhập số USD cộng..." class="w-full bg-[#111827] border border-gray-800 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-[#c0f135]">
+                </div>
+
+                <div id="grant-type-sub-balance-box" class="space-y-2 hidden">
+                    <label class="text-xs font-bold text-rose-400">Số USD muốn TRỪ BỚT / XÓA khỏi ví</label>
+                    <input type="number" step="0.01" id="grant-sub-balance-amount" placeholder="Nhập số USD trừ..." class="w-full bg-[#111827] border border-gray-800 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-rose-500">
+                    <button onclick="clearUserBalanceToZero()" class="text-[11px] text-rose-400 underline font-bold mt-1 cursor-pointer">Xóa sạch số dư về 0 USD</button>
+                </div>
+
+                <div id="grant-type-plan-box" class="space-y-2 hidden">
+                    <label class="text-xs font-bold text-gray-300">Chọn gói đầu tư kích hoạt trực tiếp</label>
+                    <select id="grant-plan-select" class="w-full bg-[#111827] border border-gray-800 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-[#c0f135]">
+                        <option value="1">Gói Khai Thác 1 USD (6 ngày)</option>
+                        <option value="3">Gói Khai Thác 3 USD (30 ngày)</option>
+                        <option value="7">Gói Khai Thác 7 USD (30 ngày)</option>
+                        <option value="15">Gói Khai Thác 15 USD (30 ngày)</option>
+                        <option value="20">Gói Khai Thác 20 USD (30 ngày)</option>
+                        <option value="50">Gói VIP 50 USD (30 ngày)</option>
+                        <option value="100">Gói VIP 100 USD (30 ngày)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="flex gap-2 pt-2">
+                <button onclick="closeGrantModal()" class="w-1/2 bg-gray-800 text-gray-300 font-bold py-3 rounded-xl text-xs cursor-pointer">Hủy</button>
+                <button id="btn-submit-grant" onclick="executeGrantAction()" class="w-1/2 neon-btn font-extrabold py-3 rounded-xl text-xs active:scale-95 transition cursor-pointer">XÁC NHẬN</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FIREBASE MODULE & REALTIME CORE -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-        import { getDatabase, ref, set, get, update, onValue, push, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+        import { getDatabase, ref, set, update, remove, onValue, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyC832BgFHw5LIavbuwE17dpIFeJayKRbfg",
@@ -759,339 +306,23 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
+        const ADMIN_PASS = "td0309"; 
         const USD_TO_VND = 26000;
-        const minThreshold = 0.01;
-        const ringMaxGoal = 0.10; 
-        const MIN_WITHDRAW_USD = 0.40; 
-        const ADMIN_PASS = "td0309";
-        const REF_COMMISSION_RATE = 0.10; // Hoa hồng giới thiệu 10%
+        const REF_COMMISSION_RATE = 0.10; 
 
-        const BANK_ID = "ICB"; 
-        const ACCOUNT_NO = "11557000"; 
-        const ACCOUNT_NAME = "WIN USDBOX";
-
-        const investmentPlans = [
-            { id: 1, priceUsd: 1, ratePerSec: 0.000003116, title: "Gói Khai Thác 1 USD (26k)", durationDays: 6, displayDuration: "6 ngày" }, 
-            { id: 2, priceUsd: 3, ratePerSec: 0.000005787, title: "Gói Khai Thác 3 USD", durationDays: 30, displayDuration: "30 ngày" }, 
-            { id: 3, priceUsd: 7, ratePerSec: 0.000012731, title: "Gói Khai Thác 7 USD", durationDays: 30, displayDuration: "30 ngày" }, 
-            { id: 4, priceUsd: 15, ratePerSec: 0.000023148, title: "Gói Khai Thác 15 USD", durationDays: 30, displayDuration: "30 ngày" }, 
-            { id: 5, priceUsd: 20, ratePerSec: 0.000034722, title: "Gói Khai Thác 20 USD", durationDays: 30, displayDuration: "30 ngày" }, 
-            { id: 6, priceUsd: 50, ratePerSec: 0.000081018, title: "Gói VIP 50 USD", durationDays: 30, displayDuration: "30 ngày" }, 
-            { id: 7, priceUsd: 100, ratePerSec: 0.000231481, title: "Gói VIP 100 USD", durationDays: 30, displayDuration: "30 ngày" }  
-        ];
-
-        let liveGiftcodes = {};
-        onValue(ref(db, 'giftcodes'), (snapshot) => {
-            liveGiftcodes = snapshot.val() || {};
-        });
-
-        let usedGiftcodesByDate = JSON.parse(localStorage.getItem('usedGiftcodesByDate')) || {};
-        let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
-        let currentUserFirebaseKey = null;
-
-        let activePlanId = parseInt(localStorage.getItem('activePlanId')) || 0;
-        let activePlan = investmentPlans.find(p => p.id === activePlanId) || { id: 0, priceUsd: 0, ratePerSec: 0, title: "Chưa kích hoạt", durationDays: 0, displayDuration: "-" };
-
-        let pendingPlanToActivate = null;
-        let currentUnclaimedProfit = parseFloat(localStorage.getItem('currentUnclaimedProfit')) || 0.0000000;
-        let availableBalance = 0.00;
-        let totalClaimed = parseFloat(localStorage.getItem('totalClaimed')) || 0.00;
-        let totalCommission = 0.00;
-
-        let processedDepositKeys = JSON.parse(localStorage.getItem('processedDepositKeys')) || [];
-        let depositTimerInterval = null;
-        let depositSecondsLeft = 30;
-
-        // Dữ liệu Admin toàn cục
         let rawUsersData = {};
         let rawDepositsData = {};
         let rawWithdrawsData = {};
         let rawGiftcodesData = {};
 
-        function checkPlanExpiration() {
-            let planActivatedTime = parseInt(localStorage.getItem('planActivatedTime')) || 0;
-            if (activePlan.durationDays && planActivatedTime > 0) {
-                let daysPassed = (Date.now() - planActivatedTime) / (1000 * 60 * 60 * 24);
-                if (daysPassed >= activePlan.durationDays) {
-                    activePlanId = 0;
-                    activePlan = { id: 0, priceUsd: 0, ratePerSec: 0, title: "Chưa kích hoạt", durationDays: 0, displayDuration: "-" };
-                    localStorage.setItem('activePlanId', 0);
-                    localStorage.removeItem('planActivatedTime');
-                    updatePlanStatsUI();
-                    renderPlansUI();
-                }
-            }
-        }
-        checkPlanExpiration();
-
-        let lastActiveTimestamp = parseInt(localStorage.getItem('lastActiveTimestamp')) || Date.now();
-        let nowTime = Date.now();
-        let elapsedSeconds = Math.floor((nowTime - lastActiveTimestamp) / 1000);
-        if (elapsedSeconds > 0 && elapsedSeconds < 35 * 24 * 3600 && activePlan.ratePerSec > 0) {
-            checkPlanExpiration();
-            if (activePlan.ratePerSec > 0) {
-                currentUnclaimedProfit += elapsedSeconds * activePlan.ratePerSec;
-            }
-        }
-
-        let streakDays = parseInt(localStorage.getItem('streakDays')) || 0;
-        let lastCheckinTime = parseInt(localStorage.getItem('lastCheckinTime')) || 0;
-        let withdrawHistory = JSON.parse(localStorage.getItem('withdrawHistory')) || [];
-        let depositHistory = JSON.parse(localStorage.getItem('depositHistory')) || [];
-        let appNotifications = JSON.parse(localStorage.getItem('appNotifications')) || [];
-        let hasUnreadNotif = localStorage.getItem('hasUnreadNotif') === 'true';
-        const COOLDOWN_TIME = 24 * 60 * 60 * 1000; 
-
-        // Lắng nghe bảo trì hệ thống
-        onValue(ref(db, 'system/isServerLocked'), (snapshot) => {
-            const isLocked = snapshot.val() === true;
-            const lockScreenId = "server-maintenance-screen";
-            let lockScreen = document.getElementById(lockScreenId);
-
-            if (isLocked) {
-                if (!lockScreen) {
-                    lockScreen = document.createElement('div');
-                    lockScreen.id = lockScreenId;
-                    lockScreen.className = "fixed inset-0 bg-[#070b14] z-[99999] flex flex-col items-center justify-center p-6 text-center space-y-4";
-                    lockScreen.innerHTML = `
-                        <div class="w-20 h-20 bg-rose-500/20 border border-rose-500/40 rounded-3xl flex items-center justify-center text-rose-400 text-3xl shadow-2xl">
-                            <i class="fa-solid fa-lock animate-bounce"></i>
-                        </div>
-                        <h1 class="text-2xl font-black text-white tracking-wide">HỆ THỐNG ĐANG BẢO TRÌ</h1>
-                        <p class="text-xs text-gray-400 max-w-xs leading-relaxed">Hệ thống WIN USDBOX hiện đang đóng để nâng cấp và bảo trì. Vui lòng quay lại sau!</p>
-                    `;
-                    document.body.appendChild(lockScreen);
-                }
-            } else {
-                if (lockScreen) lockScreen.remove();
-            }
-        });
-
-        // 1. SEPAY WEBHOOK TỰ ĐỘNG
-        function initSePayWebhookListener() {
-            onValue(ref(db, 'sepay_logs'), (snapshot) => {
-                const logs = snapshot.val() || {};
-                Object.entries(logs).forEach(([logKey, tx]) => {
-                    if (!processedDepositKeys.includes(logKey)) {
-                        const content = (tx.content || tx.description || "").toUpperCase();
-                        const matchPhone = content.match(/(?:0|84|\+84)[0-9]{9}/);
-                        
-                        if (matchPhone || content.includes("SEVQR")) {
-                            let phoneNum = matchPhone ? matchPhone[0] : "";
-                            if (phoneNum.startsWith("+84")) phoneNum = "0" + phoneNum.slice(3);
-                            else if (phoneNum.startsWith("84")) phoneNum = "0" + phoneNum.slice(2);
-
-                            const transAmount = parseFloat(tx.transferAmount || tx.amount || 0);
-
-                            if (phoneNum && transAmount > 0) {
-                                processedDepositKeys.push(logKey);
-                                localStorage.setItem('processedDepositKeys', JSON.stringify(processedDepositKeys));
-
-                                get(ref(db, 'users')).then(userSnap => {
-                                    const allUsers = userSnap.val() || {};
-                                    const targetUserKey = Object.keys(allUsers).find(k => allUsers[k].username === phoneNum);
-
-                                    if (targetUserKey) {
-                                        const usdGained = transAmount / USD_TO_VND;
-                                        const matchedPlan = investmentPlans.slice().reverse().find(p => transAmount >= (p.priceUsd * USD_TO_VND) * 0.95) || investmentPlans[0];
-
-                                        const now = new Date();
-                                        const timeString = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} - ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-
-                                        push(ref(db, 'deposits'), {
-                                            username: phoneNum,
-                                            vnd: transAmount,
-                                            usd: usdGained,
-                                            memo: content,
-                                            time: timeString,
-                                            status: "Thành công",
-                                            planId: matchedPlan.id
-                                        });
-
-                                        // Tự động kích hoạt gói và tính hoa hồng cho người giới thiệu
-                                        const targetUser = allUsers[targetUserKey];
-                                        const activePlans = targetUser.activePlans || [];
-                                        activePlans.push({ priceUsd: matchedPlan.priceUsd, activatedAt: Date.now() });
-
-                                        update(ref(db, `users/${targetUserKey}`), {
-                                            activePlans: activePlans,
-                                            totalDepositUsd: (targetUser.totalDepositUsd || 0) + matchedPlan.priceUsd
-                                        });
-
-                                        if (targetUser.refBy) {
-                                            const refEntry = Object.entries(allUsers).find(([k, u]) => u.username === targetUser.refBy);
-                                            if (refEntry) {
-                                                const [refKey, refData] = refEntry;
-                                                const comm = matchedPlan.priceUsd * REF_COMMISSION_RATE;
-                                                update(ref(db, `users/${refKey}`), {
-                                                    balance: (refData.balance || 0) + comm
-                                                });
-                                            }
-                                        }
-
-                                        if (currentUser && currentUser.username === phoneNum) {
-                                            activePlanId = matchedPlan.id;
-                                            activePlan = matchedPlan;
-                                            localStorage.setItem('activePlanId', activePlanId);
-                                            localStorage.setItem('planActivatedTime', Date.now());
-                                            updatePlanStatsUI();
-                                            renderPlansUI();
-
-                                            showRewardModal(
-                                                "NẠP TIỀN THÀNH CÔNG!", 
-                                                `Cộng +${transAmount.toLocaleString()} VNĐ (~$${usdGained.toFixed(2)}U). Đã kích hoạt gói: ${matchedPlan.title}!`, 
-                                                "fa-solid fa-circle-check"
-                                            );
-                                        }
-                                    }
-                                });
-                            }
-                        }
-                    }
-                });
-            });
-        }
-
-        function initUserRealtimeSync() {
-            if (!currentUser || !currentUser.username) return;
-            
-            onValue(ref(db, 'users'), (snapshot) => {
-                if (!currentUser || !currentUser.username) return;
-                const allUsers = snapshot.val() || {};
-                const foundKey = Object.keys(allUsers).find(k => allUsers[k].username === currentUser.username);
-                if (foundKey) {
-                    currentUserFirebaseKey = foundKey;
-                    const liveData = allUsers[foundKey];
-
-                    if (liveData.isLocked === true) {
-                        alert("Tài khoản của bạn đã bị khóa bởi Quản trị viên!");
-                        handleLogout();
-                        return;
-                    }
-
-                    if (liveData.balance !== undefined && Math.abs(liveData.balance - availableBalance) > 0.001) {
-                        availableBalance = liveData.balance;
-                        saveUserGroupData();
-                        updateDisplay();
-                    }
-
-                    if (liveData.activePlans && liveData.activePlans.length > 0) {
-                        const lastPlan = liveData.activePlans[liveData.activePlans.length - 1];
-                        const matchedPlan = investmentPlans.find(p => p.priceUsd === lastPlan.priceUsd) || investmentPlans[0];
-                        if (activePlanId !== matchedPlan.id) {
-                            activePlanId = matchedPlan.id;
-                            activePlan = matchedPlan;
-                            localStorage.setItem('activePlanId', activePlanId);
-                            localStorage.setItem('planActivatedTime', Date.now());
-                            updatePlanStatsUI();
-                            renderPlansUI();
-                        }
-                    }
-                }
-                
-                get(ref(db, 'deposits')).then(depSnap => {
-                    const depositsData = depSnap.val() || {};
-                    renderGroupMembers(allUsers, depositsData);
-                });
-                updateDisplay();
-            });
-
-            onValue(ref(db, 'deposits'), (snapshot) => {
-                if (!currentUser || !currentUser.username) return;
-                const data = snapshot.val() || {};
-                const myDeposits = Object.entries(data)
-                    .filter(([key, d]) => d.username === currentUser.username)
-                    .map(([key, d]) => ({ key, ...d }));
-
-                depositHistory = myDeposits.map(d => ({
-                    time: d.time, vnd: d.vnd, usd: d.usd, memo: d.memo,
-                    status: d.status === "Thành công" ? "Nạp tiền thành công" : "VUI LÒNG ĐỢI"
-                })).reverse();
-                localStorage.setItem('depositHistory', JSON.stringify(depositHistory));
-            });
-        }
-
-        window.renderGroupMembers = function(allUsers, depositsData = {}) {
-            if (!currentUser || !currentUser.username) return;
-            const myPhone = currentUser.username;
-
-            let f1List = [];
-            Object.values(allUsers).forEach(u => {
-                if (u.refBy === myPhone) f1List.push(u);
-            });
-
-            let userDepositMap = {};
-            Object.values(depositsData).forEach(dep => {
-                if (dep.status === "Thành công") {
-                    userDepositMap[dep.username] = (userDepositMap[dep.username] || 0) + (dep.usd || 0);
-                }
-            });
-
-            let calcF1Comm = 0;
-            let cachedF1List = f1List.map(f1 => {
-                let f1Plans = f1.activePlans || [];
-                let f1Spent = f1Plans.reduce((sum, p) => sum + (p.priceUsd || 0), 0);
-                let earned = f1Spent * REF_COMMISSION_RATE;
-                calcF1Comm += earned;
-
-                return {
-                    username: f1.username,
-                    fullname: f1.fullname || 'Thành viên',
-                    totalDepositUsd: f1Spent,
-                    commissionReceived: earned
-                };
-            });
-
-            totalCommission = calcF1Comm;
-            document.getElementById('f1-count-badge').innerText = `${f1List.length} thành viên`;
-            document.getElementById('f1-commission-val').innerText = `$${totalCommission.toFixed(2)}`;
-            document.getElementById('profile-total-commission').innerText = `$${totalCommission.toFixed(2)}`;
-
-            renderF1TableUI(cachedF1List);
-        }
-
-        window.renderF1TableUI = function(list) {
-            const f1Container = document.getElementById('f1-member-list');
-            if (!f1Container) return;
-            f1Container.innerHTML = "";
-
-            if (list.length === 0) {
-                f1Container.innerHTML = `<p class="text-center text-xs text-gray-500 py-6">Chưa có thành viên F1 nào.</p>`;
-                return;
-            }
-
-            list.forEach(f1 => {
-                f1Container.innerHTML += `
-                    <div class="card-dark rounded-2xl p-3.5 flex items-center justify-between border border-gray-800 text-xs">
-                        <div class="space-y-0.5">
-                            <p class="font-bold text-white"><i class="fa-solid fa-user text-[#c0f135] mr-1"></i> ${f1.fullname}</p>
-                            <p class="text-[11px] text-gray-400">SĐT: <span class="text-gray-200 font-mono">${f1.username}</span></p>
-                        </div>
-                        <div class="text-right space-y-0.5">
-                            <p class="font-black text-[#c0f135]">$${f1.totalDepositUsd.toFixed(2)} U</p>
-                            <p class="text-[10px] text-gray-400">Hoa hồng (10%): <strong class="text-white">+$${f1.commissionReceived.toFixed(2)}U</strong></p>
-                        </div>
-                    </div>
-                `;
-            });
-        }
-
-        // ================= ADMIN PANEL CORE FUNCTIONS (TÍCH HỢP TRỰC TIẾP) =================
-        window.openAdminLoginModal = function() {
-            document.getElementById('admin-panel-modal').classList.add('active');
-            document.getElementById('admin-login-sub-screen').classList.remove('hidden');
-            document.getElementById('admin-main-sub-screen').classList.add('hidden');
-        }
-
-        window.closeAdminLoginModal = function() {
-            document.getElementById('admin-panel-modal').classList.remove('active');
-        }
+        let currentActiveUserKey = null;
+        let currentGrantType = null;
 
         window.handleAdminLogin = function() {
             const pass = document.getElementById('admin-password').value.trim();
             if (pass === ADMIN_PASS) {
-                document.getElementById('admin-login-sub-screen').classList.add('hidden');
-                document.getElementById('admin-main-sub-screen').classList.remove('hidden');
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('admin-dashboard').classList.remove('hidden');
                 initRealtimeAdminSync();
             } else {
                 alert("Mật khẩu Quản trị viên không chính xác!");
@@ -1099,8 +330,8 @@
         }
 
         window.adminLogout = function() {
-            document.getElementById('admin-main-sub-screen').classList.add('hidden');
-            document.getElementById('admin-login-sub-screen').classList.remove('hidden');
+            document.getElementById('admin-dashboard').classList.add('hidden');
+            document.getElementById('login-screen').classList.remove('hidden');
             document.getElementById('admin-password').value = "";
         }
 
@@ -1128,6 +359,19 @@
                 renderGiftcodesList();
                 updateStatsOverview();
             });
+
+            onValue(ref(db, 'system/isServerLocked'), (snapshot) => {
+                const isLocked = snapshot.val() === true;
+                const lockText = document.getElementById('server-lock-text');
+                const lockBtn = document.getElementById('btn-server-lock');
+                if (isLocked) {
+                    lockText.innerText = "Tắt Bảo Trì";
+                    lockBtn.className = "px-3 py-2 rounded-xl bg-rose-600 text-white text-xs font-bold flex items-center gap-2 hover:bg-rose-500 transition cursor-pointer";
+                } else {
+                    lockText.innerText = "Bật Bảo Trì Web";
+                    lockBtn.className = "px-3 py-2 rounded-xl bg-gray-800 border border-amber-500/40 text-amber-400 text-xs font-bold flex items-center gap-2 hover:bg-gray-700 transition cursor-pointer";
+                }
+            });
         }
 
         window.toggleServerLock = function() {
@@ -1139,118 +383,480 @@
 
         function updateStatsOverview() {
             document.getElementById('stat-total-users').innerText = Object.keys(rawUsersData).length;
-            document.getElementById('stat-pending-deposits').innerText = Object.values(rawDepositsData).filter(d => d.status === "VUI LÒNG ĐỢI").length;
-            document.getElementById('stat-pending-withdraws').innerText = Object.values(rawWithdrawsData).filter(w => w.status === "VUI LÒNG ĐỢI").length;
+            
+            const pendingDepCount = Object.values(rawDepositsData).filter(d => d.status === "VUI LÒNG ĐỢI").length;
+            document.getElementById('stat-pending-deposits').innerText = pendingDepCount;
+
+            const pendingWitCount = Object.values(rawWithdrawsData).filter(w => w.status === "VUI LÒNG ĐỢI").length;
+            document.getElementById('stat-pending-withdraws').innerText = pendingWitCount;
+
             document.getElementById('stat-total-giftcodes').innerText = Object.keys(rawGiftcodesData).length;
         }
 
         function renderDepositsList() {
             const container = document.getElementById('deposit-requests-list');
-            if (!container) return;
             container.innerHTML = "";
-            const entries = Object.entries(rawDepositsData).reverse();
 
+            const entries = Object.entries(rawDepositsData).reverse();
             if (entries.length === 0) {
-                container.innerHTML = `<p class="text-center text-xs text-gray-500 py-4">Chưa có đơn nạp.</p>`;
+                container.innerHTML = `<p class="text-center text-xs text-gray-500 py-8">Chưa có yêu cầu nạp tiền nào.</p>`;
                 return;
             }
 
             entries.forEach(([key, dep]) => {
                 const isPending = dep.status === "VUI LÒNG ĐỢI";
                 container.innerHTML += `
-                    <div class="card-dark rounded-xl p-3 text-xs space-y-1.5 border-l-4 ${isPending ? 'border-l-amber-500' : 'border-l-emerald-500'}">
-                        <div class="flex justify-between items-center font-bold">
-                            <span>SĐT: ${dep.username}</span>
-                            <span class="${isPending ? 'text-amber-400' : 'text-emerald-400'}">${dep.status}</span>
+                    <div class="card-dark rounded-2xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs border-l-4 ${isPending ? 'border-l-amber-500' : 'border-l-emerald-500'}">
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <span class="font-extrabold text-white text-sm">SĐT: ${dep.username}</span>
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isPending ? 'bg-amber-950 text-amber-400 border border-amber-500/30' : 'bg-emerald-950 text-emerald-400 border border-emerald-500/30'}">${dep.status}</span>
+                            </div>
+                            <p class="text-gray-300">Chuyển khoản: <strong class="text-[#c0f135]">${(dep.vnd || 0).toLocaleString()} VNĐ</strong> (~$${(dep.usd || 0).toFixed(2)} USD)</p>
+                            <p class="text-gray-400">Nội dung CK / SĐT: <strong class="text-amber-300">${dep.memo}</strong> | Thời gian: ${dep.time}</p>
                         </div>
-                        <p class="text-gray-300">${(dep.vnd || 0).toLocaleString()} VNĐ (~$${(dep.usd || 0).toFixed(2)}U)</p>
-                        ${isPending ? `<button onclick="approveAdminDeposit('${key}')" class="neon-btn font-bold px-3 py-1.5 rounded-lg w-full cursor-pointer mt-1">Duyệt & Kích Hoạt</button>` : ''}
+                        ${isPending ? `
+                            <div class="flex gap-2">
+                                <button onclick="approveDeposit('${key}')" class="neon-btn font-extrabold px-4 py-2 rounded-xl text-xs active:scale-95 cursor-pointer shadow">
+                                    <i class="fa-solid fa-check mr-1"></i> DUYỆT & KÍCH HOẠT GÓI
+                                </button>
+                                <button onclick="rejectDeposit('${key}')" class="bg-red-950 text-red-400 border border-red-500/30 font-bold px-3 py-2 rounded-xl text-xs hover:bg-red-900 transition cursor-pointer">
+                                    Từ Chối
+                                </button>
+                            </div>
+                        ` : ''}
                     </div>
                 `;
             });
         }
 
-        window.approveAdminDeposit = function(depKey) {
+        window.approveDeposit = function(depKey) {
             const dep = rawDepositsData[depKey];
             if (!dep) return;
-            if (confirm(`Duyệt nạp cho SĐT ${dep.username}?`)) {
+
+            if (confirm(`Xác nhận duyệt nạp tiền cho SĐT ${dep.username}?\n\nHệ thống sẽ KÍCH HOẠT GÓI $${dep.usd} USD tương ứng và KHÔNG cộng số dư ví.`)) {
                 const userEntry = Object.entries(rawUsersData).find(([k, u]) => u.username === dep.username);
                 if (userEntry) {
                     const [userKey, userData] = userEntry;
                     const activePlans = userData.activePlans || [];
-                    activePlans.push({ priceUsd: dep.usd, activatedAt: Date.now() });
-                    update(ref(db, `users/${userKey}`), { activePlans, totalDepositUsd: (userData.totalDepositUsd || 0) + dep.usd });
+                    activePlans.push({
+                        priceUsd: dep.usd,
+                        activatedAt: Date.now()
+                    });
+
+                    update(ref(db, `users/${userKey}`), {
+                        activePlans: activePlans,
+                        totalDepositUsd: (userData.totalDepositUsd || 0) + dep.usd
+                    });
                 }
-                update(ref(db, `deposits/${depKey}`), { status: "Thành công" });
-                alert("Đã duyệt nạp thành công!");
+
+                update(ref(db, `deposits/${depKey}`), {
+                    status: "Thành công"
+                });
+
+                alert("Đã duyệt nạp và kích hoạt gói thành công!");
+            }
+        }
+
+        window.rejectDeposit = function(depKey) {
+            if (confirm("Xác nhận từ chối đơn nạp này?")) {
+                update(ref(db, `deposits/${depKey}`), {
+                    status: "Thất bại / Từ chối"
+                });
             }
         }
 
         function renderWithdrawsList() {
             const container = document.getElementById('withdraw-requests-list');
-            if (!container) return;
             container.innerHTML = "";
-            const entries = Object.entries(rawWithdrawsData).reverse();
 
+            const entries = Object.entries(rawWithdrawsData).reverse();
             if (entries.length === 0) {
-                container.innerHTML = `<p class="text-center text-xs text-gray-500 py-4">Chưa có đơn rút.</p>`;
+                container.innerHTML = `<p class="text-center text-xs text-gray-500 py-8">Chưa có yêu cầu rút tiền nào.</p>`;
                 return;
             }
 
             entries.forEach(([key, wit]) => {
                 const isPending = wit.status === "VUI LÒNG ĐỢI";
+                const netVnd = Math.round((wit.net || 0) * USD_TO_VND);
+
                 container.innerHTML += `
-                    <div class="card-dark rounded-xl p-3 text-xs space-y-1.5 border-l-4 ${isPending ? 'border-l-rose-500' : 'border-l-emerald-500'}">
-                        <div class="flex justify-between items-center font-bold">
-                            <span>SĐT: ${wit.username}</span>
-                            <span class="${isPending ? 'text-rose-400' : 'text-emerald-400'}">${wit.status}</span>
+                    <div class="card-dark rounded-2xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs border-l-4 ${isPending ? 'border-l-rose-500' : 'border-l-emerald-500'}">
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <span class="font-extrabold text-white text-sm">SĐT: ${wit.username}</span>
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isPending ? 'bg-rose-950 text-rose-400 border border-rose-500/30' : 'bg-emerald-950 text-emerald-400 border border-emerald-500/30'}">${wit.status}</span>
+                            </div>
+                            <p class="text-gray-300">Rút: <strong class="text-rose-400">$${(wit.amount || 0).toFixed(2)} U</strong> | Phí (5%): $${(wit.fee || 0).toFixed(2)}U | Thực nhận: <strong class="text-[#c0f135]">${netVnd.toLocaleString()} VNĐ</strong> ($${(wit.net || 0).toFixed(2)}U)</p>
+                            <p class="text-gray-400">Ngân hàng: <strong class="text-white">${wit.bank}</strong> | STK: <strong class="text-amber-300 select-all">${wit.acc}</strong> | Chủ TK: <strong class="text-white uppercase">${wit.name}</strong></p>
+                            <p class="text-gray-500 text-[10px]">Thời gian: ${wit.time}</p>
                         </div>
-                        <p class="text-gray-300">Rút: $${(wit.amount || 0).toFixed(2)}U (${wit.bank} - ${wit.acc})</p>
-                        ${isPending ? `<button onclick="approveAdminWithdraw('${key}')" class="neon-btn font-bold px-3 py-1.5 rounded-lg w-full cursor-pointer mt-1">Duyệt Rút Tiền</button>` : ''}
+                        ${isPending ? `
+                            <div class="flex gap-2">
+                                <button onclick="approveWithdraw('${key}')" class="neon-btn font-extrabold px-4 py-2 rounded-xl text-xs active:scale-95 cursor-pointer shadow">
+                                    <i class="fa-solid fa-check mr-1"></i> DUYỆT RÚT TIỀN
+                                </button>
+                                <button onclick="rejectWithdraw('${key}')" class="bg-red-950 text-red-400 border border-red-500/30 font-bold px-3 py-2 rounded-xl text-xs hover:bg-red-900 transition cursor-pointer">
+                                    Từ Chối & Hoàn Tiền
+                                </button>
+                            </div>
+                        ` : ''}
                     </div>
                 `;
             });
         }
 
-        window.approveAdminWithdraw = function(witKey) {
-            if (confirm("Xác nhận đã chuyển khoản thành công?")) {
-                update(ref(db, `withdraws/${witKey}`), { status: "Thành công" });
-                alert("Đã duyệt rút thành công!");
+        window.approveWithdraw = function(witKey) {
+            if (confirm("Xác nhận đã chuyển khoản thành công cho khách hàng?")) {
+                update(ref(db, `withdraws/${witKey}`), {
+                    status: "Thành công"
+                });
+                alert("Đã duyệt đơn rút tiền thành công!");
             }
         }
 
-        function renderUsersList() {
+        window.rejectWithdraw = function(witKey) {
+            const wit = rawWithdrawsData[witKey];
+            if (!wit) return;
+
+            if (confirm(`Xác nhận từ chối và HOÀN LẠI $${wit.amount} USD vào số dư ví của ${wit.username}?`)) {
+                const userEntry = Object.entries(rawUsersData).find(([k, u]) => u.username === wit.username);
+                if (userEntry) {
+                    const [userKey, userData] = userEntry;
+                    update(ref(db, `users/${userKey}`), {
+                        balance: (userData.balance || 0) + wit.amount
+                    });
+                }
+
+                update(ref(db, `withdraws/${witKey}`), {
+                    status: "Thất bại / Đã hoàn tiền"
+                });
+                alert("Đã từ chối đơn và hoàn tiền lại cho thành viên!");
+            }
+        }
+
+        window.renderUsersList = function() {
             const container = document.getElementById('admin-users-list');
-            if (!container) return;
             const search = document.getElementById('search-user-input').value.trim().toLowerCase();
             container.innerHTML = "";
-            const filtered = Object.entries(rawUsersData).filter(([k, u]) => (u.username || "").toLowerCase().includes(search));
+
+            const entries = Object.entries(rawUsersData).reverse();
+            const filtered = entries.filter(([k, u]) => (u.username || "").toLowerCase().includes(search));
 
             if (filtered.length === 0) {
-                container.innerHTML = `<p class="text-center text-xs text-gray-500 py-4">Không tìm thấy thành viên.</p>`;
+                container.innerHTML = `<p class="text-center text-xs text-gray-500 py-8">Không tìm thấy thành viên nào.</p>`;
                 return;
             }
 
             filtered.forEach(([key, user]) => {
+                const plans = user.activePlans || [];
+                const hasActivePlan = plans.length > 0;
+                const lastPlanUsd = hasActivePlan ? plans[plans.length - 1].priceUsd : 0;
+                const totalBoughtPlanUsd = plans.reduce((sum, p) => sum + (p.priceUsd || 0), 0);
+                const isLocked = user.isLocked === true;
+                
+                const invitedFriends = entries.filter(([k, u]) => u.refBy === user.username);
+                const invitedCount = invitedFriends.length;
+
+                let totalRealtimeCommissionUsd = 0;
+                invitedFriends.forEach(([k, friend]) => {
+                    const fPlans = friend.activePlans || [];
+                    const fTotalSpent = fPlans.reduce((sum, p) => sum + (p.priceUsd || 0), 0);
+                    totalRealtimeCommissionUsd += (fTotalSpent * REF_COMMISSION_RATE);
+                });
+
                 container.innerHTML += `
-                    <div class="card-dark rounded-xl p-3 text-xs space-y-1 border border-gray-800">
-                        <div class="flex justify-between font-bold">
-                            <span class="text-amber-300">${user.username}</span>
-                            <span class="text-[#c0f135]">$${(user.balance || 0).toFixed(2)} USD</span>
+                    <div class="card-dark rounded-2xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs border ${isLocked ? 'border-rose-600/60 bg-rose-950/20' : 'border-gray-800'}">
+                        <div class="space-y-1">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span class="font-extrabold text-white text-sm">${user.fullname || 'MEMBER'}</span>
+                                <span class="text-gray-400 font-mono">SĐT: <strong class="text-amber-300">${user.username}</strong></span>
+                                <span class="text-gray-400 font-mono">MK: <strong class="text-rose-300">${user.password || '******'}</strong></span>
+                                ${isLocked ? `<span class="bg-rose-950 text-rose-400 border border-rose-500/40 text-[10px] px-2 py-0.5 rounded-full font-bold">ĐÃ BỊ KHÓA</span>` : ''}
+                                ${hasActivePlan ? `<span class="bg-[#1a2b10] text-[#c0f135] border border-[#c0f135]/40 text-[10px] px-2 py-0.5 rounded-full font-bold">Đang chạy Gói ${lastPlanUsd}U</span>` : '<span class="bg-gray-800 text-gray-400 text-[10px] px-2 py-0.5 rounded-full">Chưa có gói</span>'}
+                            </div>
+                            <p class="text-gray-300">Số dư ví: <strong class="text-[#c0f135]">$${(user.balance || 0).toFixed(2)} USD</strong> | Tổng gói đã mua: <strong class="text-sky-400">$${totalBoughtPlanUsd} USD</strong> (${plans.length} gói)</p>
+                            <p class="text-gray-400">Ngân hàng: <strong class="text-white">${user.bankName || 'Chưa liên kết'} - ${user.bankAcc || ''}</strong> | Người giới thiệu: <strong class="text-sky-400">${user.refBy || 'Không có'}</strong></p>
+                            <p class="text-gray-400">Đã mời: <strong class="text-amber-300">${invitedCount} bạn bè</strong> | Tổng hoa hồng nhận từ F1: <strong class="text-[#c0f135]">$${totalRealtimeCommissionUsd.toFixed(2)} USD</strong></p>
+                            <p class="text-gray-500 text-[10px]">Ngày đăng ký: ${user.createdAt || 'N/A'}</p>
                         </div>
-                        <p class="text-gray-400">Tên: ${user.fullname || 'MEMBER'} | Ref: ${user.refBy || 'Không'}</p>
-                        <div class="flex gap-1 pt-1">
-                            <button onclick="adminDeleteUser('${key}')" class="bg-red-950 text-red-400 px-2.5 py-1 rounded cursor-pointer font-bold">Xóa TK</button>
+
+                        <div class="flex flex-wrap gap-1.5">
+                            <button onclick="openEditUserModal('${key}')" class="bg-indigo-950 border border-indigo-500/40 text-indigo-400 font-bold px-2.5 py-1.5 rounded-xl hover:bg-indigo-900 transition cursor-pointer">
+                                <i class="fa-solid fa-pen-to-square mr-1"></i> Sửa SĐT/STK/MK
+                            </button>
+                            <button onclick="openInvitedFriendsModal('${user.username}', '${user.fullname || 'MEMBER'}')" class="bg-sky-950 border border-sky-500/40 text-sky-400 font-bold px-2.5 py-1.5 rounded-xl hover:bg-sky-900 transition cursor-pointer">
+                                <i class="fa-solid fa-users mr-1"></i> Xem F1 & HH (${invitedCount})
+                            </button>
+                            <button onclick="openGrantModal('${key}', 'add_balance')" class="bg-emerald-950 border border-emerald-500/40 text-emerald-400 font-bold px-2.5 py-1.5 rounded-xl hover:bg-emerald-900 transition cursor-pointer">
+                                <i class="fa-solid fa-plus mr-1"></i> Tặng Tiền Ví
+                            </button>
+                            <button onclick="openGrantModal('${key}', 'sub_balance')" class="bg-amber-950 border border-amber-500/40 text-amber-400 font-bold px-2.5 py-1.5 rounded-xl hover:bg-amber-900 transition cursor-pointer">
+                                <i class="fa-solid fa-minus mr-1"></i> Trừ/Xóa Tiền Ví
+                            </button>
+                            <button onclick="openGrantModal('${key}', 'plan')" class="bg-sky-950 border border-sky-500/40 text-sky-400 font-bold px-2.5 py-1.5 rounded-xl hover:bg-sky-900 transition cursor-pointer">
+                                <i class="fa-solid fa-box mr-1"></i> Tặng Gói
+                            </button>
+                            ${hasActivePlan ? `
+                                <button onclick="removeUserActivePlan('${key}')" class="bg-rose-950 border border-rose-500/40 text-rose-400 font-bold px-2.5 py-1.5 rounded-xl hover:bg-rose-900 transition cursor-pointer">
+                                    <i class="fa-solid fa-trash mr-1"></i> Xóa Gói
+                                </button>
+                            ` : ''}
+                            
+                            <button onclick="toggleLockUser('${key}')" class="${isLocked ? 'bg-amber-500 text-gray-950 font-black' : 'bg-rose-950 border border-rose-500/40 text-rose-400 font-bold'} px-2.5 py-1.5 rounded-xl hover:opacity-90 transition cursor-pointer">
+                                <i class="fa-solid ${isLocked ? 'fa-lock-open' : 'fa-lock'} mr-1"></i> ${isLocked ? 'Mở Khóa' : 'Khóa TK'}
+                            </button>
+
+                            <button onclick="deleteUserAccount('${key}')" class="bg-red-900 text-white font-extrabold px-2.5 py-1.5 rounded-xl hover:bg-red-800 transition cursor-pointer">
+                                <i class="fa-solid fa-user-xmark mr-1"></i> Xóa TK
+                            </button>
                         </div>
                     </div>
                 `;
             });
         }
 
-        window.adminDeleteUser = function(userKey) {
-            if (confirm("Xác nhận xóa vĩnh viễn tài khoản này?")) {
+        window.openInvitedFriendsModal = function(userPhone, fullname) {
+            document.getElementById('invited-modal-subtitle').innerText = `Thành viên: ${fullname} (${userPhone})`;
+            
+            const listContainer = document.getElementById('invited-friends-list');
+            listContainer.innerHTML = "";
+
+            const entries = Object.entries(rawUsersData);
+            const invitedFriends = entries.filter(([k, u]) => u.refBy === userPhone);
+
+            document.getElementById('invited-count').innerText = `${invitedFriends.length} người`;
+
+            let totalCommission = 0;
+
+            if (invitedFriends.length === 0) {
+                listContainer.innerHTML = `<p class="text-center text-gray-500 py-4">Chưa mời được người bạn nào.</p>`;
+            } else {
+                invitedFriends.forEach(([k, friend], index) => {
+                    const fPlans = friend.activePlans || [];
+                    const fTotalSpentUsd = fPlans.reduce((sum, p) => sum + (p.priceUsd || 0), 0);
+                    const friendCommission = fTotalSpentUsd * REF_COMMISSION_RATE;
+                    totalCommission += friendCommission;
+
+                    const activePlanText = fPlans.length > 0 ? `Gói $${fPlans[fPlans.length - 1].priceUsd}U` : 'Chưa có gói';
+
+                    listContainer.innerHTML += `
+                        <div class="bg-gray-900/90 p-3 rounded-2xl border border-gray-800 flex flex-col md:flex-row md:items-center justify-between gap-2">
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="font-bold text-white">${index + 1}. ${friend.fullname || 'MEMBER'}</span>
+                                    <span class="text-amber-300 font-mono">SĐT: ${friend.username}</span>
+                                    <span class="bg-gray-800 text-gray-300 text-[10px] px-2 py-0.5 rounded-full">${activePlanText}</span>
+                                </div>
+                                <p class="text-gray-400 text-[11px] mt-0.5">Tổng nạp/đầu tư: <strong class="text-sky-400">$${fTotalSpentUsd} USD</strong> | Đăng ký: ${friend.createdAt || 'N/A'}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-gray-400 text-[10px]">Hoa hồng mang lại (10%):</p>
+                                <p class="font-extrabold text-[#c0f135] text-sm">+$${friendCommission.toFixed(2)} USD</p>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            document.getElementById('invited-commission').innerText = `$${totalCommission.toFixed(2)} USD`;
+
+            document.getElementById('invited-friends-modal').classList.remove('hidden');
+            document.getElementById('invited-friends-modal').classList.add('flex');
+        }
+
+        window.closeInvitedFriendsModal = function() {
+            document.getElementById('invited-friends-modal').classList.add('hidden');
+            document.getElementById('invited-friends-modal').classList.remove('flex');
+        }
+
+        window.openEditUserModal = function(userKey) {
+            currentActiveUserKey = userKey;
+            const user = rawUsersData[userKey];
+            if (!user) return;
+
+            document.getElementById('edit-phone').value = user.username || "";
+            document.getElementById('edit-password').value = user.password || "";
+            document.getElementById('edit-fullname').value = user.fullname || "";
+            document.getElementById('edit-bank').value = user.bankName || "";
+            document.getElementById('edit-acc').value = user.bankAcc || "";
+
+            document.getElementById('edit-user-modal').classList.remove('hidden');
+            document.getElementById('edit-user-modal').classList.add('flex');
+        }
+
+        window.closeEditUserModal = function() {
+            document.getElementById('edit-user-modal').classList.add('hidden');
+            document.getElementById('edit-user-modal').classList.remove('flex');
+        }
+
+        window.saveFullUserInfo = function() {
+            if (!currentActiveUserKey) return;
+            const user = rawUsersData[currentActiveUserKey];
+            if (!user) return;
+
+            const newPhone = document.getElementById('edit-phone').value.trim();
+            const newPass = document.getElementById('edit-password').value.trim();
+            const newName = document.getElementById('edit-fullname').value.trim();
+            const newBank = document.getElementById('edit-bank').value.trim();
+            const newAcc = document.getElementById('edit-acc').value.trim();
+
+            if (!newPhone) return alert("SĐT tài khoản không được để trống!");
+
+            update(ref(db, `users/${currentActiveUserKey}`), {
+                username: newPhone,
+                password: newPass,
+                fullname: newName,
+                bankName: newBank,
+                bankAcc: newAcc
+            });
+
+            alert("Đã cập nhật toàn bộ thông tin thành viên thành công!");
+            closeEditUserModal();
+        }
+
+        window.toggleLockUser = function(userKey) {
+            const user = rawUsersData[userKey];
+            if (!user) return;
+
+            const nextStatus = !(user.isLocked === true);
+            const actionName = nextStatus ? "KHÓA" : "MỞ KHÓA";
+
+            if (confirm(`Xác nhận ${actionName} tài khoản ${user.username}?`)) {
+                update(ref(db, `users/${userKey}`), {
+                    isLocked: nextStatus
+                });
+                alert(`Đã ${actionName} tài khoản thành công!`);
+            }
+        }
+
+        window.deleteUserAccount = function(userKey) {
+            const user = rawUsersData[userKey];
+            if (!user) return;
+
+            if (confirm(`CẢNH BÁO: Bạn có chắc chắn muốn XÓA VĨNH VIỄN tài khoản thành viên ${user.username} (${user.fullname})?\n\nHành động này không thể hoàn tác!`)) {
                 remove(ref(db, `users/${userKey}`));
-                alert("Đã xóa tài khoản!");
+                alert(`Đã xóa vĩnh viễn tài khoản ${user.username}!`);
+            }
+        }
+
+        window.openGrantModal = function(userKey, type) {
+            currentActiveUserKey = userKey;
+            currentGrantType = type;
+            const user = rawUsersData[userKey];
+            if (!user) return;
+
+            document.getElementById('grant-target-phone').innerText = `${user.fullname} (${user.username}) - Dư: $${(user.balance || 0).toFixed(2)}U`;
+
+            const addBox = document.getElementById('grant-type-add-balance-box');
+            const subBox = document.getElementById('grant-type-sub-balance-box');
+            const planBox = document.getElementById('grant-type-plan-box');
+
+            addBox.classList.add('hidden');
+            subBox.classList.add('hidden');
+            planBox.classList.add('hidden');
+
+            if (type === 'add_balance') {
+                document.getElementById('grant-modal-title').innerText = "Tặng USD Vào Số Dư Ví";
+                document.getElementById('grant-add-balance-amount').value = "";
+                addBox.classList.remove('hidden');
+            } else if (type === 'sub_balance') {
+                document.getElementById('grant-modal-title').innerText = "Trừ / Xóa Tiền Trong Ví";
+                document.getElementById('grant-sub-balance-amount').value = "";
+                subBox.classList.remove('hidden');
+            } else if (type === 'plan') {
+                document.getElementById('grant-modal-title').innerText = "Kích Hoạt Tặng Gói Đầu Tư";
+                planBox.classList.remove('hidden');
+            }
+
+            document.getElementById('grant-modal').classList.remove('hidden');
+            document.getElementById('grant-modal').classList.add('flex');
+        }
+
+        window.closeGrantModal = function() {
+            document.getElementById('grant-modal').classList.add('hidden');
+            document.getElementById('grant-modal').classList.remove('flex');
+        }
+
+        window.executeGrantAction = function() {
+            if (!currentActiveUserKey) return;
+            const user = rawUsersData[currentActiveUserKey];
+            if (!user) return;
+
+            if (currentGrantType === 'add_balance') {
+                const addAmount = parseFloat(document.getElementById('grant-add-balance-amount').value) || 0;
+                if (addAmount <= 0) return alert("Vui lòng nhập số USD muốn tặng > 0!");
+
+                const newBalance = (user.balance || 0) + addAmount;
+                update(ref(db, `users/${currentActiveUserKey}`), {
+                    balance: Number(newBalance.toFixed(2))
+                });
+                alert(`Đã cộng +$${addAmount} USD thành công cho SĐT ${user.username}!`);
+
+            } else if (currentGrantType === 'sub_balance') {
+                const subAmount = parseFloat(document.getElementById('grant-sub-balance-amount').value) || 0;
+                if (subAmount <= 0) return alert("Vui lòng nhập số USD muốn trừ > 0!");
+
+                const newBalance = Math.max(0, (user.balance || 0) - subAmount);
+                update(ref(db, `users/${currentActiveUserKey}`), {
+                    balance: Number(newBalance.toFixed(2))
+                });
+                alert(`Đã trừ -$${subAmount} USD thành công của SĐT ${user.username}!`);
+
+            } else if (currentGrantType === 'plan') {
+                const planUsd = parseInt(document.getElementById('grant-plan-select').value);
+                const activePlans = user.activePlans || [];
+                activePlans.push({
+                    priceUsd: planUsd,
+                    activatedAt: Date.now()
+                });
+
+                update(ref(db, `users/${currentActiveUserKey}`), {
+                    activePlans: activePlans
+                });
+
+                if (user.refBy) {
+                    const referrerEntry = Object.entries(rawUsersData).find(([k, u]) => u.username === user.refBy);
+                    if (referrerEntry) {
+                        const [referrerKey, referrerData] = referrerEntry;
+                        const commissionEarned = planUsd * REF_COMMISSION_RATE;
+                        const newReferrerBalance = (referrerData.balance || 0) + commissionEarned;
+
+                        update(ref(db, `users/${referrerKey}`), {
+                            balance: Number(newReferrerBalance.toFixed(2))
+                        });
+                    }
+                }
+
+                alert(`Đã tặng và kích hoạt thành công gói ${planUsd} USD cho ${user.username}!`);
+            }
+
+            closeGrantModal();
+        }
+
+        window.clearUserBalanceToZero = function() {
+            if (!currentActiveUserKey) return;
+            const user = rawUsersData[currentActiveUserKey];
+            if (!user) return;
+
+            if (confirm(`Xác nhận XÓA SẠCH SỐ DƯ VÍ của ${user.username} về 0 USD?`)) {
+                update(ref(db, `users/${currentActiveUserKey}`), {
+                    balance: 0
+                });
+                alert("Đã xóa số dư ví về 0 USD!");
+                closeGrantModal();
+            }
+        }
+
+        window.removeUserActivePlan = function(userKey) {
+            const user = rawUsersData[userKey];
+            if (!user) return;
+
+            if (confirm(`Xác nhận XÓA / VÔ HIỆU HÓA gói đầu tư hiện tại của thành viên ${user.username}?`)) {
+                update(ref(db, `users/${userKey}`), {
+                    activePlans: []
+                });
+                alert("Đã xóa gói đầu tư của thành viên thành công!");
             }
         }
 
@@ -1259,480 +865,65 @@
             const usd = parseFloat(document.getElementById('new-gift-usd').value) || 0;
             const limit = parseInt(document.getElementById('new-gift-limit').value) || 100;
 
-            if (!code || usd <= 0) return alert("Vui lòng nhập đúng thông tin mã giftcode!");
-            set(ref(db, `giftcodes/${code}`), { usd, limit, usedCount: 0 });
+            if (!code || usd <= 0) {
+                alert("Vui lòng nhập mã code hợp lệ và số tiền thưởng USD > 0!");
+                return;
+            }
+
+            set(ref(db, `giftcodes/${code}`), {
+                usd: usd,
+                limit: limit,
+                usedCount: 0
+            });
+
             document.getElementById('new-gift-code').value = "";
             document.getElementById('new-gift-usd').value = "";
-            alert(`Đã tạo Giftcode ${code} thành công!`);
+            alert(`Đã tạo và phát hành Giftcode ${code} thành công trên toàn hệ thống!`);
         }
 
         function renderGiftcodesList() {
             const container = document.getElementById('giftcodes-list');
-            if (!container) return;
             container.innerHTML = "";
-            const entries = Object.entries(rawGiftcodesData);
 
+            const entries = Object.entries(rawGiftcodesData);
             if (entries.length === 0) {
-                container.innerHTML = `<p class="text-center text-xs text-gray-500 py-4">Chưa có Giftcode.</p>`;
+                container.innerHTML = `<p class="text-center text-xs text-gray-500 py-6">Chưa có Giftcode nào.</p>`;
                 return;
             }
 
             entries.forEach(([code, data]) => {
                 container.innerHTML += `
-                    <div class="card-dark rounded-xl p-3 text-xs flex justify-between items-center border border-gray-800">
+                    <div class="card-dark rounded-2xl p-3.5 flex items-center justify-between text-xs border border-gray-800">
                         <div>
-                            <span class="font-bold text-[#c0f135]">${code}</span> (+${data.usd}U)
+                            <p class="font-extrabold text-[#c0f135] text-sm tracking-wider">${code}</p>
+                            <p class="text-gray-300">Thưởng: <strong class="text-white">+$${data.usd} USD</strong> | Lượt dùng: <strong class="text-sky-400">${data.usedCount || 0} / ${data.limit}</strong></p>
                         </div>
-                        <button onclick="remove(ref(db, 'giftcodes/${code}'))" class="text-red-400 font-bold cursor-pointer">Xóa</button>
-                    </div>
-                `;
-            });
-        }
-
-        window.switchAdminTab = function(tabName) {
-            document.querySelectorAll('.admin-pane').forEach(p => p.classList.add('hidden'));
-            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
-        }
-
-        // ================= GIAO DIỆN & TÍNH NĂNG NGƯỜI DÙNG =================
-        window.openGiftcodeModal = function() { openModal('giftcode-modal'); }
-        window.closeGiftcodeModal = function() { closeModal('giftcode-modal'); }
-
-        window.submitGiftcode = function() {
-            const codeInput = document.getElementById('giftcode-input').value.trim().toUpperCase();
-            if (!codeInput) return alert("Vui lòng nhập mã Giftcode!");
-
-            if (liveGiftcodes.hasOwnProperty(codeInput)) {
-                let codeData = liveGiftcodes[codeInput];
-                const d = new Date();
-                const todayStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-
-                if (!usedGiftcodesByDate[codeInput]) usedGiftcodesByDate[codeInput] = "";
-                if (usedGiftcodesByDate[codeInput] === todayStr) {
-                    alert("Hôm nay bạn đã sử dụng mã này rồi!");
-                    return;
-                }
-
-                if ((codeData.usedCount || 0) >= codeData.limit) {
-                    alert("Mã code này đã hết lượt sử dụng!");
-                    return;
-                }
-
-                codeData.usedCount = (codeData.usedCount || 0) + 1;
-                set(ref(db, 'giftcodes/' + codeInput), codeData);
-
-                availableBalance += codeData.usd;
-                totalClaimed += codeData.usd;
-                usedGiftcodesByDate[codeInput] = todayStr;
-                localStorage.setItem('usedGiftcodesByDate', JSON.stringify(usedGiftcodesByDate));
-
-                saveUserGroupData();
-                updateDisplay();
-                closeGiftcodeModal();
-                alert(`Nhận thành công +$${codeData.usd.toFixed(2)} USD!`);
-            } else {
-                alert("Mã Giftcode không tồn tại!");
-            }
-        }
-
-        window.openNotificationModal = function() { renderNotificationList(); openModal('notification-modal'); }
-        window.closeNotificationModal = function() { closeModal('notification-modal'); }
-
-        window.renderNotificationList = function() {
-            const container = document.getElementById('notification-list');
-            if(!container) return;
-            container.innerHTML = depositHistory.length === 0 ? `<p class="text-center text-xs text-gray-500 py-6">Chưa có thông báo.</p>` : "";
-            depositHistory.forEach(item => {
-                container.innerHTML += `<div class="card-dark rounded-xl p-3 text-xs"><b>Nạp tiền:</b> ${item.vnd.toLocaleString()} VNĐ - ${item.status}</div>`;
-            });
-        }
-
-        window.openCashFlowModal = function() { openModal('cash-flow-modal'); }
-        window.closeCashFlowModal = function() { closeModal('cash-flow-modal'); }
-
-        window.openDepositModal = function() { document.getElementById('deposit-modal').classList.add('active'); }
-        window.closeDepositModal = function() { closeModal('deposit-modal'); }
-
-        window.openDepositHistoryModal = function() { openModal('deposit-history-modal'); }
-        window.closeDepositHistoryModal = function() { closeModal('deposit-history-modal'); }
-
-        window.openWithdrawModal = function() { openModal('withdraw-modal'); }
-        window.closeWithdrawModal = function() { closeModal('withdraw-modal'); }
-
-        window.openHistoryModal = function() { openModal('history-modal'); }
-        window.closeHistoryModal = function() { closeModal('history-modal'); }
-
-        window.openInviteTaskModal = function() { openModal('invite-task-modal'); }
-        window.closeInviteTaskModal = function() { closeModal('invite-task-modal'); }
-
-        window.openModal = function(modalId) { document.getElementById(modalId).classList.add('active'); }
-        window.closeModal = function(modalId) { document.getElementById(modalId).classList.remove('active'); }
-
-        window.renderPlansUI = function() {
-            const container = document.getElementById('plans-container');
-            if(!container) return;
-            container.innerHTML = "";
-
-            investmentPlans.forEach(plan => {
-                const vndPrice = plan.priceUsd * USD_TO_VND;
-                const isActive = plan.id === activePlan.id;
-
-                container.innerHTML += `
-                    <div class="card-dark rounded-2xl p-3.5 flex items-center justify-between border ${isActive ? 'border-[#c0f135] bg-[#1a2b10]/20' : 'border-gray-800'} transition">
-                        <div class="space-y-1">
-                            <div class="flex items-center gap-2">
-                                <span class="font-bold text-xs text-white">${plan.title}</span>
-                                ${isActive ? '<span class="text-[9px] bg-[#c0f135]/20 text-[#c0f135] font-bold px-1.5 py-0.5 rounded">Đang chạy</span>' : ''}
-                            </div>
-                            <p class="text-[11px] text-gray-400">Lãi: <span class="neon-text font-semibold">+${plan.ratePerSec.toFixed(7)} U/s</span></p>
-                            <p class="text-[10px] text-gray-500">Giá: ${plan.priceUsd} USD (${vndPrice.toLocaleString()} VNĐ)</p>
-                        </div>
-                        <button onclick="handleSelectPlan(${plan.id})" class="${isActive ? 'bg-gray-800 text-gray-400 cursor-default' : 'neon-btn active:scale-95 cursor-pointer'} font-bold px-3 py-2 rounded-xl text-xs shadow transition">
-                            ${isActive ? 'Đang chọn' : 'Nạp & Kích hoạt'}
+                        <button onclick="deleteGiftcode('${code}')" class="bg-red-950 text-red-400 border border-red-500/30 font-bold px-3 py-1.5 rounded-xl hover:bg-red-900 transition cursor-pointer">
+                            Xóa Code
                         </button>
                     </div>
                 `;
             });
         }
 
-        window.handleSelectPlan = function(planId) {
-            const found = investmentPlans.find(p => p.id === planId);
-            if(!found || found.id === activePlan.id) return;
-            pendingPlanToActivate = found;
-            const vndPrice = found.priceUsd * USD_TO_VND;
-            
-            document.getElementById('deposit-vnd-input').value = vndPrice;
-            document.getElementById('deposit-memo').innerText = `SEVQR ${currentUser ? currentUser.username : '0123456789'}`;
-            document.getElementById('deposit-calc-text').innerHTML = `Quy đổi: <span class="neon-text font-bold">${found.priceUsd}.00 U</span>`;
-            document.getElementById('dynamic-qr-img').src = `https://img.vietqr.io/image/${BANK_ID}-${ACCOUNT_NO}-compact2.png?amount=${vndPrice}&addInfo=${encodeURIComponent(`SEVQR ${currentUser ? currentUser.username : '0123456789'}`)}&accountName=${encodeURIComponent(ACCOUNT_NAME)}`;
-            
-            openDepositModal();
-            startDepositCountdown();
+        window.deleteGiftcode = function(code) {
+            if (confirm(`Xác nhận xóa mã Giftcode ${code}?`)) {
+                remove(ref(db, `giftcodes/${code}`));
+            }
         }
 
-        window.startDepositCountdown = function() {
-            if (depositTimerInterval) clearInterval(depositTimerInterval);
-            depositSecondsLeft = 30;
-            const btn = document.getElementById('btn-submit-deposit');
-            if (!btn) return;
-            btn.disabled = true;
-            btn.className = "w-full bg-gray-800 text-gray-500 font-extrabold py-3.5 rounded-xl text-sm cursor-not-allowed";
-            btn.innerText = `Chờ xác nhận... (${depositSecondsLeft}s)`;
+        window.switchAdminTab = function(tabName) {
+            document.querySelectorAll('.admin-pane').forEach(p => p.classList.add('hidden'));
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
 
-            depositTimerInterval = setInterval(() => {
-                depositSecondsLeft--;
-                if (depositSecondsLeft > 0) {
-                    btn.innerText = `Chờ xác nhận... (${depositSecondsLeft}s)`;
+            document.querySelectorAll('.admin-tab-btn').forEach(btn => {
+                if (btn.getAttribute('data-tab') === tabName) {
+                    btn.className = "admin-tab-btn px-4 py-2 rounded-xl text-xs font-bold bg-[#c0f135] text-gray-950 cursor-pointer";
                 } else {
-                    clearInterval(depositTimerInterval);
-                    btn.disabled = false;
-                    btn.className = "w-full neon-btn font-extrabold py-3.5 rounded-xl text-sm active:scale-95 cursor-pointer";
-                    btn.innerText = "Xác nhận đã chuyển khoản";
-                }
-            }, 1000);
-        }
-
-        window.submitDeposit = function() {
-            const vndVal = pendingPlanToActivate ? pendingPlanToActivate.priceUsd * USD_TO_VND : 26000;
-            const usdVal = vndVal / USD_TO_VND;
-            const username = currentUser ? currentUser.username : "0123456789";
-            const memo = `SEVQR ${username}`;
-            const now = new Date();
-            const timeString = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} - ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-
-            push(ref(db, 'deposits'), { username, vnd: vndVal, usd: usdVal, memo, time: timeString, status: "VUI LÒNG ĐỢI", planId: pendingPlanToActivate ? pendingPlanToActivate.id : 1 });
-            depositHistory.unshift({ time: timeString, vnd: vndVal, usd: usdVal, memo, status: "VUI LÒNG ĐỢI" });
-            localStorage.setItem('depositHistory', JSON.stringify(depositHistory));
-
-            closeDepositModal();
-            alert("Đã gửi yêu cầu nạp thành công! Hệ thống SePay sẽ tự động duyệt sau vài giây chuyển khoản.");
-        }
-
-        window.updatePlanStatsUI = function() {
-            checkPlanExpiration();
-            if (activePlan.priceUsd > 0) {
-                document.getElementById('active-plan-badge').innerHTML = `<i class="fa-solid fa-chart-line text-[10px]"></i> Gói ${activePlan.priceUsd} USD`;
-                document.getElementById('active-plan-usd').innerText = `$${activePlan.priceUsd}.00`;
-                document.getElementById('active-plan-rate').innerText = `${activePlan.ratePerSec.toFixed(7)}U/s`;
-                document.getElementById('active-plan-duration').innerText = `Hạn: ${activePlan.displayDuration}`;
-                document.getElementById('stat-rate-sec').innerText = `+${activePlan.ratePerSec.toFixed(7)}U`;
-                document.getElementById('stat-rate-hour').innerText = `+${(activePlan.ratePerSec * 3600).toFixed(5)}U`;
-                document.getElementById('stat-rate-day').innerText = `+${(activePlan.ratePerSec * 86400).toFixed(5)}U`;
-            } else {
-                document.getElementById('active-plan-badge').innerHTML = `<i class="fa-solid fa-triangle-exclamation text-[10px]"></i> Chưa kích hoạt gói`;
-                document.getElementById('active-plan-usd').innerText = `Chưa có`;
-                document.getElementById('active-plan-rate').innerText = `0.0000000U/s`;
-            }
-        }
-
-        window.scrollToPlans = function() {
-            document.getElementById('investment-plans-section').scrollIntoView({ behavior: 'smooth' });
-        }
-
-        window.switchAuthMode = function(mode) {
-            const loginForm = document.getElementById('login-form');
-            const registerForm = document.getElementById('register-form');
-            if (mode === 'register') {
-                loginForm.classList.add('hidden');
-                registerForm.classList.remove('hidden');
-            } else {
-                registerForm.classList.add('hidden');
-                loginForm.classList.remove('hidden');
-            }
-        }
-
-        window.handleRegister = function() {
-            const username = document.getElementById('reg-username').value.trim();
-            const password = document.getElementById('reg-password').value.trim();
-            const refBy = document.getElementById('reg-ref').value.trim();
-
-            if (!username || !password || username.length !== 10 || password.length < 5) {
-                alert("Vui lòng nhập đúng SĐT (10 số) và mật khẩu (>=5 ký tự)!");
-                return;
-            }
-
-            get(ref(db, 'users')).then((snapshot) => {
-                const allUsers = snapshot.val() || {};
-                if (Object.values(allUsers).some(u => u.username === username)) {
-                    alert("Số điện thoại này đã được đăng ký!");
-                    return;
-                }
-
-                const now = new Date();
-                const timeString = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
-
-                push(ref(db, 'users'), { fullname: "MEMBER " + username.slice(-4), username, password, refBy: refBy || "", balance: 0, totalDepositUsd: 0, activePlans: [], createdAt: timeString });
-                alert("Đăng ký thành công! Hãy đăng nhập.");
-                switchAuthMode('login');
-            });
-        }
-
-        window.handleLogin = function() {
-            const username = document.getElementById('login-username').value.trim();
-            const password = document.getElementById('login-password').value.trim();
-
-            get(ref(db, 'users')).then((snapshot) => {
-                const allUsers = snapshot.val() || {};
-                const foundUserKey = Object.keys(allUsers).find(k => allUsers[k].username === username && allUsers[k].password === password);
-
-                if (!foundUserKey) {
-                    alert("Sai số điện thoại hoặc mật khẩu!");
-                    return;
-                }
-
-                currentUser = allUsers[foundUserKey];
-                currentUserFirebaseKey = foundUserKey;
-                localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                
-                loadUserGroupData();
-                updateUserProfileUI();
-                initUserRealtimeSync();
-                initSePayWebhookListener();
-
-                document.getElementById('auth-screen').classList.add('hidden');
-                document.getElementById('auth-screen').classList.remove('flex');
-            });
-        }
-
-        window.handleLogout = function() {
-            localStorage.removeItem('currentUser');
-            currentUser = null;
-            document.getElementById('auth-screen').classList.remove('hidden');
-            document.getElementById('auth-screen').classList.add('flex');
-        }
-
-        window.updateUserProfileUI = function() {
-            if (currentUser && currentUser.username) {
-                document.getElementById('profile-name').innerText = currentUser.fullname || "MEMBER";
-                document.getElementById('profile-username').innerText = "SĐT: " + currentUser.username;
-                document.getElementById('profile-avatar-text').innerText = currentUser.username.slice(-2);
-                document.getElementById('ref-link-input').value = `https://winusdbox.onrender.com/?ref=${currentUser.username}`;
-                document.getElementById('my-invite-code-input').value = currentUser.username;
-            }
-        }
-
-        window.loadUserGroupData = function() {
-            if (!currentUser || !currentUser.username) return;
-            const prefix = currentUser.username;
-            availableBalance = parseFloat(localStorage.getItem(`availableBalance_${prefix}`)) || currentUser.balance || 0.00;
-            totalClaimed = parseFloat(localStorage.getItem(`totalClaimed_${prefix}`)) || 0.00;
-        }
-
-        window.saveUserGroupData = function() {
-            if (!currentUser || !currentUser.username) return;
-            const prefix = currentUser.username;
-            localStorage.setItem(`availableBalance_${prefix}`, availableBalance);
-            localStorage.setItem(`totalClaimed_${prefix}`, totalClaimed);
-            if (currentUserFirebaseKey) {
-                update(ref(db, `users/${currentUserFirebaseKey}`), { balance: Number(availableBalance.toFixed(3)) });
-            }
-        }
-
-        window.showRewardModal = function(title, message, iconClass) {
-            document.getElementById('reward-modal-title').innerText = title;
-            document.getElementById('reward-modal-amount').innerText = message;
-            document.getElementById('reward-modal-icon').className = iconClass;
-            document.getElementById('reward-modal').classList.remove('hidden');
-            document.getElementById('reward-modal').classList.add('flex');
-        }
-
-        window.closeRewardModal = function() {
-            document.getElementById('reward-modal').classList.add('hidden');
-            document.getElementById('reward-modal').classList.remove('flex');
-        }
-
-        window.submitWithdraw = function() {
-            const amountInput = parseFloat(document.getElementById('withdraw-amount').value);
-            const bankVal = document.getElementById('withdraw-bank').value;
-            const acc = document.getElementById('withdraw-acc').value;
-            const name = document.getElementById('withdraw-name').value;
-            const username = currentUser ? currentUser.username : "Khách";
-
-            if (!amountInput || amountInput < MIN_WITHDRAW_USD || amountInput > availableBalance) {
-                alert("Số tiền rút không hợp lệ hoặc vượt quá số dư!");
-                return;
-            }
-
-            availableBalance -= amountInput;
-            saveUserGroupData();
-            updateDisplay();
-
-            const fee = amountInput * 0.05;
-            const netUsd = amountInput - fee;
-            const netVnd = Math.round(netUsd * USD_TO_VND);
-            const timeString = new Date().toLocaleString();
-
-            push(ref(db, 'withdraws'), { username, amount: amountInput, bank: bankVal.split(' - ')[0], acc, name, fee, net: netUsd, time: timeString, status: "VUI LÒNG ĐỢI" });
-            withdrawHistory.unshift({ time: timeString, bank: bankVal.split(' - ')[0], acc, name, amount: amountInput, fee, net: netUsd, status: "VUI LÒNG ĐỢI" });
-            localStorage.setItem('withdrawHistory', JSON.stringify(withdrawHistory));
-
-            closeWithdrawModal();
-            alert("Đã gửi lệnh rút tiền thành công!");
-        }
-
-        window.switchTab = function(tabId) {
-            document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.add('hidden'));
-            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
-
-            document.querySelectorAll('.nav-item').forEach(item => {
-                if(item.getAttribute('data-target') === tabId) {
-                    item.className = "nav-item flex flex-col items-center justify-center gap-1 text-xs neon-text font-semibold transition cursor-pointer";
-                } else {
-                    item.className = "nav-item flex flex-col items-center justify-center gap-1 text-xs text-gray-500 transition cursor-pointer";
+                    btn.className = "admin-tab-btn px-4 py-2 rounded-xl text-xs font-bold text-gray-400 hover:text-white cursor-pointer";
                 }
             });
         }
-
-        window.startMiningTimer = function() {
-            setInterval(() => {
-                checkPlanExpiration();
-                if (activePlan.ratePerSec > 0) {
-                    currentUnclaimedProfit += activePlan.ratePerSec;
-                    localStorage.setItem('currentUnclaimedProfit', currentUnclaimedProfit);
-                    localStorage.setItem('lastActiveTimestamp', Date.now());
-                    updateDisplay();
-                }
-            }, 1000); 
-        }
-
-        window.updateDisplay = function() {
-            checkPlanExpiration();
-            const formatted = currentUnclaimedProfit.toFixed(7);
-            const parts = formatted.split('.');
-            document.getElementById('unclaimed-profit-int').innerText = parts[0] + '.';
-            document.getElementById('unclaimed-profit-dec').innerText = parts[1];
-
-            let ringPercentage = (currentUnclaimedProfit / ringMaxGoal) * 100;
-            if (ringPercentage > 100) ringPercentage = 100;
-
-            const circle = document.getElementById('mining-progress-circle');
-            if (circle) {
-                const circumference = 2 * Math.PI * 50; 
-                circle.style.strokeDashoffset = circumference - (ringPercentage / 100) * circumference;
-            }
-
-            document.getElementById('ring-percent-text').innerText = `${ringPercentage.toFixed(1)}% / 0.1U`;
-            const statusText = document.getElementById('profit-status');
-            const claimBtn = document.getElementById('claim-btn');
-
-            if (activePlan.ratePerSec > 0 && currentUnclaimedProfit >= minThreshold) {
-                statusText.innerText = "Đủ điều kiện nhận!";
-                claimBtn.className = "neon-btn font-bold py-3 rounded-2xl text-xs flex items-center justify-center gap-2 transition active:scale-95 cursor-pointer shadow-lg shadow-lime-500/20";
-                claimBtn.disabled = false;
-            } else {
-                statusText.innerText = activePlan.ratePerSec > 0 ? "Chưa đủ tối thiểu (0.01U)" : "Gói chưa kích hoạt";
-                claimBtn.className = "bg-gray-800 text-gray-500 font-bold py-3 rounded-2xl text-xs flex items-center justify-center gap-2 transition cursor-not-allowed";
-                claimBtn.disabled = true;
-            }
-
-            document.getElementById('available-balance').innerText = '$' + availableBalance.toFixed(2);
-            document.getElementById('profile-balance').innerText = '$' + availableBalance.toFixed(2);
-            document.getElementById('total-claimed').innerText = '+$' + totalClaimed.toFixed(2) + ' U';
-            document.getElementById('streak-days').innerText = streakDays;
-        }
-
-        window.doDailyCheckin = function() {
-            streakDays++;
-            availableBalance += 0.01;
-            totalClaimed += 0.01;
-            saveUserGroupData();
-            updateDisplay();
-            showRewardModal("Điểm danh", "Nhận thành công +0.01 USD", "fa-solid fa-gift");
-        }
-
-        window.claimProfit = function() {
-            if (currentUnclaimedProfit >= minThreshold) {
-                const claimedAmount = currentUnclaimedProfit;
-                availableBalance += claimedAmount;
-                totalClaimed += claimedAmount;
-                currentUnclaimedProfit = 0.0000000;
-                saveUserGroupData();
-                localStorage.setItem('currentUnclaimedProfit', currentUnclaimedProfit);
-                updateDisplay();
-                showRewardModal("Nhận lãi", `Nhận thành công +${claimedAmount.toFixed(6)} USD`, "fa-solid fa-wand-magic-sparkles");
-            }
-        }
-
-        window.calculateFee = function() {
-            const val = parseFloat(document.getElementById('withdraw-amount').value) || 0;
-            document.getElementById('fee-calc-text').innerText = `Phí 5%: ${(val*0.05).toFixed(2)} U | Thực nhận: ${(val*0.95).toFixed(2)} U`;
-        }
-
-        window.copyRefLink = function() {
-            navigator.clipboard.writeText(document.getElementById('ref-link-input').value);
-            alert("Đã sao chép link giới thiệu!");
-        }
-
-        window.copyMyInviteCode = function() {
-            navigator.clipboard.writeText(document.getElementById('my-invite-code-input').value);
-            alert("Đã sao chép mã mời!");
-        }
-
-        document.addEventListener("DOMContentLoaded", () => {
-            document.getElementById('btn-login-action').addEventListener('click', handleLogin);
-            document.getElementById('btn-register-action').addEventListener('click', handleRegister);
-            document.getElementById('link-to-register').addEventListener('click', () => switchAuthMode('register'));
-            document.getElementById('link-to-login').addEventListener('click', () => switchAuthMode('login'));
-
-            if (currentUser && currentUser.username) {
-                document.getElementById('auth-screen').classList.add('hidden');
-                document.getElementById('auth-screen').classList.remove('flex');
-                loadUserGroupData();
-                updateUserProfileUI();
-                initUserRealtimeSync();
-                initSePayWebhookListener();
-            } else {
-                localStorage.removeItem('currentUser');
-                currentUser = null;
-                document.getElementById('auth-screen').classList.remove('hidden');
-                document.getElementById('auth-screen').classList.add('flex');
-            }
-
-            switchTab('home');
-            updatePlanStatsUI();
-            renderPlansUI();
-            startMiningTimer();
-        });
     </script>
 </body>
 </html>
