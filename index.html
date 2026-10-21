@@ -971,8 +971,47 @@
         let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
         let currentUserFirebaseKey = null;
 
-        // MÃ CẤU TRÚC DANH SÁCH CÁC GÓI ĐANG HOẠT ĐỘNG (MUA DỒN NHIỀU GÓI)
+        // DANH SÁCH GÓI DỒN ĐANG HOẠT ĐỘNG
         let activePlansList = JSON.parse(localStorage.getItem('activePlansList')) || [];
+
+        // HÀM MIGRATION CHUYỂN ĐỔI DỮ LIỆU CŨ THÀNH MẢNG GÓI MỚI
+        function migrateLegacyUserData(userObj) {
+            if (!userObj) return;
+
+            // Nếu user có mảng activePlans sẵn thì ưu tiên dùng
+            if (userObj.activePlans && Array.isArray(userObj.activePlans) && userObj.activePlans.length > 0) {
+                activePlansList = userObj.activePlans;
+            } else if (userObj.activePlanId) {
+                // Nếu người dùng có gói đơn lẻ cũ (activePlanId) -> tự động chuyển đổi thành mảng dồn gói
+                const legacyPlan = investmentPlans.find(p => p.id === userObj.activePlanId);
+                if (legacyPlan) {
+                    activePlansList = [{
+                        id: legacyPlan.id,
+                        priceUsd: legacyPlan.priceUsd,
+                        ratePerSec: legacyPlan.ratePerSec,
+                        title: legacyPlan.title,
+                        durationDays: legacyPlan.durationDays,
+                        activatedTime: userObj.activatedTime || Date.now()
+                    }];
+                }
+            } else if (localStorage.getItem('activePlanId')) {
+                // Kiểm tra LocalStorage cũ nếu Firebase chưa nhận
+                const legacyLocalId = parseInt(localStorage.getItem('activePlanId'));
+                const legacyPlan = investmentPlans.find(p => p.id === legacyLocalId);
+                if (legacyPlan) {
+                    activePlansList = [{
+                        id: legacyPlan.id,
+                        priceUsd: legacyPlan.priceUsd,
+                        ratePerSec: legacyPlan.ratePerSec,
+                        title: legacyPlan.title,
+                        durationDays: legacyPlan.durationDays,
+                        activatedTime: parseInt(localStorage.getItem('planActivatedTimestamp')) || Date.now()
+                    }];
+                }
+            }
+
+            localStorage.setItem('activePlansList', JSON.stringify(activePlansList));
+        }
 
         let pendingPlanToActivate = null;
         let currentUnclaimedProfit = parseFloat(localStorage.getItem('currentUnclaimedProfit')) || 0.0000000;
@@ -989,7 +1028,7 @@
         let depositTimerInterval = null;
         let depositSecondsLeft = 30;
 
-        // TÍNH TỔNG TỐC ĐỘ KHAI THÁC CỘNG DỒN TỪ TẤT CẢ CÁC GÓI
+        // TÍNH TỔNG TỐC ĐỘ KHAI THÁC TẤT CẢ CÁC GÓI ĐANG DỒN
         function getTotalRatePerSec() {
             return activePlansList.reduce((sum, item) => sum + (item.ratePerSec || 0), 0);
         }
@@ -1018,6 +1057,9 @@
 
             if (hasChanged) {
                 localStorage.setItem('activePlansList', JSON.stringify(activePlansList));
+                if (currentUserFirebaseKey) {
+                    update(ref(db, 'users/' + currentUserFirebaseKey), { activePlans: activePlansList });
+                }
                 updatePlanStatsUI();
                 renderPlansUI();
             }
@@ -1111,12 +1153,10 @@
                         updateDisplay();
                     }
 
-                    if (liveData.activePlans && Array.isArray(liveData.activePlans)) {
-                        activePlansList = liveData.activePlans;
-                        localStorage.setItem('activePlansList', JSON.stringify(activePlansList));
-                        updatePlanStatsUI();
-                        renderPlansUI();
-                    }
+                    // ĐỒNG BỘ VÀ TỰ ĐỘNG CHUYỂN ĐỔI GÓI CŨ SANG MẢNG DỒN GÓI MỚI
+                    migrateLegacyUserData(liveData);
+                    updatePlanStatsUI();
+                    renderPlansUI();
                 }
                 
                 get(ref(db, 'deposits')).then(depSnap => {
@@ -1146,13 +1186,12 @@
 
                 syncNotifications();
 
-                // DỒN CÁC GÓI NẠP ĐƯỢC DUYỆT VÀO DANH SÁCH TÀI KHOẢN
+                // DUYỆT CÁC LỆNH NẠP THÀNH CÔNG VÀ KÍCH HOẠT DỒN GÓI MỚI
                 myDeposits.forEach(dep => {
                     if (dep.status === "Thành công" && !processedDepositKeys.includes(dep.key)) {
                         const targetPlanId = dep.planId || 1;
                         const matchedPlan = investmentPlans.find(p => p.id === targetPlanId || p.priceUsd === dep.usd) || investmentPlans[0];
                         
-                        // Kiểm tra nếu chưa từng mua gói này thì thêm vào danh sách dồn
                         const exists = activePlansList.some(p => p.id === matchedPlan.id);
                         if (!exists) {
                             activePlansList.push({
@@ -1910,6 +1949,7 @@
                 currentUserFirebaseKey = foundUserKey;
                 localStorage.setItem('currentUser', JSON.stringify(currentUser));
                 
+                migrateLegacyUserData(userData);
                 loadUserGroupData();
                 updateUserProfileUI();
                 initUserRealtimeSync();
@@ -1925,6 +1965,7 @@
             showRewardModal("Xác nhận đăng xuất", "Thoát tài khoản hiện tại để đăng nhập lại?", "fa-solid fa-right-from-bracket", () => {
                 localStorage.removeItem('currentUser');
                 localStorage.removeItem('activePlansList');
+                localStorage.removeItem('activePlanId');
                 currentUser = null;
                 currentUserFirebaseKey = null;
                 activePlansList = [];
@@ -2077,7 +2118,7 @@
             get(ref(db, 'users')).then((userSnap) => {
                 const allUsers = userSnap.val() || {};
                 const userObj = Object.values(allUsers).find(u => u.username === username);
-                const isDbPlanActive = userObj && userObj.activePlans && userObj.activePlans.length > 0;
+                const isDbPlanActive = (userObj && ((userObj.activePlans && userObj.activePlans.length > 0) || userObj.activePlanId));
 
                 if (!isLocalPlanActive && !isDbPlanActive) {
                     showRewardModal(
@@ -2485,6 +2526,7 @@
             if (currentUser && currentUser.username) {
                 document.getElementById('auth-screen').classList.add('hidden');
                 document.getElementById('auth-screen').classList.remove('flex');
+                migrateLegacyUserData(currentUser);
                 loadUserGroupData();
                 updateUserProfileUI();
                 initUserRealtimeSync();
