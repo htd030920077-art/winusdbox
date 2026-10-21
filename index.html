@@ -971,18 +971,15 @@
         let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
         let currentUserFirebaseKey = null;
 
-        // DANH SÁCH GÓI DỒN ĐANG HOẠT ĐỘNG
         let activePlansList = JSON.parse(localStorage.getItem('activePlansList')) || [];
 
-        // HÀM MIGRATION CHUYỂN ĐỔI DỮ LIỆU CŨ THÀNH MẢNG GÓI MỚI
+        // HÀM MIGRATION AN TOÀN KHÔNG LÀM MẤT GÓI CŨ
         function migrateLegacyUserData(userObj) {
             if (!userObj) return;
 
-            // Nếu user có mảng activePlans sẵn thì ưu tiên dùng
             if (userObj.activePlans && Array.isArray(userObj.activePlans) && userObj.activePlans.length > 0) {
                 activePlansList = userObj.activePlans;
             } else if (userObj.activePlanId) {
-                // Nếu người dùng có gói đơn lẻ cũ (activePlanId) -> tự động chuyển đổi thành mảng dồn gói
                 const legacyPlan = investmentPlans.find(p => p.id === userObj.activePlanId);
                 if (legacyPlan) {
                     activePlansList = [{
@@ -994,8 +991,7 @@
                         activatedTime: userObj.activatedTime || Date.now()
                     }];
                 }
-            } else if (localStorage.getItem('activePlanId')) {
-                // Kiểm tra LocalStorage cũ nếu Firebase chưa nhận
+            } else if (activePlansList.length === 0 && localStorage.getItem('activePlanId')) {
                 const legacyLocalId = parseInt(localStorage.getItem('activePlanId'));
                 const legacyPlan = investmentPlans.find(p => p.id === legacyLocalId);
                 if (legacyPlan) {
@@ -1006,6 +1002,23 @@
                         title: legacyPlan.title,
                         durationDays: legacyPlan.durationDays,
                         activatedTime: parseInt(localStorage.getItem('planActivatedTimestamp')) || Date.now()
+                    }];
+                }
+            }
+
+            // Nếu người dùng có nạp thành công trước đó nhưng mảng đang trống, mặc định khôi phục gói 1$ nếu có lịch sử
+            if (activePlansList.length === 0) {
+                const savedDeps = JSON.parse(localStorage.getItem('depositHistory')) || [];
+                const hasSuccessDep = savedDeps.some(d => d.status === "Nạp tiền thành công" || d.status === "Thành công");
+                if (hasSuccessDep) {
+                    // Mặc định nạp gói 1 nếu chưa bắt được ID
+                    activePlansList = [{
+                        id: 1,
+                        priceUsd: 1,
+                        ratePerSec: 0.000003116,
+                        title: "Gói Khai Thác 1 USD (26k)",
+                        durationDays: 6,
+                        activatedTime: Date.now()
                     }];
                 }
             }
@@ -1028,17 +1041,14 @@
         let depositTimerInterval = null;
         let depositSecondsLeft = 30;
 
-        // TÍNH TỔNG TỐC ĐỘ KHAI THÁC TẤT CẢ CÁC GÓI ĐANG DỒN
         function getTotalRatePerSec() {
             return activePlansList.reduce((sum, item) => sum + (item.ratePerSec || 0), 0);
         }
 
-        // TÍNH TỔNG VỐN USD CỦA CÁC GÓI DỒN
         function getTotalActiveUsd() {
             return activePlansList.reduce((sum, item) => sum + (item.priceUsd || 0), 0);
         }
 
-        // KIỂM TRA HẠN CỦA TỪNG GÓI TRONG DANH SÁCH DỒN
         function checkPlanExpiration() {
             if (!activePlansList || activePlansList.length === 0) return;
 
@@ -1050,7 +1060,7 @@
                 let daysPassed = (now - item.activatedTime) / (1000 * 60 * 60 * 24);
                 if (daysPassed >= item.durationDays) {
                     hasChanged = true;
-                    return false; // Loại bỏ gói đã hết hạn
+                    return false;
                 }
                 return true;
             });
@@ -1153,7 +1163,6 @@
                         updateDisplay();
                     }
 
-                    // ĐỒNG BỘ VÀ TỰ ĐỘNG CHUYỂN ĐỔI GÓI CŨ SANG MẢNG DỒN GÓI MỚI
                     migrateLegacyUserData(liveData);
                     updatePlanStatsUI();
                     renderPlansUI();
@@ -1186,7 +1195,6 @@
 
                 syncNotifications();
 
-                // DUYỆT CÁC LỆNH NẠP THÀNH CÔNG VÀ KÍCH HOẠT DỒN GÓI MỚI
                 myDeposits.forEach(dep => {
                     if (dep.status === "Thành công" && !processedDepositKeys.includes(dep.key)) {
                         const targetPlanId = dep.planId || 1;
@@ -1774,7 +1782,6 @@
         }
         window.closeHistoryModal = function() { closeModal('history-modal'); }
 
-        // HIỂN THỊ CÁC GÓI VÀ GIỚI HẠN KHÔNG MUA TRÙNG 1 GÓI 2 LẦN
         window.renderPlansUI = function() {
             const container = document.getElementById('plans-container');
             if(!container) return;
@@ -1808,7 +1815,6 @@
             const found = investmentPlans.find(p => p.id === planId);
             if (!found) return;
 
-            // KIỂM TRA XEM ĐÃ MUA GÓI NÀY CHƯA
             const isAlreadyPurchased = activePlansList.some(p => p.id === planId);
             if (isAlreadyPurchased) {
                 showRewardModal("Thông báo", "Bạn đã kích hoạt gói này rồi! Mỗi gói chỉ được mua tối đa 1 lần trong cùng một thời điểm.", "fa-solid fa-triangle-exclamation");
@@ -1826,9 +1832,7 @@
             showRewardModal("Nạp tiền mua dồn gói", `Thanh toán ${vndPrice.toLocaleString()} VNĐ (${found.priceUsd} USD) để dồn thêm ${found.title} vào tài khoản!`, "fa-solid fa-credit-card");
         }
 
-        // CẬP NHẬT THỐNG KÊ CỘNG DỒN NHIỀU GÓI HỢP NHẤT
         window.updatePlanStatsUI = function() {
-            checkPlanExpiration();
             const totalRate = getTotalRatePerSec();
             const totalActiveUsd = getTotalActiveUsd();
             const activeCount = activePlansList.length;
@@ -2305,14 +2309,13 @@
 
         window.startMiningTimer = function() {
             setInterval(() => {
-                checkPlanExpiration();
                 const totalRate = getTotalRatePerSec();
                 if (totalRate > 0) {
                     currentUnclaimedProfit += totalRate;
                     localStorage.setItem('currentUnclaimedProfit', currentUnclaimedProfit);
                     localStorage.setItem('lastActiveTimestamp', Date.now());
-                    updateDisplay();
                 }
+                updateDisplay();
                 checkCooldowns();
             }, 1000); 
         }
@@ -2323,7 +2326,6 @@
         });
 
         window.updateDisplay = function() {
-            checkPlanExpiration();
             const formatted = currentUnclaimedProfit.toFixed(7);
             const parts = formatted.split('.');
             document.getElementById('unclaimed-profit-int').innerText = parts[0] + '.';
@@ -2465,7 +2467,6 @@
         }
 
         window.claimProfit = function() {
-            checkPlanExpiration();
             const totalRate = getTotalRatePerSec();
             if (totalRate <= 0) {
                 showRewardModal("Chưa kích hoạt gói", "Bạn chưa có gói khai thác nào đang hoạt động. Vui lòng kích hoạt gói để bắt đầu sinh lãi!", "fa-solid fa-triangle-exclamation");
