@@ -921,7 +921,7 @@
 
     </div>
 
-    <!-- JAVASCRIPT CORE LOGIC + FIREBASE REALTIME SYNC -->
+    <!-- JAVASCRIPT CORE LOGIC + FIREBASE REALTIME SYNC + SEPAY AUTOMATED WEBHOOK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
         import { getDatabase, ref, set, get, update, onValue, push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
@@ -1058,6 +1058,79 @@
             }
         });
 
+        // LẮNG NGHE GIAO DỊCH TỰ ĐỘNG TỪ SEPAY WEBHOOK (sepay_logs.json)
+        function initSePayWebhookListener() {
+            onValue(ref(db, 'sepay_logs'), (snapshot) => {
+                const logs = snapshot.val() || {};
+                Object.entries(logs).forEach(([logKey, tx]) => {
+                    if (!processedDepositKeys.includes(logKey)) {
+                        // Phân tích cú pháp nội dung chuyển khoản: SEVQR [SĐT] hoặc tìm số điện thoại trong nội dung
+                        const content = (tx.content || tx.description || "").toUpperCase();
+                        const matchPhone = content.match(/(?:0|84|\+84)[0-9]{9}/);
+                        
+                        if (matchPhone || content.includes("SEVQR")) {
+                            let phoneNum = matchPhone ? matchPhone[0] : "";
+                            if (phoneNum.startsWith("+84")) phoneNum = "0" + phoneNum.slice(3);
+                            else if (phoneNum.startsWith("84")) phoneNum = "0" + phoneNum.slice(2);
+
+                            const transAmount = parseFloat(tx.transferAmount || tx.amount || 0);
+
+                            if (phoneNum && transAmount > 0) {
+                                // Đánh dấu log đã xử lý
+                                processedDepositKeys.push(logKey);
+                                localStorage.setItem('processedDepositKeys', JSON.stringify(processedDepositKeys));
+
+                                // Kiểm tra xem giao dịch này thuộc user nào trên hệ thống
+                                get(ref(db, 'users')).then(userSnap => {
+                                    const allUsers = userSnap.val() || {};
+                                    const targetUserKey = Object.keys(allUsers).find(k => allUsers[k].username === phoneNum);
+
+                                    if (targetUserKey) {
+                                        const targetUser = allUsers[targetUserKey];
+                                        const usdGained = transAmount / USD_TO_VND;
+                                        
+                                        // Tìm gói đầu tư phù hợp với số tiền nạp
+                                        const matchedPlan = investmentPlans.slice().reverse().find(p => transAmount >= (p.priceUsd * USD_TO_VND) * 0.95) || investmentPlans[0];
+
+                                        // Cập nhật trạng thái nạp tiền lên Firebase thành "Thành công"
+                                        const now = new Date();
+                                        const timeString = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} - ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+                                        push(ref(db, 'deposits'), {
+                                            username: phoneNum,
+                                            vnd: transAmount,
+                                            usd: usdGained,
+                                            memo: content,
+                                            time: timeString,
+                                            status: "Thành công",
+                                            planId: matchedPlan.id
+                                        });
+
+                                        // Nếu đúng là user hiện tại đang đăng nhập đang online
+                                        if (currentUser && currentUser.username === phoneNum) {
+                                            activePlanId = matchedPlan.id;
+                                            activePlan = matchedPlan;
+                                            localStorage.setItem('activePlanId', activePlanId);
+                                            localStorage.setItem('planActivatedTime', Date.now());
+
+                                            updatePlanStatsUI();
+                                            renderPlansUI();
+
+                                            showRewardModal(
+                                                "NẠP TIỀN TỰ ĐỘNG THÀNH CÔNG!", 
+                                                `Nhận thành công +${transAmount.toLocaleString()} VNĐ (~$${usdGained.toFixed(2)}U). Đã kích hoạt gói: ${matchedPlan.title}!`, 
+                                                "fa-solid fa-circle-check"
+                                            );
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    }
+                });
+            });
+        }
+
         function initUserRealtimeSync() {
             if (!currentUser || !currentUser.username) return;
             
@@ -1141,7 +1214,7 @@
 
                         showRewardModal(
                             "KÍCH HOẠT GÓI THÀNH CÔNG", 
-                            `Lệnh nạp của bạn đã được duyệt! Đã kích hoạt thành công: ${matchedPlan.title}.`, 
+                            `Lệnh nạp của bạn đã được duyệt tự động! Đã kích hoạt thành công: ${matchedPlan.title}.`, 
                             "fa-solid fa-circle-check"
                         );
                     }
@@ -1238,7 +1311,7 @@
 
                 showRewardModal(
                     "THƯỞNG HOA HỒNG MỚI!", 
-                    `Admin vừa duyệt đơn nạp của tuyến dưới (${lastSubUserPhone}). Bạn nhận ngay +$${earnedBonusTotal.toFixed(2)} USD hoa hồng (${lastCommLevel}) cộng thẳng vào số dư ví!`, 
+                    `Tuyến dưới (${lastSubUserPhone}) vừa nạp tiền thành công. Bạn nhận ngay +$${earnedBonusTotal.toFixed(2)} USD hoa hồng (${lastCommLevel}) cộng thẳng vào số dư ví!`, 
                     "fa-solid fa-coins"
                 );
             }
@@ -1643,7 +1716,7 @@
             const userPhone = currentUser && currentUser.username ? currentUser.username : '0123456789';
             const memoEl = document.getElementById('deposit-memo');
             if(memoEl) {
-                memoEl.innerText = userPhone;
+                memoEl.innerText = `SEVQR ${userPhone}`;
             }
             updateQrCodeImage();
         }
@@ -1663,7 +1736,7 @@
         window.updateQrCodeImage = function() {
             const vndVal = parseFloat(document.getElementById('deposit-vnd-input').value) || 0;
             const memoEl = document.getElementById('deposit-memo');
-            const memo = memoEl ? memoEl.innerText : (currentUser ? currentUser.username : "0123456789");
+            const memo = memoEl ? memoEl.innerText : (currentUser ? `SEVQR ${currentUser.username}` : "SEVQR 0123456789");
             
             const qrImg = document.getElementById('dynamic-qr-img');
             if (qrImg) {
@@ -1858,7 +1931,6 @@
             });
         }
 
-        // HÀM ĐĂNG XUẤT ĐÃ SỬA LỖI (CLEAR SESSION SẠCH SẼ 100%)
         window.handleLogout = function() {
             showRewardModal("Xác nhận đăng xuất", "Thoát tài khoản hiện tại để đăng nhập lại?", "fa-solid fa-right-from-bracket", () => {
                 localStorage.removeItem('currentUser');
@@ -1867,7 +1939,6 @@
                 currentUser = null;
                 currentUserFirebaseKey = null;
                 
-                // Mở màn hình Auth Đăng Nhập
                 document.getElementById('auth-screen').classList.remove('hidden');
                 document.getElementById('auth-screen').classList.add('flex');
                 switchAuthMode('login');
@@ -1941,7 +2012,7 @@
 
             const usdVal = vndVal / USD_TO_VND;
             const username = (typeof currentUser !== 'undefined' && currentUser && currentUser.username) ? currentUser.username : "0123456789";
-            const memo = username; 
+            const memo = `SEVQR ${username}`; 
             const planTitle = pendingPlanToActivate ? pendingPlanToActivate.title : "Gói nạp tùy chọn";
             const planId = pendingPlanToActivate ? pendingPlanToActivate.id : 1;
 
@@ -1973,8 +2044,8 @@
             closeDepositModal();
 
             showRewardModal(
-                "Đã gửi yêu cầu nạp", 
-                "Vui lòng chờ Admin duyệt để tự động kích hoạt gói!", 
+                "Đã tạo lệnh nạp tự động", 
+                "Vui lòng quét QR chuyển khoản đúng nội dung. Hệ thống sẽ tự động cộng tiền sau 3-5 giây!", 
                 "fa-solid fa-spinner fa-spin", 
                 () => {
                     updateDisplay();
@@ -2382,7 +2453,6 @@
             }
         }
 
-        // KHỞI TẠO VÀ XỬ LÝ LINK MỜI REF CHUẨN XÁC
         document.addEventListener("DOMContentLoaded", () => {
             const btnLogin = document.getElementById('btn-login-action');
             if (btnLogin) btnLogin.addEventListener('click', handleLogin);
@@ -2396,7 +2466,6 @@
             const linkToLog = document.getElementById('link-to-login');
             if (linkToLog) linkToLog.addEventListener('click', () => switchAuthMode('login'));
 
-            // Xử lý link giới thiệu ?ref=
             const urlParams = new URLSearchParams(window.location.search);
             const refParam = urlParams.get('ref');
             if (refParam) {
@@ -2411,20 +2480,19 @@
                 }
             }
 
-            // Kiểm tra trạng thái đăng nhập
             if (currentUser && currentUser.username) {
                 document.getElementById('auth-screen').classList.add('hidden');
                 document.getElementById('auth-screen').classList.remove('flex');
                 loadUserGroupData();
                 updateUserProfileUI();
                 initUserRealtimeSync();
+                initSePayWebhookListener(); // Kích hoạt lắng nghe SePay Webhook tự động
             } else {
                 localStorage.removeItem('currentUser');
                 currentUser = null;
                 document.getElementById('auth-screen').classList.remove('hidden');
                 document.getElementById('auth-screen').classList.add('flex');
                 
-                // Nếu được mở từ link Ref mà chưa có tài khoản -> Tự động chuyển sang form Đăng Ký
                 if (refParam || savedRef) {
                     switchAuthMode('register');
                 } else {
