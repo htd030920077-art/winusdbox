@@ -170,7 +170,7 @@
                             <span class="text-xs font-semibold text-gray-300">Lãi khai thác tích lũy</span>
                         </div>
                         <span id="active-plan-badge" class="text-xs bg-[#122112] text-[#c0f135] border border-[#c0f135]/40 px-3 py-1 rounded-full font-bold flex items-center gap-1.5">
-                            <i class="fa-solid fa-chart-line text-[11px]"></i> 0 Gói đang chạy
+                            <i class="fa-solid fa-chart-line text-[11px]"></i> Chưa kích hoạt gói
                         </span>
                     </div>
 
@@ -250,15 +250,15 @@
 
                         <div class="card-dark rounded-2xl p-3 border border-gray-800/80">
                             <div class="flex justify-between items-center mb-1">
-                                <span class="text-[11px] text-gray-400 font-medium">Tổng vốn đang chạy</span>
+                                <span class="text-[11px] text-gray-400 font-medium">Gói đang chạy</span>
                                 <div class="w-5 h-5 rounded-full bg-[#c0f135]/20 text-[#c0f135] flex items-center justify-center text-[10px]">
                                     <i class="fa-solid fa-lock"></i>
                                 </div>
                             </div>
-                            <p id="active-plan-usd" class="text-lg font-black text-gray-400">$0.00</p>
+                            <p id="active-plan-usd" class="text-lg font-black text-gray-400">Chưa có</p>
                             <div class="mt-2 pt-1.5 border-t border-gray-800/80 flex justify-between items-center text-[9px]">
                                 <span class="text-[#c0f135] font-bold" id="active-plan-rate">0.0000000U/s</span>
-                                <span class="text-gray-400" id="active-plan-count">0 gói</span>
+                                <span class="text-gray-400" id="active-plan-duration">-</span>
                             </div>
                         </div>
                     </div>
@@ -808,9 +808,6 @@
                         <span><i class="fa-solid fa-shield-halved mr-1"></i> ĐIỀU KIỆN MỞ KHÓA RÚT TIỀN:</span>
                     </div>
                     <p class="text-gray-300 leading-relaxed">Yêu cầu tài khoản chỉ cần có ít nhất <strong>1 gói đầu tư đang hoạt động</strong> (Nạp hoặc được Admin kích hoạt gói) để mở khóa rút tất cả các nguồn tiền.</p>
-                    <div class="pt-1 border-t border-amber-500/20 text-[#c0f135] font-semibold">
-                        <i class="fa-solid fa-clock mr-1"></i> Khung giờ rút tiền: <strong>09:00 - 22:00 hàng ngày</strong>
-                    </div>
                     <p class="text-gray-400 pt-0.5">Min rút: <strong class="text-white">0.4 USD</strong> | Phí giao dịch: <strong class="text-white">5%</strong></p>
                 </div>
 
@@ -971,60 +968,8 @@
         let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
         let currentUserFirebaseKey = null;
 
-        let activePlansList = JSON.parse(localStorage.getItem('activePlansList')) || [];
-
-        // HÀM MIGRATION AN TOÀN KHÔNG LÀM MẤT GÓI CŨ
-        function migrateLegacyUserData(userObj) {
-            if (!userObj) return;
-
-            if (userObj.activePlans && Array.isArray(userObj.activePlans) && userObj.activePlans.length > 0) {
-                activePlansList = userObj.activePlans;
-            } else if (userObj.activePlanId) {
-                const legacyPlan = investmentPlans.find(p => p.id === userObj.activePlanId);
-                if (legacyPlan) {
-                    activePlansList = [{
-                        id: legacyPlan.id,
-                        priceUsd: legacyPlan.priceUsd,
-                        ratePerSec: legacyPlan.ratePerSec,
-                        title: legacyPlan.title,
-                        durationDays: legacyPlan.durationDays,
-                        activatedTime: userObj.activatedTime || Date.now()
-                    }];
-                }
-            } else if (activePlansList.length === 0 && localStorage.getItem('activePlanId')) {
-                const legacyLocalId = parseInt(localStorage.getItem('activePlanId'));
-                const legacyPlan = investmentPlans.find(p => p.id === legacyLocalId);
-                if (legacyPlan) {
-                    activePlansList = [{
-                        id: legacyPlan.id,
-                        priceUsd: legacyPlan.priceUsd,
-                        ratePerSec: legacyPlan.ratePerSec,
-                        title: legacyPlan.title,
-                        durationDays: legacyPlan.durationDays,
-                        activatedTime: parseInt(localStorage.getItem('planActivatedTimestamp')) || Date.now()
-                    }];
-                }
-            }
-
-            // Nếu người dùng có nạp thành công trước đó nhưng mảng đang trống, mặc định khôi phục gói 1$ nếu có lịch sử
-            if (activePlansList.length === 0) {
-                const savedDeps = JSON.parse(localStorage.getItem('depositHistory')) || [];
-                const hasSuccessDep = savedDeps.some(d => d.status === "Nạp tiền thành công" || d.status === "Thành công");
-                if (hasSuccessDep) {
-                    // Mặc định nạp gói 1 nếu chưa bắt được ID
-                    activePlansList = [{
-                        id: 1,
-                        priceUsd: 1,
-                        ratePerSec: 0.000003116,
-                        title: "Gói Khai Thác 1 USD (26k)",
-                        durationDays: 6,
-                        activatedTime: Date.now()
-                    }];
-                }
-            }
-
-            localStorage.setItem('activePlansList', JSON.stringify(activePlansList));
-        }
+        let activePlanId = parseInt(localStorage.getItem('activePlanId')) || 0;
+        let activePlan = investmentPlans.find(p => p.id === activePlanId) || { id: 0, priceUsd: 0, ratePerSec: 0, title: "Chưa kích hoạt", durationDays: 0, displayDuration: "-" };
 
         let pendingPlanToActivate = null;
         let currentUnclaimedProfit = parseFloat(localStorage.getItem('currentUnclaimedProfit')) || 0.0000000;
@@ -1041,37 +986,19 @@
         let depositTimerInterval = null;
         let depositSecondsLeft = 30;
 
-        function getTotalRatePerSec() {
-            return activePlansList.reduce((sum, item) => sum + (item.ratePerSec || 0), 0);
-        }
-
-        function getTotalActiveUsd() {
-            return activePlansList.reduce((sum, item) => sum + (item.priceUsd || 0), 0);
-        }
-
         function checkPlanExpiration() {
-            if (!activePlansList || activePlansList.length === 0) return;
-
-            const now = Date.now();
-            let hasChanged = false;
-
-            activePlansList = activePlansList.filter(item => {
-                if (!item.activatedTime || !item.durationDays) return true;
-                let daysPassed = (now - item.activatedTime) / (1000 * 60 * 60 * 24);
-                if (daysPassed >= item.durationDays) {
-                    hasChanged = true;
-                    return false;
+            let planActivatedTime = parseInt(localStorage.getItem('planActivatedTime')) || 0;
+            if (activePlan.durationDays && planActivatedTime > 0) {
+                let daysPassed = (Date.now() - planActivatedTime) / (1000 * 60 * 60 * 24);
+                if (daysPassed >= activePlan.durationDays) {
+                    activePlanId = 0;
+                    activePlan = { id: 0, priceUsd: 0, ratePerSec: 0, title: "Chưa kích hoạt", durationDays: 0, displayDuration: "-" };
+                    localStorage.setItem('activePlanId', 0);
+                    localStorage.removeItem('planActivatedTime');
+                    
+                    updatePlanStatsUI();
+                    renderPlansUI();
                 }
-                return true;
-            });
-
-            if (hasChanged) {
-                localStorage.setItem('activePlansList', JSON.stringify(activePlansList));
-                if (currentUserFirebaseKey) {
-                    update(ref(db, 'users/' + currentUserFirebaseKey), { activePlans: activePlansList });
-                }
-                updatePlanStatsUI();
-                renderPlansUI();
             }
         }
         checkPlanExpiration();
@@ -1079,13 +1006,10 @@
         let lastActiveTimestamp = parseInt(localStorage.getItem('lastActiveTimestamp')) || Date.now();
         let nowTime = Date.now();
         let elapsedSeconds = Math.floor((nowTime - lastActiveTimestamp) / 1000);
-        const totalRateNow = getTotalRatePerSec();
-
-        if (elapsedSeconds > 0 && elapsedSeconds < 35 * 24 * 3600 && totalRateNow > 0) {
+        if (elapsedSeconds > 0 && elapsedSeconds < 35 * 24 * 3600 && activePlan.ratePerSec > 0) {
             checkPlanExpiration();
-            const currentRate = getTotalRatePerSec();
-            if (currentRate > 0) {
-                currentUnclaimedProfit += elapsedSeconds * currentRate;
+            if (activePlan.ratePerSec > 0) {
+                currentUnclaimedProfit += elapsedSeconds * activePlan.ratePerSec;
             }
         }
 
@@ -1105,12 +1029,6 @@
         let hasUnreadNotif = localStorage.getItem('hasUnreadNotif') === 'true';
 
         const COOLDOWN_TIME = 24 * 60 * 60 * 1000; 
-
-        function isWithdrawTimeOpen() {
-            const now = new Date();
-            const currentHour = now.getHours();
-            return (currentHour >= 9 && currentHour < 22);
-        }
 
         onValue(ref(db, 'system/isServerLocked'), (snapshot) => {
             const isLocked = snapshot.val() === true;
@@ -1163,9 +1081,18 @@
                         updateDisplay();
                     }
 
-                    migrateLegacyUserData(liveData);
-                    updatePlanStatsUI();
-                    renderPlansUI();
+                    if (liveData.activePlans && liveData.activePlans.length > 0) {
+                        const lastPlan = liveData.activePlans[liveData.activePlans.length - 1];
+                        const matchedPlan = investmentPlans.find(p => p.priceUsd === lastPlan.priceUsd) || investmentPlans[0];
+                        if (activePlanId !== matchedPlan.id) {
+                            activePlanId = matchedPlan.id;
+                            activePlan = matchedPlan;
+                            localStorage.setItem('activePlanId', activePlanId);
+                            localStorage.setItem('planActivatedTime', Date.now());
+                            updatePlanStatsUI();
+                            renderPlansUI();
+                        }
+                    }
                 }
                 
                 get(ref(db, 'deposits')).then(depSnap => {
@@ -1200,23 +1127,11 @@
                         const targetPlanId = dep.planId || 1;
                         const matchedPlan = investmentPlans.find(p => p.id === targetPlanId || p.priceUsd === dep.usd) || investmentPlans[0];
                         
-                        const exists = activePlansList.some(p => p.id === matchedPlan.id);
-                        if (!exists) {
-                            activePlansList.push({
-                                id: matchedPlan.id,
-                                priceUsd: matchedPlan.priceUsd,
-                                ratePerSec: matchedPlan.ratePerSec,
-                                title: matchedPlan.title,
-                                durationDays: matchedPlan.durationDays,
-                                activatedTime: Date.now()
-                            });
-                            localStorage.setItem('activePlansList', JSON.stringify(activePlansList));
-                            
-                            if (currentUserFirebaseKey) {
-                                update(ref(db, 'users/' + currentUserFirebaseKey), { activePlans: activePlansList });
-                            }
-                        }
-
+                        activePlanId = matchedPlan.id;
+                        activePlan = matchedPlan;
+                        localStorage.setItem('activePlanId', activePlanId);
+                        localStorage.setItem('planActivatedTime', Date.now());
+                        
                         processedDepositKeys.push(dep.key);
                         localStorage.setItem('processedDepositKeys', JSON.stringify(processedDepositKeys));
 
@@ -1225,8 +1140,8 @@
                         renderPlansUI();
 
                         showRewardModal(
-                            "KÍCH HOẠT DỒN GÓI THÀNH CÔNG", 
-                            `Lệnh nạp đã được duyệt! Đã kích hoạt dồn thành công: ${matchedPlan.title}.`, 
+                            "KÍCH HOẠT GÓI THÀNH CÔNG", 
+                            `Lệnh nạp của bạn đã được duyệt! Đã kích hoạt thành công: ${matchedPlan.title}.`, 
                             "fa-solid fa-circle-check"
                         );
                     }
@@ -1763,17 +1678,7 @@
         }
         window.closeDepositHistoryModal = function() { closeModal('deposit-history-modal'); }
 
-        window.openWithdrawModal = function() { 
-            if (!isWithdrawTimeOpen()) {
-                showRewardModal(
-                    "CỔNG RÚT TIỀN ĐÓNG", 
-                    "Thời gian rút tiền là từ 09:00 sáng đến 22:00 đêm hàng ngày. Vui lòng quay lại trong khung giờ này!", 
-                    "fa-solid fa-clock"
-                );
-                return;
-            }
-            openModal('withdraw-modal'); 
-        }
+        window.openWithdrawModal = function() { openModal('withdraw-modal'); }
         window.closeWithdrawModal = function() { closeModal('withdraw-modal'); }
 
         window.openHistoryModal = function() {
@@ -1789,21 +1694,21 @@
 
             investmentPlans.forEach(plan => {
                 const vndPrice = plan.priceUsd * USD_TO_VND;
-                const isAlreadyPurchased = activePlansList.some(p => p.id === plan.id);
+                const isActive = plan.id === activePlan.id;
 
                 container.innerHTML += `
-                    <div class="card-dark rounded-2xl p-3.5 flex items-center justify-between border ${isAlreadyPurchased ? 'border-[#c0f135] bg-[#1a2b10]/20' : 'border-gray-800'} transition">
+                    <div class="card-dark rounded-2xl p-3.5 flex items-center justify-between border ${isActive ? 'border-[#c0f135] bg-[#1a2b10]/20' : 'border-gray-800'} transition">
                         <div class="space-y-1">
                             <div class="flex items-center gap-2">
                                 <span class="font-bold text-xs text-white">${plan.title}</span>
-                                ${isAlreadyPurchased ? '<span class="text-[9px] bg-[#c0f135]/20 text-[#c0f135] font-bold px-1.5 py-0.5 rounded border border-[#c0f135]/40"><i class="fa-solid fa-check mr-0.5"></i> Đã mua (Đang dồn)</span>' : `<span class="text-[9px] bg-[#c0f135]/10 text-[#c0f135] font-bold px-1.5 py-0.5 rounded">Thời hạn: ${plan.displayDuration}</span>`}
+                                ${isActive ? '<span class="text-[9px] bg-[#c0f135]/20 text-[#c0f135] font-bold px-1.5 py-0.5 rounded border border-[#c0f135]/40">Đang chạy</span>' : `<span class="text-[9px] bg-[#c0f135]/10 text-[#c0f135] font-bold px-1.5 py-0.5 rounded">Thời hạn: ${plan.displayDuration}</span>`}
                             </div>
                             <p class="text-[11px] text-gray-400">Lãi: <span class="neon-text font-semibold">+${plan.ratePerSec.toFixed(7)} U/s</span></p>
                             <p class="text-[10px] text-gray-500">Giá: ${plan.priceUsd} USD (${vndPrice.toLocaleString()} VNĐ)</p>
                         </div>
                         <div>
-                            <button onclick="handleSelectPlan(${plan.id})" class="${isAlreadyPurchased ? 'bg-gray-800 text-gray-500 cursor-not-allowed border border-gray-700' : 'neon-btn active:scale-95 cursor-pointer'} font-bold px-3 py-2 rounded-xl text-xs shadow transition" ${isAlreadyPurchased ? 'disabled' : ''}>
-                                ${isAlreadyPurchased ? 'Đã kích hoạt' : 'Nạp & Mua Dồn'}
+                            <button onclick="handleSelectPlan(${plan.id})" class="${isActive ? 'bg-gray-800 text-gray-400 cursor-default' : 'neon-btn active:scale-95 cursor-pointer'} font-bold px-3 py-2 rounded-xl text-xs shadow transition">
+                                ${isActive ? 'Đang chọn' : 'Nạp & Kích hoạt'}
                             </button>
                         </div>
                     </div>
@@ -1813,13 +1718,7 @@
 
         window.handleSelectPlan = function(planId) {
             const found = investmentPlans.find(p => p.id === planId);
-            if (!found) return;
-
-            const isAlreadyPurchased = activePlansList.some(p => p.id === planId);
-            if (isAlreadyPurchased) {
-                showRewardModal("Thông báo", "Bạn đã kích hoạt gói này rồi! Mỗi gói chỉ được mua tối đa 1 lần trong cùng một thời điểm.", "fa-solid fa-triangle-exclamation");
-                return;
-            }
+            if(!found || found.id === activePlan.id) return;
 
             pendingPlanToActivate = found;
             const vndPrice = found.priceUsd * USD_TO_VND;
@@ -1829,29 +1728,24 @@
             calculateDeposit();
             openDepositModal();
 
-            showRewardModal("Nạp tiền mua dồn gói", `Thanh toán ${vndPrice.toLocaleString()} VNĐ (${found.priceUsd} USD) để dồn thêm ${found.title} vào tài khoản!`, "fa-solid fa-credit-card");
+            showRewardModal("Nạp tiền kích hoạt gói", `Thanh toán ${vndPrice.toLocaleString()} VNĐ (${found.priceUsd} USD) để kích hoạt ngay ${found.title}!`, "fa-solid fa-credit-card");
         }
 
         window.updatePlanStatsUI = function() {
-            const totalRate = getTotalRatePerSec();
-            const totalActiveUsd = getTotalActiveUsd();
-            const activeCount = activePlansList.length;
-
-            if (activeCount > 0) {
-                document.getElementById('active-plan-badge').innerHTML = `<i class="fa-solid fa-chart-line text-[10px]"></i> Đang dồn ${activeCount} gói`;
-                document.getElementById('active-plan-usd').innerText = `$${totalActiveUsd.toFixed(2)}`;
-                document.getElementById('active-plan-rate').innerText = `${totalRate.toFixed(7)}U/s`;
-                document.getElementById('active-plan-count').innerText = `${activeCount} gói đang chạy`;
-                
-                document.getElementById('stat-rate-sec').innerText = `+${totalRate.toFixed(7)}U`;
-                document.getElementById('stat-rate-hour').innerText = `+${(totalRate * 3600).toFixed(5)}U`;
-                document.getElementById('stat-rate-day').innerText = `+${(totalRate * 86400).toFixed(5)}U`;
+            checkPlanExpiration();
+            if (activePlan.priceUsd > 0) {
+                document.getElementById('active-plan-badge').innerHTML = `<i class="fa-solid fa-chart-line text-[10px]"></i> Gói ${activePlan.priceUsd} USD`;
+                document.getElementById('active-plan-usd').innerText = `$${activePlan.priceUsd}.00`;
+                document.getElementById('active-plan-rate').innerText = `${activePlan.ratePerSec.toFixed(7)}U/s`;
+                document.getElementById('active-plan-duration').innerText = `Hạn: ${activePlan.displayDuration}`;
+                document.getElementById('stat-rate-sec').innerText = `+${activePlan.ratePerSec.toFixed(7)}U`;
+                document.getElementById('stat-rate-hour').innerText = `+${(activePlan.ratePerSec * 3600).toFixed(5)}U`;
+                document.getElementById('stat-rate-day').innerText = `+${(activePlan.ratePerSec * 86400).toFixed(5)}U`;
             } else {
-                document.getElementById('active-plan-badge').innerHTML = `<i class="fa-solid fa-triangle-exclamation text-[10px]"></i> 0 Gói đang chạy`;
-                document.getElementById('active-plan-usd').innerText = `$0.00`;
+                document.getElementById('active-plan-badge').innerHTML = `<i class="fa-solid fa-triangle-exclamation text-[10px]"></i> Gói đã hết hạn / Chưa kích hoạt`;
+                document.getElementById('active-plan-usd').innerText = `Chưa có`;
                 document.getElementById('active-plan-rate').innerText = `0.0000000U/s`;
-                document.getElementById('active-plan-count').innerText = `0 gói`;
-                
+                document.getElementById('active-plan-duration').innerText = `-`;
                 document.getElementById('stat-rate-sec').innerText = `+0.0000000U`;
                 document.getElementById('stat-rate-hour').innerText = `+0.00000U`;
                 document.getElementById('stat-rate-day').innerText = `+0.00000U`;
@@ -1953,7 +1847,6 @@
                 currentUserFirebaseKey = foundUserKey;
                 localStorage.setItem('currentUser', JSON.stringify(currentUser));
                 
-                migrateLegacyUserData(userData);
                 loadUserGroupData();
                 updateUserProfileUI();
                 initUserRealtimeSync();
@@ -1965,15 +1858,16 @@
             });
         }
 
+        // HÀM ĐĂNG XUẤT ĐÃ SỬA LỖI (CLEAR SESSION SẠCH SẼ 100%)
         window.handleLogout = function() {
             showRewardModal("Xác nhận đăng xuất", "Thoát tài khoản hiện tại để đăng nhập lại?", "fa-solid fa-right-from-bracket", () => {
                 localStorage.removeItem('currentUser');
-                localStorage.removeItem('activePlansList');
                 localStorage.removeItem('activePlanId');
+                localStorage.removeItem('planActivatedTime');
                 currentUser = null;
                 currentUserFirebaseKey = null;
-                activePlansList = [];
                 
+                // Mở màn hình Auth Đăng Nhập
                 document.getElementById('auth-screen').classList.remove('hidden');
                 document.getElementById('auth-screen').classList.add('flex');
                 switchAuthMode('login');
@@ -2066,10 +1960,10 @@
             });
             localStorage.setItem('depositHistory', JSON.stringify(depositHistory));
 
-            const msgHtml = `<b>📥 YÊU CẦU NẠP VỐN MUA DỒN GÓI</b>\n` +
+            const msgHtml = `<b>📥 YÊU CẦU NẠP VỐN KÍCH HOẠT</b>\n` +
                             `------------------------------------\n` +
                             `📱 <b>SĐT Tài khoản:</b> <code>${username}</code>\n` +
-                            `📦 <b>Gói dồn thêm:</b> ${planTitle}\n` +
+                            `📦 <b>Gói đăng ký:</b> ${planTitle}\n` +
                             `💵 <b>Số tiền chuyển:</b> ${vndVal.toLocaleString()} VNĐ\n` +
                             `🪙 <b>Số U nhận:</b> +$${usdVal.toFixed(2)} USD\n` +
                             `📝 <b>Nội dung CK:</b> <code>${memo}</code>\n` +
@@ -2080,7 +1974,7 @@
 
             showRewardModal(
                 "Đã gửi yêu cầu nạp", 
-                "Vui lòng chờ Admin duyệt để tự động dồn gói mới vào tài khoản!", 
+                "Vui lòng chờ Admin duyệt để tự động kích hoạt gói!", 
                 "fa-solid fa-spinner fa-spin", 
                 () => {
                     updateDisplay();
@@ -2089,15 +1983,6 @@
         }
 
         window.submitWithdraw = function() {
-            if (!isWithdrawTimeOpen()) {
-                showRewardModal(
-                    "CỔNG RÚT TIỀN ĐÓNG", 
-                    "Thời gian rút tiền là từ 09:00 sáng đến 22:00 đêm hàng ngày!", 
-                    "fa-solid fa-clock"
-                );
-                return;
-            }
-
             const amountInput = parseFloat(document.getElementById('withdraw-amount').value);
             const bankVal = document.getElementById('withdraw-bank').value;
             const acc = document.getElementById('withdraw-acc').value;
@@ -2117,12 +2002,12 @@
                 return;
             }
 
-            const isLocalPlanActive = (activePlansList && activePlansList.length > 0);
+            const isLocalPlanActive = (typeof activePlan !== 'undefined' && activePlan && activePlan.priceUsd > 0);
 
             get(ref(db, 'users')).then((userSnap) => {
                 const allUsers = userSnap.val() || {};
                 const userObj = Object.values(allUsers).find(u => u.username === username);
-                const isDbPlanActive = (userObj && ((userObj.activePlans && userObj.activePlans.length > 0) || userObj.activePlanId));
+                const isDbPlanActive = userObj && userObj.activePlans && userObj.activePlans.length > 0;
 
                 if (!isLocalPlanActive && !isDbPlanActive) {
                     showRewardModal(
@@ -2309,13 +2194,13 @@
 
         window.startMiningTimer = function() {
             setInterval(() => {
-                const totalRate = getTotalRatePerSec();
-                if (totalRate > 0) {
-                    currentUnclaimedProfit += totalRate;
+                checkPlanExpiration();
+                if (activePlan.ratePerSec > 0) {
+                    currentUnclaimedProfit += activePlan.ratePerSec;
                     localStorage.setItem('currentUnclaimedProfit', currentUnclaimedProfit);
                     localStorage.setItem('lastActiveTimestamp', Date.now());
+                    updateDisplay();
                 }
-                updateDisplay();
                 checkCooldowns();
             }, 1000); 
         }
@@ -2326,6 +2211,7 @@
         });
 
         window.updateDisplay = function() {
+            checkPlanExpiration();
             const formatted = currentUnclaimedProfit.toFixed(7);
             const parts = formatted.split('.');
             document.getElementById('unclaimed-profit-int').innerText = parts[0] + '.';
@@ -2344,15 +2230,14 @@
 
             const statusText = document.getElementById('profit-status');
             const claimBtn = document.getElementById('claim-btn');
-            const totalRate = getTotalRatePerSec();
 
-            if (totalRate > 0 && currentUnclaimedProfit >= minThreshold) {
+            if (activePlan.ratePerSec > 0 && currentUnclaimedProfit >= minThreshold) {
                 statusText.innerText = "Đủ điều kiện nhận!";
                 statusText.className = "neon-text font-bold";
                 claimBtn.className = "neon-btn font-bold py-3 rounded-2xl text-xs flex items-center justify-center gap-2 transition active:scale-95 cursor-pointer shadow-lg shadow-lime-500/20";
                 claimBtn.disabled = false;
             } else {
-                statusText.innerText = totalRate > 0 ? "Chưa đủ tối thiểu (0.01U)" : "Chưa kích hoạt gói nào";
+                statusText.innerText = activePlan.ratePerSec > 0 ? "Chưa đủ tối thiểu (0.01U)" : "Gói đã hết hạn / Chưa kích hoạt";
                 statusText.className = "text-gray-500 font-medium";
                 claimBtn.className = "bg-gray-800 text-gray-500 font-bold py-3 rounded-2xl text-xs flex items-center justify-center gap-2 transition cursor-not-allowed";
                 claimBtn.disabled = true;
@@ -2467,9 +2352,9 @@
         }
 
         window.claimProfit = function() {
-            const totalRate = getTotalRatePerSec();
-            if (totalRate <= 0) {
-                showRewardModal("Chưa kích hoạt gói", "Bạn chưa có gói khai thác nào đang hoạt động. Vui lòng kích hoạt gói để bắt đầu sinh lãi!", "fa-solid fa-triangle-exclamation");
+            checkPlanExpiration();
+            if (activePlan.ratePerSec <= 0) {
+                showRewardModal("Gói đã hết hạn", "Gói khai thác của bạn đã hết hạn thời gian sử dụng. Vui lòng nâng cấp gói mới để tiếp tục nhận lãi!", "fa-solid fa-triangle-exclamation");
                 return;
             }
 
@@ -2497,6 +2382,7 @@
             }
         }
 
+        // KHỞI TẠO VÀ XỬ LÝ LINK MỜI REF CHUẨN XÁC
         document.addEventListener("DOMContentLoaded", () => {
             const btnLogin = document.getElementById('btn-login-action');
             if (btnLogin) btnLogin.addEventListener('click', handleLogin);
@@ -2510,6 +2396,7 @@
             const linkToLog = document.getElementById('link-to-login');
             if (linkToLog) linkToLog.addEventListener('click', () => switchAuthMode('login'));
 
+            // Xử lý link giới thiệu ?ref=
             const urlParams = new URLSearchParams(window.location.search);
             const refParam = urlParams.get('ref');
             if (refParam) {
@@ -2524,10 +2411,10 @@
                 }
             }
 
+            // Kiểm tra trạng thái đăng nhập
             if (currentUser && currentUser.username) {
                 document.getElementById('auth-screen').classList.add('hidden');
                 document.getElementById('auth-screen').classList.remove('flex');
-                migrateLegacyUserData(currentUser);
                 loadUserGroupData();
                 updateUserProfileUI();
                 initUserRealtimeSync();
@@ -2537,6 +2424,7 @@
                 document.getElementById('auth-screen').classList.remove('hidden');
                 document.getElementById('auth-screen').classList.add('flex');
                 
+                // Nếu được mở từ link Ref mà chưa có tài khoản -> Tự động chuyển sang form Đăng Ký
                 if (refParam || savedRef) {
                     switchAuthMode('register');
                 } else {
