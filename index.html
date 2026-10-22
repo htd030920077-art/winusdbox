@@ -120,9 +120,6 @@
             </span>
             <div class="text-xs text-slate-400 font-medium">Số Dư Khả Dụng (Đầu Tư / Rút)</div>
             <div id="uiBannerBalance" class="text-2xl font-black text-white mono mt-0.5">0 ₫</div>
-            <div id="uiPendingWheelBox" class="text-[11px] text-amber-400 font-bold mt-1 hidden">
-              🎁 Thưởng vòng quay đang khóa: <span id="uiPendingWheelAmt" class="mono text-white">0 ₫</span> (Yêu cầu nạp tối thiểu 70k để mở khóa rút)
-            </div>
             <div class="text-[10px] text-emerald-400 mono mt-1">
               ⏰ Giờ hỗ trợ rút tiền: 09:00 - 22:00 hàng ngày (Yêu cầu đã nạp đầu)
             </div>
@@ -137,23 +134,22 @@
       <div>
         <div class="flex justify-between items-center mb-2.5">
           <div class="text-xs font-bold uppercase tracking-wider text-slate-400">Danh Mục Quỹ Sinh Lời (Mua Dồn Thoải Mái)</div>
-          <span class="text-[10px] text-emerald-400 mono font-bold">Lãi Mỗi 24H</span>
+          <span class="text-[10px] text-emerald-400 mono font-bold">Lãi Tự Động Mỗi 24H</span>
         </div>
         <div id="uiNodesGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
       </div>
     </section>
 
-    <!-- 2. TAB: GÓI ĐANG CHẠY -->
+    <!-- 2. TAB: GÓI ĐANG CHẠY (ĐÃ XÓA NÚT +1 NGÀY LÃI) -->
     <section id="view-active" class="space-y-3 hidden">
       <div class="vault-card rounded-3xl p-5 border border-white/5 space-y-3">
         <div class="flex items-center justify-between pb-3 border-b border-white/5">
           <div>
             <h3 class="text-sm font-bold text-white">Gói Đang Sinh Lãi Độc Lập</h3>
-            <p class="text-[11px] text-slate-400">Mua dồn nhiều gói cùng lúc, mỗi gói sinh lời độc lập.</p>
+            <p class="text-[11px] text-slate-400">Lợi nhuận tự động cộng sau mỗi 24 giờ kể từ lúc kích hoạt.</p>
           </div>
-          <div class="flex gap-2">
-            <button onclick="App.simulateTimeForward()" class="px-3 py-1.5 bg-purple-500/10 border border-purple-500/30 text-purple-300 font-bold text-xs rounded-xl hover:bg-purple-500/20 transition">+1 Ngày Lãi</button>
-            <button onclick="App.harvestAll()" class="px-3.5 py-1.5 bg-amber-400 text-black font-black text-xs rounded-xl shadow-md transition active:scale-95">Thu Hoạch Hết</button>
+          <div>
+            <button onclick="App.harvestAll()" class="px-4 py-2 bg-amber-400 text-black font-black text-xs rounded-xl shadow-md transition active:scale-95">Thu Hoạch Hết</button>
           </div>
         </div>
         <div id="uiActiveList" class="space-y-2"></div>
@@ -168,7 +164,7 @@
         </div>
         <h3 class="text-sm font-bold text-white">Quay Thưởng Tiền Mặt 1 Lần</h3>
         <p class="text-[11px] text-slate-400 leading-relaxed">
-          Được quay trước nhận tiền ngay. Số tiền trúng thưởng được mở khóa để rút khi nạp tiền lần đầu thành công (tối thiểu 70k).
+          Quay thưởng nhận tiền cộng trực tiếp vào số dư. Mở khóa rút về ngân hàng khi hoàn tất nạp đầu tối thiểu 70k.
         </p>
 
         <div class="relative w-64 h-64 mx-auto my-2">
@@ -193,7 +189,7 @@
       </div>
     </section>
 
-    <!-- 4. TAB: HOA HỒNG TUYẾN DƯỚI (LINK REF MỚI: WINUSDBOX.ONRENDER.COM) -->
+    <!-- 4. TAB: HOA HỒNG TUYẾN DƯỚI -->
     <section id="view-referral" class="space-y-3 hidden">
       <div class="vault-card rounded-3xl p-5 border border-white/5 space-y-4">
         <div>
@@ -594,6 +590,38 @@
         setTimeout(() => box.classList.add('-translate-y-28', 'opacity-0', 'pointer-events-none'), 3200);
       },
 
+      // TỰ ĐỘNG KIỂM TRA 24H THỰC TẾ VÀ SỬA LỖI VƯỢT NGÀY (NẾU CÓ)
+      syncReal24hProfits(investments) {
+        if (!Array.isArray(investments) || investments.length === 0) return { updated: false, list: [] };
+        let changed = false;
+        const now = Date.now();
+        const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+
+        investments.forEach(item => {
+          // Nếu dữ liệu cũ chưa có mốc thời gian hoặc bị vượt quá số ngày quy định (VD: 39/18) -> Reset về 0
+          if (!item.lastUpdate || item.daysPassed > item.days) {
+            item.daysPassed = 0;
+            item.pending = 0;
+            item.lastUpdate = now;
+            changed = true;
+          } else {
+            // Tính số ngày thực tế đã trôi qua (mỗi 24 tiếng thực tế = 1 ngày)
+            const elapsedDays = Math.floor((now - item.lastUpdate) / ONE_DAY_MS);
+            if (elapsedDays > 0 && item.daysPassed < item.days) {
+              const daysToAdd = Math.min(elapsedDays, item.days - item.daysPassed);
+              if (daysToAdd > 0) {
+                item.daysPassed += daysToAdd;
+                item.pending = (item.pending || 0) + (daysToAdd * item.income);
+                item.lastUpdate += daysToAdd * ONE_DAY_MS;
+                changed = true;
+              }
+            }
+          }
+        });
+
+        return { updated: changed, list: investments };
+      },
+
       initFirebaseListeners() {
         db.ref('system/server_closed').on('value', snap => {
           document.getElementById('maintenanceModal').classList.toggle('hidden', !(snap.val() || false));
@@ -621,13 +649,20 @@
               db.ref(`users/${this.userPhone}/unreadCommission`).remove();
             }
 
+            const rawInvestments = Array.isArray(data.activeInvestments) ? data.activeInvestments : [];
+            const syncResult = this.syncReal24hProfits(rawInvestments);
+
+            if (syncResult.updated) {
+              db.ref(`users/${this.userPhone}/activeInvestments`).set(syncResult.list);
+            }
+
             this.state.balance = Number(data.balance) || 0;
             this.state.totalDeposited = Number(data.totalDeposited) || 0;
             this.state.totalWithdrawn = Number(data.totalWithdrawn) || 0;
             this.state.wheelRewardPending = Number(data.wheelRewardPending) || 0;
             this.state.hasSpunWheel = Boolean(data.hasSpunWheel);
             this.state.hasDeposited = Boolean(data.hasDeposited);
-            this.state.activeInvestments = Array.isArray(data.activeInvestments) ? data.activeInvestments : [];
+            this.state.activeInvestments = syncResult.list;
             this.state.ledger = Array.isArray(data.transactions) ? data.transactions : [];
             this.f1DepositsHistory = Array.isArray(data.f1DepositsHistory) ? data.f1DepositsHistory : [];
             
@@ -659,25 +694,12 @@
         const countF1 = document.getElementById('uiCountF1');
         if (countF1) countF1.innerText = `${this.f1DepositsHistory.length} Lượt Nạp`;
 
-        const pendingBox = document.getElementById('uiPendingWheelBox');
-        if (pendingBox) {
-          if (this.state.wheelRewardPending > 0 && !this.state.hasDeposited) {
-            pendingBox.classList.remove('hidden');
-            const amtBox = document.getElementById('uiPendingWheelAmt');
-            if (amtBox) amtBox.innerText = this.formatCurrency(this.state.wheelRewardPending);
-          } else {
-            pendingBox.classList.add('hidden');
-          }
-        }
-
         const btnAuth = document.getElementById('uiBtnAuth');
         if (btnAuth) {
           if (this.userPhone) {
             btnAuth.innerText = this.userPhone.slice(0, 4) + '***' + this.userPhone.slice(-2);
             document.getElementById('uiDepMemo').innerText = this.userPhone;
             document.getElementById('uiRefCode').innerText = this.userPhone;
-            
-            // GẮN CHÍNH XÁC ĐƯỜNG LINK RENDER MỚI
             document.getElementById('uiRefLinkInput').value = `https://winusdbox.onrender.com/?ref=${this.userPhone}`;
           } else {
             btnAuth.innerText = 'Đăng Nhập';
@@ -851,6 +873,7 @@
         });
       },
 
+      // QUAY TRÚNG CỘNG THẲNG VÀO SỐ DƯ
       spinWheel() {
         if (!this.userPhone) { this.openAuth(); return this.notify('Vui lòng đăng nhập trước!', true); }
         if (this.state.hasSpunWheel) return this.notify('Bạn đã quay vòng quay tân thủ rồi!', true);
@@ -883,24 +906,24 @@
             this.isSpinning = false;
             const rewardPrize = WHEEL_PRIZES[selIdx];
 
-            this.state.hasSpunWheel = true;
-            this.state.wheelRewardPending = rewardPrize.val;
-            
-            this.state.ledger.unshift({
+            const newBalance = (this.state.balance || 0) + rewardPrize.val;
+            const newTransactions = [...this.state.ledger];
+            newTransactions.unshift({
               id: 'WHEEL-' + Math.floor(1000 + Math.random() * 9000),
               type: 'profit',
               amount: rewardPrize.val,
-              desc: `Vòng quay tân thủ: +${rewardPrize.text} (Mở khóa khi nạp đầu)`
+              desc: `Thưởng Vòng Quay Tân Thủ (+${rewardPrize.text})`
             });
 
             db.ref('users/' + this.userPhone).update({
+              balance: newBalance,
               hasSpunWheel: true,
-              wheelRewardPending: this.state.wheelRewardPending,
-              transactions: this.state.ledger
+              wheelRewardPending: 0,
+              transactions: newTransactions
+            }).then(() => {
+              this.renderUI();
+              alert(`🎉 Chúc mừng bạn đã quay trúng ${rewardPrize.text}! Tiền thưởng đã được cộng thẳng vào số dư.`);
             });
-
-            this.renderUI();
-            alert(`🎉 Chúc mừng bạn đã quay trúng ${rewardPrize.text}! Hãy nạp tiền lần đầu (tối thiểu 70k) để kích hoạt rút toàn bộ số tiền này về ngân hàng.`);
           }
         };
         requestAnimationFrame(animate);
@@ -960,6 +983,7 @@
 
           const newBal = this.state.balance - node.amount;
           const newInvestments = [...this.state.activeInvestments];
+          // Khi mới mua gói: daysPassed = 0 và pending = 0 (Đủ 24h mới nhảy ngày 1)
           newInvestments.unshift({
             instanceId: 'ACT-' + Math.floor(1000 + Math.random() * 9000),
             name: node.name,
@@ -967,7 +991,8 @@
             income: node.income,
             days: node.days,
             daysPassed: 0,
-            pending: node.income
+            pending: 0,
+            lastUpdate: Date.now()
           });
 
           const newTransactions = [...this.state.ledger];
@@ -983,7 +1008,7 @@
             activeInvestments: newInvestments,
             transactions: newTransactions
           }).then(() => {
-            this.notify(`Đã kích hoạt dồn thêm ${node.name}!`);
+            this.notify(`Đã kích hoạt thành công ${node.name}!`);
           });
         } else if (this.currentActionPending.type === 'WITHDRAW') {
           if (!this.isWithdrawalTimeValid()) {
@@ -1071,8 +1096,8 @@
         box.innerHTML = this.state.activeInvestments.map(item => `
           <div class="p-3 bg-slate-950/80 rounded-2xl border border-white/5 flex items-center justify-between text-xs">
             <div>
-              <div class="font-bold text-white">${item.name} (${item.daysPassed}/${item.days} ngày)</div>
-              <div class="text-slate-400 text-[11px] mt-0.5">Lãi chờ nhận: <strong class="text-emerald-400 mono">+${this.formatCurrency(item.pending)}</strong></div>
+              <div class="font-bold text-white">${item.name} (${item.daysPassed || 0}/${item.days} ngày)</div>
+              <div class="text-slate-400 text-[11px] mt-0.5">Lãi chờ nhận: <strong class="text-emerald-400 mono">+${this.formatCurrency(item.pending || 0)}</strong></div>
             </div>
             <button onclick="App.harvestSingle('${item.instanceId}')" class="px-3 py-1.5 bg-amber-400 text-black font-bold rounded-xl active:scale-95 transition">Thu Hoạch</button>
           </div>
@@ -1081,7 +1106,7 @@
 
       harvestSingle(instId) {
         const target = this.state.activeInvestments.find(i => i.instanceId === instId);
-        if (!target || target.pending <= 0) return this.notify('Chưa có lợi nhuận để nhận!', true);
+        if (!target || target.pending <= 0) return this.notify('Chưa có lợi nhuận để nhận (Lãi tính sau mỗi 24h)!', true);
 
         const amt = target.pending;
         const newBal = this.state.balance + amt;
@@ -1106,8 +1131,8 @@
 
       harvestAll() {
         let total = 0;
-        this.state.activeInvestments.forEach(item => { total += item.pending; item.pending = 0; });
-        if (total <= 0) return this.notify('Không có lợi nhuận để thu hoạch!', true);
+        this.state.activeInvestments.forEach(item => { total += (item.pending || 0); item.pending = 0; });
+        if (total <= 0) return this.notify('Chưa có lợi nhuận để thu hoạch (Lãi tính sau mỗi 24h)!', true);
 
         const newBal = this.state.balance + total;
         const newLedger = [...this.state.ledger];
@@ -1125,16 +1150,6 @@
         }).then(() => {
           this.notify(`Đã thu hoạch tất cả +${this.formatCurrency(total)}!`);
         });
-      },
-
-      simulateTimeForward() {
-        if (this.state.activeInvestments.length === 0) return this.notify('Chưa có gói nào để tính lãi!', true);
-        this.state.activeInvestments.forEach(item => {
-          item.daysPassed++;
-          item.pending += item.income;
-        });
-        db.ref('users/' + this.userPhone).update({ activeInvestments: this.state.activeInvestments });
-        this.notify('Đã cộng dồn +1 ngày lợi nhuận!');
       },
 
       renderLedger() {
@@ -1352,7 +1367,7 @@
         if (this.userPhone) {
           const link = document.getElementById('uiRefLinkInput').value;
           navigator.clipboard.writeText(link);
-          this.notify('Đã sao chép liên kết giới thiệu Render!');
+          this.notify('Đã sao chép liên kết giới thiệu!');
         }
       }
     };
