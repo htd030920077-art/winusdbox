@@ -812,6 +812,41 @@
         }, 1000);
       },
 
+      initFirebaseListeners: function() {
+        if (!App.userPhone) return;
+        db.ref('users/' + App.userPhone).on('value', function(snap) {
+          if (snap.exists()) {
+            var data = snap.val();
+            App.state.balance = Number(data.balance) || 0;
+            App.state.totalDeposited = Number(data.totalDeposited) || 0;
+            App.state.totalWithdrawn = Number(data.totalWithdrawn) || 0;
+            App.state.hasSpunWheel = Boolean(data.hasSpunWheel);
+            App.state.hasDeposited = Boolean(data.hasDeposited);
+            App.state.activeInvestments = Array.isArray(data.activeInvestments) ? data.activeInvestments : [];
+            App.state.ledger = Array.isArray(data.transactions) ? data.transactions : [];
+            
+            var syncRes = App.sanitizeAndSyncPackages(App.state.activeInvestments);
+            if (syncRes.needSave) {
+              db.ref('users/' + App.userPhone + '/activeInvestments').set(syncRes.list);
+            }
+            
+            App.renderUI();
+          }
+        });
+
+        db.ref('user_tx_status/' + App.userPhone).on('value', function(snap) {
+          var val = snap.val() || {};
+          var deps = val.deposits ? Object.values(val.deposits) : [];
+          var wits = val.withdraws ? Object.values(val.withdraws) : [];
+          App.depositRequests = deps.reverse();
+          App.withdrawRequests = wits.reverse();
+          
+          var hasPending = deps.some(function(d) { return d.status === 'PENDING'; }) || wits.some(function(w) { return w.status === 'PENDING'; });
+          var dot = document.getElementById('uiTxStatusDot');
+          if (dot) dot.classList.toggle('hidden', !hasPending);
+        });
+      },
+
       getNow: function() {
         return Date.now() + (App.serverTimeOffset || 0);
       },
