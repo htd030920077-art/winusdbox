@@ -98,7 +98,7 @@
                   <th class="px-4 py-3 text-right">Thao Tác</th>
                 </tr>
               </thead>
-              <tbody id="tbodyDeposits" class="divide-y divide-white/5"></tbody>
+              <tbody id="tbodyDeposits" class="divide-y border-white/5"></tbody>
             </table>
           </div>
         </div>
@@ -117,7 +117,7 @@
                   <th class="px-4 py-3 text-right">Thao Tác</th>
                 </tr>
               </thead>
-              <tbody id="tbodyWithdraws" class="divide-y divide-white/5"></tbody>
+              <tbody id="tbodyWithdraws" class="divide-y border-white/5"></tbody>
             </table>
           </div>
         </div>
@@ -141,7 +141,7 @@
                   <th class="px-4 py-3 text-right">Thao Tác Quản Trị</th>
                 </tr>
               </thead>
-              <tbody id="tbodyUsers" class="divide-y divide-white/5"></tbody>
+              <tbody id="tbodyUsers" class="divide-y border-white/5"></tbody>
             </table>
           </div>
         </div>
@@ -172,7 +172,7 @@
           </div>
         </div>
 
-        <!-- 5. DANH SÁCH LÝ DO KHÁCH HÀNG TỪ CHỐI / HỦY -->
+        <!-- 5. LÝ DO KHÁCH TỪ CHỐI -->
         <div id="tabView-cancelledLogs" class="space-y-3 hidden">
           <div class="overflow-x-auto rounded-2xl border border-white/5">
             <table class="w-full text-left text-xs text-slate-300">
@@ -185,18 +185,18 @@
                   <th class="px-4 py-3">Thời Gian</th>
                 </tr>
               </thead>
-              <tbody id="tbodyCancelledLogs" class="divide-y divide-white/5"></tbody>
+              <tbody id="tbodyCancelledLogs" class="divide-y border-white/5"></tbody>
             </table>
           </div>
         </div>
       </div>
     </main>
 
-    <!-- MODAL SỬA TOÀN BỘ THÔNG TIN THÀNH VIÊN -->
+    <!-- MODAL SỬA TOÀN BỘ THÔNG TIN USER -->
     <div id="editFullUserModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md hidden">
       <div class="max-w-md w-full admin-card rounded-3xl p-5 border border-white/10 space-y-3.5 max-h-[90vh] overflow-y-auto no-scrollbar">
         <div class="flex justify-between items-center border-b border-white/10 pb-2">
-          <h4 class="text-xs font-bold text-white uppercase">Chỉnh Sửa Toàn Bộ Dữ Liệu: <span id="lblEditPhone" class="text-emerald-400 mono"></span></h4>
+          <h4 class="text-xs font-bold text-white uppercase">Chỉnh Sửa Dữ Liệu: <span id="lblEditPhone" class="text-emerald-400 mono"></span></h4>
           <button onclick="document.getElementById('editFullUserModal').classList.add('hidden')" class="text-slate-400 hover:text-white">✕</button>
         </div>
 
@@ -227,7 +227,7 @@
             <input type="checkbox" id="editInpLocked" class="w-4 h-4 accent-rose-500 cursor-pointer">
           </div>
           <div class="flex gap-2 pt-2">
-            <button onclick="Admin.saveUserFullChanges()" class="flex-1 py-2.5 bg-emerald-400 text-black font-black text-xs rounded-xl shadow">Lưu Thay Đổi 2 Chiều</button>
+            <button onclick="Admin.saveUserFullChanges()" class="flex-1 py-2.5 bg-emerald-400 text-black font-black text-xs rounded-xl shadow">Lưu Thay Đổi</button>
             <button onclick="Admin.deleteUserPermanent()" class="px-4 py-2.5 bg-rose-600 text-white font-bold text-xs rounded-xl">Xóa User</button>
           </div>
         </div>
@@ -242,12 +242,12 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // CẤU HÌNH BOT TELEGRAM
     const TELEGRAM_CONFIG = {
       botToken: "8966775596:AAEJlRuJE9R_59FbvwoBmAcXHc9b4iOFzQA",
       chatId: "7865394196"
     };
 
+    // Hàm gửi tin nhắn Telegram dùng navigator.sendBeacon hoặc fetch không chặn
     async function sendTelegramAlert(messageHtml) {
       try {
         const endpoint = `https://api.telegram.org/bot${TELEGRAM_CONFIG.botToken}/sendMessage`;
@@ -265,31 +265,13 @@
       }
     }
 
-    const SAMPLE_USERS = {
-      '0988776655': {
-        phone: '0988776655',
-        pass: 'matkhau123',
-        invite: '0365355946',
-        balance: 1450000,
-        totalDeposited: 2000000,
-        totalWithdrawn: 500000,
-        hasDeposited: true,
-        isLocked: false,
-        activeInvestments: [
-          { instanceId: 'ACT-500K', name: 'Quỹ 500K Tiêu Chuẩn', amount: 500000, income: 66666, days: 18, daysPassed: 3, pending: 200000 }
-        ],
-        transactions: [
-          { id: 'TX-DEP1', type: 'deposit', amount: 2000000, desc: 'Nạp tiền qua VietinBank' }
-        ]
-      }
-    };
-
     const Admin = {
       users: {},
       deposits: {},
       withdraws: {},
       cancelledLogs: {},
       isServerClosed: false,
+      isInitialLoadDone: false, // Tránh bắn thông báo các lệnh cũ khi vừa mở web admin
 
       formatMoney(num) {
         return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(num || 0);
@@ -304,13 +286,6 @@
         } else {
           alert('Mật khẩu quản trị viên không chính xác!');
         }
-      },
-
-      seedSampleData() {
-        if (!confirm('Bạn có muốn nạp tài khoản mẫu lên Firebase không?')) return;
-        db.ref('users').update(SAMPLE_USERS).then(() => {
-          alert('Đã nạp tài khoản mẫu thành công!');
-        });
       },
 
       listenRealtimeData() {
@@ -344,6 +319,70 @@
         db.ref('cancelled_logs').on('value', snap => {
           this.cancelledLogs = snap.val() || {};
           this.render();
+        });
+
+        // ==============================================================
+        // BẮT SỰ KIỆN THỜI GIAN THỰC ĐỂ GỬI TELEGRAM NGAY LẬP TỨC
+        // ==============================================================
+        setTimeout(() => {
+          this.isInitialLoadDone = true;
+        }, 2000);
+
+        // Bắn ngay khi có lệnh nạp mới đẩy lên Firebase
+        db.ref('pending_deposits').on('child_added', snap => {
+          if (!this.isInitialLoadDone) return;
+          const d = snap.val();
+          if (d && !d.notified) {
+            sendTelegramAlert(`
+🔔 <b>CÓ LỆNH NẠP TIỀN MỚI (TỰ ĐỘNG)</b>
+━━━━━━━━━━━━━━━━━━
+👤 <b>SĐT Người Nạp:</b> <code>${d.phone}</code>
+💰 <b>Số Tiền:</b> <b>${this.formatMoney(d.amount)}</b>
+🆔 <b>Mã Giao Dịch:</b> <code>${d.id}</code>
+🏦 <b>Ngân Hàng Nhận:</b> VietinBank (HA TRUNG DUC)
+⏰ <b>Thời Gian:</b> ${d.time || new Date().toLocaleTimeString()}
+👉 <i>Vui lòng vào trang Admin để duyệt!</i>
+            `);
+            snap.ref.child('notified').set(true);
+          }
+        });
+
+        // Bắn ngay khi có lệnh rút mới đẩy lên Firebase
+        db.ref('pending_withdraws').on('child_added', snap => {
+          if (!this.isInitialLoadDone) return;
+          const w = snap.val();
+          if (w && !w.notified) {
+            sendTelegramAlert(`
+⚠️ <b>CÓ LỆNH RÚT TIỀN MỚI (TỰ ĐỘNG)</b>
+━━━━━━━━━━━━━━━━━━
+👤 <b>SĐT Người Rút:</b> <code>${w.phone}</code>
+💰 <b>Số Tiền:</b> <b>${this.formatMoney(w.amount)}</b>
+🏦 <b>Ngân Hàng:</b> ${w.bank}
+💳 <b>Số Tài Khoản:</b> <code>${w.stk}</code>
+📛 <b>Chủ Tài Khoản:</b> ${w.name}
+🆔 <b>Mã Lệnh:</b> <code>${w.id}</code>
+⏰ <b>Thời Gian:</b> ${w.time || new Date().toLocaleTimeString()}
+👉 <i>Vui lòng vào trang Admin để duyệt giải ngân!</i>
+            `);
+            snap.ref.child('notified').set(true);
+          }
+        });
+
+        // Bắn ngay khi có log từ chối
+        db.ref('cancelled_logs').on('child_added', snap => {
+          if (!this.isInitialLoadDone) return;
+          const c = snap.val();
+          if (c && !c.notified) {
+            sendTelegramAlert(`
+❌ <b>NGƯỜI CHƠI TỪ CHỐI THAO TÁC</b>
+━━━━━━━━━━━━━━━━━━
+👤 <b>SĐT:</b> <code>${c.phone}</code>
+⚙️ <b>Hành Động:</b> ${c.action}
+💬 <b>Lý Do Người Chơi Nhập:</b> <i>"${c.reason}"</i>
+⏰ <b>Thời Gian:</b> ${c.time || new Date().toLocaleTimeString()}
+            `);
+            snap.ref.child('notified').set(true);
+          }
         });
       },
 
@@ -508,7 +547,7 @@
 
         db.ref('users/' + phone).set(u).then(() => {
           document.getElementById('editFullUserModal').classList.add('hidden');
-          alert('Đã cập nhật toàn bộ thông tin thành viên 2 chiều thành công!');
+          alert('Đã cập nhật thông tin thành viên thành công!');
         });
       },
 
@@ -550,100 +589,127 @@
         const d = this.deposits[depId];
         if (!d) return;
 
-        const user = this.users[d.phone];
-        if (user) {
-          user.balance = (user.balance || 0) + d.amount;
-          user.totalDeposited = (user.totalDeposited || 0) + d.amount;
+        db.ref('users/' + d.phone).once('value', snap => {
+          if (!snap.exists()) {
+            alert('Không tìm thấy tài khoản người dùng!');
+            return;
+          }
 
-          // Mở khóa tiền thưởng vòng quay may mắn nếu là nạp đầu
+          const user = snap.val();
+          let newBalance = (user.balance || 0) + d.amount;
+          let newTotalDep = (user.totalDeposited || 0) + d.amount;
+          const userTransactions = Array.isArray(user.transactions) ? user.transactions : [];
+
           if (!user.hasDeposited && (user.wheelRewardPending || 0) > 0) {
             const wheelAmt = user.wheelRewardPending;
-            user.balance += wheelAmt;
-            user.wheelRewardPending = 0;
-            user.transactions = user.transactions || [];
-            user.transactions.unshift({
+            newBalance += wheelAmt;
+            userTransactions.unshift({
               id: 'UNLK-' + Math.floor(1000 + Math.random() * 9000),
               type: 'profit',
               amount: wheelAmt,
               desc: 'Mở khóa tiền thưởng vòng quay may mắn (Đã nạp đầu)'
             });
           }
-          user.hasDeposited = true;
 
-          user.transactions = user.transactions || [];
-          user.transactions.unshift({
+          userTransactions.unshift({
             id: 'TX-' + Math.floor(1000 + Math.random() * 9000),
             type: 'deposit',
             amount: d.amount,
             desc: 'Nạp tiền thành công qua VietinBank'
           });
 
-          // Trả hoa hồng 3 cấp và GHI LỊCH SỬ F1
-          if (user.invite && this.users[user.invite]) {
-            const f1 = this.users[user.invite];
-            const comF1 = d.amount * 0.10;
-            f1.balance = (f1.balance || 0) + comF1;
-            f1.transactions = f1.transactions || [];
-            f1.transactions.unshift({ id: 'COM-F1', type: 'profit', amount: comF1, desc: `Hoa hồng 10% từ F1 (${user.phone}) nạp` });
-            
-            f1.f1DepositsHistory = f1.f1DepositsHistory || [];
-            f1.f1DepositsHistory.unshift({
-              f1Phone: user.phone,
-              depositAmount: d.amount,
-              commission: comF1,
-              time: new Date().toLocaleTimeString() + ' ' + new Date().toLocaleDateString('vi-VN')
+          db.ref('users/' + d.phone).update({
+            balance: newBalance,
+            totalDeposited: newTotalDep,
+            hasDeposited: true,
+            wheelRewardPending: 0,
+            transactions: userTransactions
+          }).then(() => {
+            // Hoa hồng F1 (10%), F2 (3%), F3 (1%)
+            if (user.invite) {
+              const f1Phone = user.invite;
+              db.ref('users/' + f1Phone).once('value', f1Snap => {
+                if (f1Snap.exists()) {
+                  const f1 = f1Snap.val();
+                  const comF1 = d.amount * 0.10;
+                  const f1Bal = (f1.balance || 0) + comF1;
+                  const f1Tx = Array.isArray(f1.transactions) ? f1.transactions : [];
+                  const f1History = Array.isArray(f1.f1DepositsHistory) ? f1.f1DepositsHistory : [];
+
+                  f1Tx.unshift({ id: 'COM-F1', type: 'profit', amount: comF1, desc: `Hoa hồng 10% từ F1 (${d.phone}) nạp` });
+                  f1History.unshift({
+                    f1Phone: d.phone,
+                    depositAmount: d.amount,
+                    commission: comF1,
+                    time: new Date().toLocaleTimeString() + ' ' + new Date().toLocaleDateString('vi-VN')
+                  });
+
+                  db.ref('users/' + f1Phone).update({
+                    balance: f1Bal,
+                    transactions: f1Tx,
+                    f1DepositsHistory: f1History,
+                    unreadCommission: {
+                      fromPhone: d.phone,
+                      depAmount: d.amount,
+                      amount: comF1,
+                      time: new Date().toLocaleTimeString()
+                    }
+                  });
+
+                  if (f1.invite) {
+                    const f2Phone = f1.invite;
+                    db.ref('users/' + f2Phone).once('value', f2Snap => {
+                      if (f2Snap.exists()) {
+                        const f2 = f2Snap.val();
+                        const comF2 = d.amount * 0.03;
+                        const f2Tx = Array.isArray(f2.transactions) ? f2.transactions : [];
+                        f2Tx.unshift({ id: 'COM-F2', type: 'profit', amount: comF2, desc: 'Hoa hồng 3% từ F2 nạp tiền' });
+                        db.ref('users/' + f2Phone).update({ balance: (f2.balance || 0) + comF2, transactions: f2Tx });
+
+                        if (f2.invite) {
+                          const f3Phone = f2.invite;
+                          db.ref('users/' + f3Phone).once('value', f3Snap => {
+                            if (f3Snap.exists()) {
+                              const f3 = f3Snap.val();
+                              const comF3 = d.amount * 0.01;
+                              const f3Tx = Array.isArray(f3.transactions) ? f3.transactions : [];
+                              f3Tx.unshift({ id: 'COM-F3', type: 'profit', amount: comF3, desc: 'Hoa hồng 1% từ F3 nạp tiền' });
+                              db.ref('users/' + f3Phone).update({ balance: (f3.balance || 0) + comF3, transactions: f3Tx });
+                            }
+                          });
+                        }
+                      }
+                    });
+                  }
+                }
+              });
+            }
+
+            db.ref(`user_tx_status/${d.phone}/deposits/${depId}`).update({
+              status: 'APPROVED',
+              reason: 'Đã duyệt nạp tiền thành công vào ví!'
             });
 
-            f1.unreadCommission = {
-              fromPhone: user.phone,
-              depAmount: d.amount,
-              amount: comF1,
-              time: new Date().toLocaleTimeString()
-            };
-
-            if (f1.invite && this.users[f1.invite]) {
-              const f2 = this.users[f1.invite];
-              const comF2 = d.amount * 0.03;
-              f2.balance = (f2.balance || 0) + comF2;
-              f2.transactions = f2.transactions || [];
-              f2.transactions.unshift({ id: 'COM-F2', type: 'profit', amount: comF2, desc: 'Hoa hồng 3% từ F2 nạp tiền' });
-
-              if (f2.invite && this.users[f2.invite]) {
-                const f3 = this.users[f2.invite];
-                const comF3 = d.amount * 0.01;
-                f3.balance = (f3.balance || 0) + comF3;
-                f3.transactions = f3.transactions || [];
-                f3.transactions.unshift({ id: 'COM-F3', type: 'profit', amount: comF3, desc: 'Hoa hồng 1% từ F3 nạp tiền' });
-              }
-            }
-          }
-          db.ref('users').set(this.users);
-        }
-
-        db.ref(`user_tx_status/${d.phone}/deposits/${depId}`).update({
-          status: 'APPROVED',
-          reason: 'Đã duyệt nạp tiền thành công vào ví!'
-        });
-
-        // CẢNH BÁO TELEGRAM KHI ADMIN DUYỆT NẠP
-        sendTelegramAlert(`
+            sendTelegramAlert(`
 ✅ <b>ĐÃ DUYỆT LỆNH NẠP TIỀN THÀNH CÔNG</b>
 ━━━━━━━━━━━━━━━━━━
 👤 <b>SĐT:</b> <code>${d.phone}</code>
 💰 <b>Số Tiền:</b> <b>${this.formatMoney(d.amount)}</b>
 🆔 <b>Mã Giao Dịch:</b> <code>${depId}</code>
 ⏰ <b>Thời Gian:</b> ${new Date().toLocaleTimeString()}
-        `);
+            `);
 
-        db.ref('pending_deposits/' + depId).remove();
-        alert('Đã duyệt nạp, cập nhật trạng thái và ghi nhận hoa hồng F1!');
+            db.ref('pending_deposits/' + depId).remove();
+            alert('Đã duyệt nạp thành công! Số dư người chơi đã được cộng.');
+          });
+        });
       },
 
       rejectDepositPrompt(depId) {
         const d = this.deposits[depId];
         if (!d) return;
 
-        const reason = prompt('Nhập lý do từ chối lệnh nạp tiền này (người chơi sẽ thấy trong popup trạng thái):', 'Chưa nhận được tiền hoặc sai nội dung chuyển khoản');
+        const reason = prompt('Nhập lý do từ chối lệnh nạp tiền này:', 'Chưa nhận được tiền hoặc sai nội dung chuyển khoản');
         if (reason === null) return;
 
         db.ref(`user_tx_status/${d.phone}/deposits/${depId}`).update({
@@ -651,7 +717,6 @@
           reason: reason || 'Lệnh nạp bị từ chối'
         });
 
-        // CẢNH BÁO TELEGRAM KHI TỪ CHỐI NẠP
         sendTelegramAlert(`
 ❌ <b>ĐÃ TỪ CHỐI LỆNH NẠP TIỀN</b>
 ━━━━━━━━━━━━━━━━━━
@@ -662,7 +727,7 @@
         `);
 
         db.ref('pending_deposits/' + depId).remove();
-        alert('Đã từ chối lệnh nạp và gửi lý do sang cho người chơi!');
+        alert('Đã từ chối lệnh nạp và gửi lý do cho người chơi!');
       },
 
       approveWithdraw(witId) {
@@ -674,7 +739,6 @@
           reason: 'Đã giải ngân tiền về tài khoản ngân hàng của bạn thành công!'
         });
 
-        // CẢNH BÁO TELEGRAM KHI DUYỆT GIẢI NGÂN
         sendTelegramAlert(`
 💸 <b>ĐÃ DUYỆT GIẢI NGÂN RÚT TIỀN THÀNH CÔNG</b>
 ━━━━━━━━━━━━━━━━━━
@@ -694,43 +758,47 @@
         const w = this.withdraws[witId];
         if (!w) return;
 
-        const reason = prompt('Nhập lý do từ chối rút tiền (người chơi sẽ thấy trong popup trạng thái):', 'Thông tin số tài khoản hoặc ngân hàng thụ hưởng không chính xác');
+        const reason = prompt('Nhập lý do từ chối rút tiền:', 'Thông tin số tài khoản hoặc ngân hàng thụ hưởng không chính xác');
         if (reason === null) return;
 
-        if (this.users[w.phone]) {
-          this.users[w.phone].balance = (this.users[w.phone].balance || 0) + w.amount;
-          this.users[w.phone].totalWithdrawn = Math.max(0, (this.users[w.phone].totalWithdrawn || 0) - w.amount);
-          this.users[w.phone].transactions = this.users[w.phone].transactions || [];
-          this.users[w.phone].transactions.unshift({
-            id: 'REF-' + Math.floor(1000 + Math.random() * 9000),
-            type: 'profit',
-            amount: w.amount,
-            desc: `Hoàn tiền: Lệnh rút bị từ chối (${reason})`
-          });
-          db.ref('users/' + w.phone).update({
-            balance: this.users[w.phone].balance,
-            totalWithdrawn: this.users[w.phone].totalWithdrawn,
-            transactions: this.users[w.phone].transactions
-          });
-        }
+        db.ref('users/' + w.phone).once('value', snap => {
+          if (snap.exists()) {
+            const user = snap.val();
+            const refundedBal = (user.balance || 0) + w.amount;
+            const updatedWithdrawn = Math.max(0, (user.totalWithdrawn || 0) - w.amount);
+            const userTx = Array.isArray(user.transactions) ? user.transactions : [];
 
-        db.ref(`user_tx_status/${w.phone}/withdraws/${witId}`).update({
-          status: 'REJECTED',
-          reason: reason || 'Lệnh rút bị từ chối'
-        });
+            userTx.unshift({
+              id: 'REF-' + Math.floor(1000 + Math.random() * 9000),
+              type: 'profit',
+              amount: w.amount,
+              desc: `Hoàn tiền: Lệnh rút bị từ chối (${reason})`
+            });
 
-        // CẢNH BÁO TELEGRAM KHI TỪ CHỐI RÚT
-        sendTelegramAlert(`
+            db.ref('users/' + w.phone).update({
+              balance: refundedBal,
+              totalWithdrawn: updatedWithdrawn,
+              transactions: userTx
+            });
+          }
+
+          db.ref(`user_tx_status/${w.phone}/withdraws/${witId}`).update({
+            status: 'REJECTED',
+            reason: reason || 'Lệnh rút bị từ chối'
+          });
+
+          sendTelegramAlert(`
 🚫 <b>ĐÃ TỪ CHỐI LỆNH RÚT TIỀN (HOÀN TIỀN VỀ VÍ)</b>
 ━━━━━━━━━━━━━━━━━━
 👤 <b>SĐT:</b> <code>${w.phone}</code>
 💰 <b>Số Tiền:</b> ${this.formatMoney(w.amount)}
 💬 <b>Lý Do:</b> <i>"${reason}"</i>
 ⏰ <b>Thời Gian:</b> ${new Date().toLocaleTimeString()}
-        `);
+          `);
 
-        db.ref('pending_withdraws/' + witId).remove();
-        alert('Đã từ chối lệnh rút, hoàn tiền về ví và gửi lý do cho người chơi!');
+          db.ref('pending_withdraws/' + witId).remove();
+          alert('Đã từ chối lệnh rút, hoàn tiền về ví và gửi lý do cho người chơi!');
+        });
       },
 
       toggleLockUser(phone, lockStatus) {
