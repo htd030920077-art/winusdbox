@@ -856,12 +856,34 @@
       },
 
       // =========================================================================
-      // HỆ THỐNG ĐẾM NGƯỢC TỪNG GIÂY (30->0) & TRẢ THƯỞNG TỰ ĐỘNG CHO MỌI NGƯỜI
+      // HỆ THỐNG ĐẾM NGƯỢC TỪNG GIÂY & AUTO-HEAL PHIÊN TÀI XỈU
       // =========================================================================
       initTaiXiuGlobalEngine: function() {
         db.ref('taixiu_global').on('value', function(snap) {
           if (snap.exists()) {
             App.txGlobalState = snap.val();
+
+            // Auto-heal nếu endTime bị kẹt ở quá khứ hoặc = 0 hoặc sessionId bằng TX-0000
+            var now = App.getNow();
+            var endTime = Number(App.txGlobalState.endTime) || 0;
+            if (endTime === 0 || now > endTime + 10000 || App.txGlobalState.sessionId === 'TX-0000') {
+              var freshRoom = {
+                sessionId: 'TX-' + Math.floor(100000 + Math.random() * 900000),
+                state: 'betting',
+                endTime: now + 30000,
+                pot: Number(App.txGlobalState.pot) || 0,
+                tai_total: 0,
+                xiu_total: 0,
+                tai_players: null,
+                xiu_players: null,
+                dice: [1, 2, 3],
+                history: Array.isArray(App.txGlobalState.history) ? App.txGlobalState.history : [],
+                forced_result: 'RANDOM'
+              };
+              db.ref('taixiu_global').set(freshRoom);
+              return;
+            }
+
             App.renderTaiXiuRoomUI(true);
             App.renderTxGlobalHistory();
             App.updateAdminUIState();
@@ -878,8 +900,8 @@
               pot: 0,
               tai_total: 0,
               xiu_total: 0,
-              tai_players: {},
-              xiu_players: {},
+              tai_players: null,
+              xiu_players: null,
               dice: [1, 2, 3],
               history: [],
               forced_result: 'RANDOM'
