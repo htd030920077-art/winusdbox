@@ -688,7 +688,7 @@
 
   <script>
     var firebaseConfig = {
-      databaseURL: "https://gamemoi-4eae3-default-rtdb.asia-southeast1.firebasedatabase.app/"
+      databaseURL: "https://winusdbox-default-rtdb.asia-southeast1.firebasedatabase.app/"
     };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     var db = firebase.database();
@@ -779,7 +779,7 @@
 
       txGlobalState: {
         sessionId: 'TX-0000',
-        state: 'betting', // 'betting' (30s) -> 'spinning' (5s poker xoay) -> 'payout' (5s trả thưởng)
+        state: 'betting',
         endTime: 0,
         pot: 0,
         tai_total: 0,
@@ -871,9 +871,6 @@
         return App.userPhone ? "SEVQR NAP" + App.userPhone : 'SEVQR NAPTIEN';
       },
 
-      // =========================================================================
-      // HỆ THỐNG ĐẾM NGƯỢC TỪNG GIÂY & AUTO-HEAL PHIÊN TÀI XỈU
-      // =========================================================================
       initTaiXiuGlobalEngine: function() {
         db.ref('taixiu_global').on('value', function(snap) {
           if (snap.exists()) {
