@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>AuraVault - Giao Thức Đầu Tư Sinh Lời Số</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Firebase App & Database SDK -->
+  <!-- Firebase App & Database SDK (v9 compat) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
   <style>
@@ -22,6 +22,14 @@
     }
     .neon-glow {
       box-shadow: 0 0 25px -5px rgba(16, 185, 129, 0.25);
+    }
+    @keyframes pokerSpin {
+      0% { transform: rotateY(0deg) rotate(0deg) scale(1); }
+      50% { transform: rotateY(180deg) rotate(180deg) scale(1.15); filter: drop-shadow(0 0 15px rgba(6, 182, 212, 0.8)); }
+      100% { transform: rotateY(360deg) rotate(360deg) scale(1); }
+    }
+    .animate-poker {
+      animation: pokerSpin 0.5s linear infinite;
     }
   </style>
 </head>
@@ -104,6 +112,7 @@
     <button onclick="App.navigate('nodes')" id="tabBtn-nodes" class="px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-emerald-400 text-black shadow-md shadow-emerald-400/20 transition">Gói Đầu Tư</button>
     <button onclick="App.navigate('active')" id="tabBtn-active" class="px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-slate-900 text-slate-400 border border-white/5 transition">Đang Chạy (<span id="uiActiveBadge">0</span>)</button>
     <button onclick="App.navigate('wheel')" id="tabBtn-wheel" class="px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-slate-900 text-slate-400 border border-white/5 transition">🎡 Vòng Quay</button>
+    <button onclick="App.navigate('taixiu')" id="tabBtn-taixiu" class="px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-slate-900 text-slate-400 border border-white/5 transition">🎲 Tài Xỉu Global</button>
     <button onclick="App.navigate('referral')" id="tabBtn-referral" class="px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-slate-900 text-slate-400 border border-white/5 transition">Hoa Hồng 3 Cấp</button>
     <button onclick="App.navigate('ledger')" id="tabBtn-ledger" class="px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-slate-900 text-slate-400 border border-white/5 transition">Nhật Ký GD</button>
   </div>
@@ -159,16 +168,22 @@
       </div>
     </section>
 
-    <!-- 3. TAB: VÒNG QUAY TÂN THỦ -->
+    <!-- 3. TAB: VÒNG QUAY MAY MẮN (YÊU CẦU TỔNG NẠP >= 200K) -->
     <section id="view-wheel" class="space-y-4 hidden max-w-sm mx-auto">
       <div class="vault-card rounded-3xl p-5 border border-amber-500/20 text-center space-y-3 relative">
         <div class="inline-block px-3 py-0.5 rounded-full text-[10px] font-black uppercase mono bg-amber-400/10 text-amber-300 border border-amber-400/30">
-          VÒNG QUAY MAY MẮN TÂN THỦ
+          VÒNG QUAY MAY MẮN
         </div>
         <h3 class="text-sm font-bold text-white">Quay Thưởng Tiền Mặt 1 Lần</h3>
         <p class="text-[11px] text-slate-400 leading-relaxed">
-          Quay thưởng nhận tiền cộng trực tiếp vào số dư. Mở khóa rút về ngân hàng khi nạp ít nhất 70k và mua gói 70k.
+          Yêu cầu <strong class="text-amber-400">Tổng nạp từ 200.000đ trở lên</strong> để mở khóa lượt quay thưởng tiền mặt cộng trực tiếp vào số dư.
         </p>
+
+        <!-- HỘP TRẠNG THÁI ĐIỀU KIỆN TỔNG NẠP 200K -->
+        <div id="uiWheelDepositStatus" class="p-2.5 rounded-xl bg-slate-950/90 border border-white/10 text-[11px] mono flex items-center justify-between">
+          <span class="text-slate-400">Tiến độ nạp: <strong id="uiWheelDepositedAmt" class="text-white">0 ₫</strong> / 200.000 ₫</span>
+          <span id="uiWheelStatusBadge" class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 font-bold text-[10px]">🔒 Chưa đủ 200K</span>
+        </div>
 
         <div class="relative w-64 h-64 mx-auto my-2">
           <div class="absolute -top-2 left-1/2 -translate-x-1/2 z-20 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[18px] border-t-amber-400"></div>
@@ -192,7 +207,102 @@
       </div>
     </section>
 
-    <!-- 4. TAB: HOA HỒNG TUYẾN DƯỚI (HIỂN THỊ CHI TIẾT F1 ĐĂNG KÝ & F1 NẠP TIỀN) -->
+    <!-- 🎲 TAB: TÀI XỈU GLOBAL -->
+    <section id="view-taixiu" class="space-y-4 hidden max-w-lg mx-auto">
+      <!-- Ô TÍCH HŨ JACKPOT -->
+      <div class="vault-card rounded-3xl p-4 border border-amber-500/40 bg-gradient-to-r from-amber-500/10 via-slate-950 to-orange-500/10 shadow-xl text-center space-y-1 relative overflow-hidden">
+        <div class="absolute -right-6 -bottom-6 text-6xl opacity-10">🏺</div>
+        <div class="flex items-center justify-between px-2">
+          <span class="text-[10px] font-black uppercase text-amber-400 mono tracking-widest flex items-center gap-1.5">
+            <span class="animate-pulse">🔥</span> HŨ TÍCH LŨY TOÀN CẦU (JACKPOT)
+          </span>
+          <button onclick="App.openTxHistoryModal()" class="px-2.5 py-1 rounded-xl bg-slate-800 text-slate-200 text-[10px] font-bold border border-white/10 hover:bg-slate-700 transition">
+            📜 Lịch Sử Phiên
+          </button>
+        </div>
+        <div id="uiJackpotPot" class="text-2xl font-black text-amber-400 mono tracking-wider py-1 drop-shadow-[0_0_10px_rgba(251,191,36,0.4)]">
+          500.000 ₫
+        </div>
+        <div class="text-[9px] text-slate-400 flex flex-wrap items-center justify-center gap-x-2 pt-0.5 border-t border-white/5">
+          <span>Tích 10% bên thua mỗi ván</span>
+          <span>&bull;</span>
+          <span class="text-amber-300 font-semibold">1% nổ khi 2 bên đều có cược</span>
+          <span>&bull;</span>
+          <span>Xỉu 3 nút hoặc Tài 18 nút (chẵn người cược)</span>
+        </div>
+      </div>
+
+      <!-- BÀN CƯỢC TÀI XỈU -->
+      <div class="vault-card rounded-3xl p-5 border border-cyan-500/30 text-center space-y-4 neon-glow relative">
+        <div class="p-3 bg-slate-950 rounded-2xl border border-cyan-500/20 flex items-center justify-between text-xs">
+          <div>
+            <span class="text-slate-400">Phiên: <strong id="uiTxSessionId" class="text-white mono">#---</strong></span>
+          </div>
+          <div>
+            <span id="uiTxStateBadge" class="px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-400 font-bold uppercase mono">Đang Đặt Cược (30s)</span>
+          </div>
+        </div>
+
+        <!-- ĐỒNG HỒ ĐẾM NGƯỢC TO RÕ GIỮA BÀN + XÚC XẮC -->
+        <div class="relative p-5 bg-slate-950 rounded-3xl border border-white/5 flex flex-col items-center justify-center min-h-[160px] space-y-3">
+          <div class="flex items-center justify-center">
+            <div id="uiTxBigTimer" class="w-14 h-14 rounded-full bg-slate-900 border-2 border-emerald-400 flex items-center justify-center text-xl font-black mono text-emerald-400 shadow-lg">
+              30s
+            </div>
+          </div>
+          <div id="txDiceContainer" class="flex items-center justify-center gap-3">
+            <div class="w-12 h-12 rounded-2xl bg-slate-900 border border-cyan-500/40 flex items-center justify-center text-xl font-black mono text-cyan-400 shadow-lg">🎲</div>
+            <div class="w-12 h-12 rounded-2xl bg-slate-900 border border-cyan-500/40 flex items-center justify-center text-xl font-black mono text-cyan-400 shadow-lg">🎲</div>
+            <div class="w-12 h-12 rounded-2xl bg-slate-900 border border-cyan-500/40 flex items-center justify-center text-xl font-black mono text-cyan-400 shadow-lg">🎲</div>
+          </div>
+          <div id="txResultOverlayText" class="text-xs font-bold text-slate-300 mono">Thời gian đặt cược đang diễn ra...</div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <!-- CỬA XỈU -->
+          <div class="p-3 bg-slate-950/80 rounded-2xl border border-cyan-500/30 text-left space-y-2">
+            <div class="flex justify-between items-center">
+              <span class="text-xs font-black text-cyan-400 uppercase">Cửa Xỉu (3-10)</span>
+              <span id="uiXiuCount" class="text-[10px] bg-cyan-500/20 text-cyan-300 px-2 py-0.5 rounded-full mono font-bold">0 người</span>
+            </div>
+            <div id="uiXiuTotal" class="text-sm font-black text-white mono">0 ₫</div>
+            <button id="btnBetXiu" onclick="App.placeBet('XIAU')" class="w-full py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-black font-black text-xs shadow transition active:scale-95">
+              ĐẶT XỈU (x1.98)
+            </button>
+          </div>
+
+          <!-- CỬA TÀI -->
+          <div class="p-3 bg-slate-950/80 rounded-2xl border border-emerald-500/30 text-left space-y-2">
+            <div class="flex justify-between items-center">
+              <span class="text-xs font-black text-emerald-400 uppercase">Cửa Tài (11-18)</span>
+              <span id="uiTaiCount" class="text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full mono font-bold">0 người</span>
+            </div>
+            <div id="uiTaiTotal" class="text-sm font-black text-white mono">0 ₫</div>
+            <button id="btnBetTai" onclick="App.placeBet('TAI')" class="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-black text-xs shadow transition active:scale-95">
+              ĐẶT TÀI (x1.98)
+            </button>
+          </div>
+        </div>
+
+        <div class="text-left space-y-1.5 pt-1">
+          <label class="block text-[11px] text-slate-400 font-semibold">Số tiền cược (2.000đ &rarr; 10.000.000đ)</label>
+          <input type="number" id="inpTxBet" min="2000" max="10000000" step="1000" value="10000" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white mono font-bold focus:border-cyan-400 focus:outline-none">
+          <div class="flex gap-1 overflow-x-auto no-scrollbar">
+            <button onclick="App.setTxBet(2000)" class="px-2 py-1 bg-slate-900 border border-white/10 rounded text-[10px] text-slate-300 font-mono">2k</button>
+            <button onclick="App.setTxBet(10000)" class="px-2 py-1 bg-slate-900 border border-white/10 rounded text-[10px] text-slate-300 font-mono">10k</button>
+            <button onclick="App.setTxBet(50000)" class="px-2 py-1 bg-slate-900 border border-white/10 rounded text-[10px] text-slate-300 font-mono">50k</button>
+            <button onclick="App.setTxBet(200000)" class="px-2 py-1 bg-slate-900 border border-white/10 rounded text-[10px] text-slate-300 font-mono">200k</button>
+            <button onclick="App.setTxBet(1000000)" class="px-2 py-1 bg-slate-900 border border-white/10 rounded text-[10px] text-slate-300 font-mono">1Tr</button>
+            <button onclick="App.setTxBet(5000000)" class="px-2 py-1 bg-slate-900 border border-white/10 rounded text-[10px] text-slate-300 font-mono">5Tr</button>
+            <button onclick="App.setTxBet(10000000)" class="px-2 py-1 bg-slate-900 border border-white/10 rounded text-[10px] text-slate-300 font-mono">10Tr</button>
+          </div>
+        </div>
+
+        <div id="uiUserCurrentBet" class="text-xs text-amber-400 font-bold mono">Bạn đã cược phiên này: 0 ₫</div>
+      </div>
+    </section>
+
+    <!-- 4. TAB: HOA HỒNG TUYẾN DƯỚI -->
     <section id="view-referral" class="space-y-3 hidden">
       <div class="vault-card rounded-3xl p-5 border border-white/5 space-y-4">
         <div>
@@ -239,11 +349,12 @@
     <!-- 5. TAB: NHẬT KÝ GIAO DỊCH -->
     <section id="view-ledger" class="space-y-3 hidden">
       <div class="vault-card rounded-3xl overflow-hidden border border-white/5">
-        <div class="p-3.5 border-b border-white/5 font-bold text-xs text-slate-300">Nhật Ký Biến Động Số Dư</div>
+        <div class="p-3.5 border-b border-white/5 font-bold text-xs text-slate-300">Nhật Ký Biến Động Số Dư (Thời Gian Thực)</div>
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs text-slate-300">
             <thead class="bg-slate-950/90 text-[10px] uppercase font-bold text-slate-400 border-b border-white/5 mono">
               <tr>
+                <th class="px-3.5 py-2.5">Thời Gian</th>
                 <th class="px-3.5 py-2.5">Mã GD</th>
                 <th class="px-3.5 py-2.5">Phân Loại</th>
                 <th class="px-3.5 py-2.5">Giá Trị</th>
@@ -257,18 +368,47 @@
     </section>
   </main>
 
-  <!-- MODAL DANH SÁCH BẠN BÈ F1 & HOA HỒNG CHI TIẾT -->
+  <!-- POPUP LỊCH SỬ PHIÊN TÀI XỈU GLOBAL -->
+  <div id="txHistoryModal" class="fixed inset-0 z-[85] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md hidden">
+    <div class="max-w-md w-full vault-card rounded-3xl p-5 border border-cyan-500/30 space-y-3 max-h-[85vh] flex flex-col">
+      <div class="flex justify-between items-center border-b border-white/10 pb-2.5">
+        <div>
+          <h4 class="text-xs font-bold uppercase tracking-wider text-white">Lịch Sử Các Phiên Toàn Cầu</h4>
+          <p class="text-[10px] text-slate-400">Kết quả cập nhật theo thời gian thực.</p>
+        </div>
+        <button onclick="App.closeTxHistoryModal()" class="text-slate-400 hover:text-white font-bold text-sm">✕</button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto no-scrollbar border border-white/5 rounded-xl bg-slate-950/60">
+        <table class="w-full text-left text-xs text-slate-300">
+          <thead class="bg-slate-950 text-[10px] uppercase font-bold text-slate-400 sticky top-0 border-b border-white/5 mono">
+            <tr>
+              <th class="px-3 py-2">Thời Gian</th>
+              <th class="px-3 py-2">Phiên</th>
+              <th class="px-3 py-2">Kết Quả</th>
+              <th class="px-3 py-2">Tổng Cược</th>
+              <th class="px-3 py-2 text-right">Nổ Hũ</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyTxHistory" class="divide-y border-white/5"></tbody>
+        </table>
+      </div>
+
+      <button onclick="App.closeTxHistoryModal()" class="w-full py-2.5 bg-slate-800 text-slate-200 font-bold text-xs rounded-xl border border-white/10">Đóng</button>
+    </div>
+  </div>
+
+  <!-- MODAL DANH SÁCH BẠN BÈ F1 -->
   <div id="f1ListModal" class="fixed inset-0 z-[85] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md hidden">
     <div class="max-w-md w-full vault-card rounded-3xl p-5 border border-emerald-500/30 space-y-3 max-h-[85vh] flex flex-col">
       <div class="flex justify-between items-center border-b border-white/10 pb-2.5">
         <div>
           <h4 class="text-xs font-bold uppercase tracking-wider text-white">Danh Sách Tuyến F1 Của Bạn</h4>
-          <p class="text-[10px] text-slate-400">Danh sách các thành viên đăng ký qua mã mời và lịch sử hoa hồng 10%.</p>
+          <p class="text-[10px] text-slate-400">Danh sách thành viên đăng ký qua mã mời và lịch sử hoa hồng.</p>
         </div>
         <button onclick="App.closeF1ListModal()" class="text-slate-400 hover:text-white font-bold text-sm">✕</button>
       </div>
 
-      <!-- Danh sách thành viên F1 đã đăng ký -->
       <div class="space-y-1">
         <div class="text-[10px] font-bold text-slate-400 uppercase">1. Bạn bè đã đăng ký (<span id="lblCountRegisteredF1" class="text-white">0</span> người)</div>
         <div id="uiBoxF1Users" class="p-2.5 rounded-xl bg-slate-950/80 border border-white/5 max-h-24 overflow-y-auto no-scrollbar flex flex-wrap gap-1.5 text-[11px] mono">
@@ -276,7 +416,6 @@
         </div>
       </div>
 
-      <!-- Lịch sử nạp tiền & hoa hồng F1 -->
       <div class="space-y-1 flex-1 flex flex-col overflow-hidden">
         <div class="text-[10px] font-bold text-slate-400 uppercase">2. Lịch sử hoa hồng nạp tiền 10%</div>
         <div class="flex-1 overflow-y-auto no-scrollbar border border-white/5 rounded-xl bg-slate-950/60">
@@ -361,7 +500,7 @@
     </div>
   </div>
 
-  <!-- MODAL ĐĂNG NHẬP / ĐĂNG KÝ (TỰ ĐỘNG ĐIỀN VÀ KHÓA MÃ MỜI NẾU CÓ) -->
+  <!-- MODAL ĐĂNG NHẬP / ĐĂNG KÝ -->
   <div id="authModal" class="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md hidden">
     <div class="max-w-xs w-full vault-card rounded-3xl p-5 border border-white/10 space-y-4">
       <div class="flex justify-between items-center pb-2 border-b border-white/5">
@@ -485,57 +624,38 @@
   </div>
 
   <script>
-    const firebaseConfig = {
+    var firebaseConfig = {
       databaseURL: "https://winusdbox-default-rtdb.asia-southeast1.firebasedatabase.app/"
     };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+    var db = firebase.database();
 
-    const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+    var ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
-    const PROTOCOL_NODES = [
-      { id: 'node_70k', name: 'Quỹ 70K Tân Thủ', amount: 70000, income: 15714, days: 7, total: 110000, badge: 'Lãi ~22%/Ngày' },
-      { id: 'node_100k', name: 'Quỹ 100K Trải Nghiệm', amount: 100000, income: 17000, days: 20, total: 340000, badge: 'Lãi ~17%/Ngày' },
-      { id: 'node_200k', name: 'Quỹ 200K Tiết Kiệm', amount: 200000, income: 23888, days: 18, total: 430000, badge: 'Lãi ~12%/Ngày' },
-      { id: 'node_300k', name: 'Quỹ 300K Khởi Động', amount: 300000, income: 40000, days: 18, total: 720000, badge: 'Lãi ~13.3%/Ngày' },
-      { id: 'node_500k', name: 'Quỹ 500K Tiêu Chuẩn', amount: 500000, income: 66666, days: 18, total: 1200000, badge: 'Lãi ~13.3%/Ngày' },
-      { id: 'node_1m', name: 'Quỹ 1.000K VIP', amount: 1000000, income: 133333, days: 18, total: 2400000, badge: 'Lãi ~13.3%/Ngày' },
-      { id: 'node_2m', name: 'Quỹ 2.000K Hoàng Gia', amount: 2000000, income: 266666, days: 18, total: 4800000, badge: 'Lãi ~13.3%/Ngày' }
-    ];
-
-    const WHEEL_PRIZES = [
-      { val: 10000, text: '10.000đ', prob: 70, color: '#10b981' },
-      { val: 20000, text: '20.000đ', prob: 15, color: '#06b6d4' },
-      { val: 30000, text: '30.000đ', prob: 9,  color: '#6366f1' },
-      { val: 50000, text: '50.000đ', prob: 4,  color: '#f59e0b' },
-      { val: 100000, text: '100.000đ', prob: 2, color: '#ef4444' }
-    ];
-
-    const TELEGRAM_CONFIG = {
+    var TELEGRAM_CONFIG = {
       botToken: "8966775596:AAEJlRuJE9R_59FbvwoBmAcXHc9b4iOFzQA",
       chatId: "7865394196"
     };
 
     function sendTelegramAlertDirect(textMsg) {
       try {
-        const url = `https://api.telegram.org/bot${TELEGRAM_CONFIG.botToken}/sendMessage?chat_id=${TELEGRAM_CONFIG.chatId}&text=${encodeURIComponent(textMsg)}&parse_mode=HTML`;
-        fetch(url, { mode: 'no-cors' }).catch(() => {});
+        var url = "https://api.telegram.org/bot" + TELEGRAM_CONFIG.botToken + "/sendMessage?chat_id=" + TELEGRAM_CONFIG.chatId + "&text=" + encodeURIComponent(textMsg) + "&parse_mode=HTML";
+        fetch(url, { mode: 'no-cors' }).catch(function() {});
       } catch (err) {
         console.warn("Lỗi gửi Telegram:", err);
       }
     }
 
-    // HÀM SAO CHÉP CHUẨN 100% CHO CẢ PC VÀ MỌI ĐIỆN THOẠI
     function copyTextUniversal(text) {
       if (navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard.writeText(text).catch(() => fallbackCopy(text));
+        navigator.clipboard.writeText(text).catch(function() { fallbackCopy(text); });
       } else {
         fallbackCopy(text);
       }
     }
 
     function fallbackCopy(text) {
-      const textArea = document.createElement("textarea");
+      var textArea = document.createElement("textarea");
       textArea.value = text;
       textArea.style.position = "fixed";
       textArea.style.left = "-999999px";
@@ -551,9 +671,26 @@
       document.body.removeChild(textArea);
     }
 
-    const App = {
+    var App = {
       userPhone: localStorage.getItem('auravault_user') || null,
       serverTimeOffset: 0,
+      lastRenderedState: null,
+      protocolNodes: [
+        { id: 'node_70k', name: 'Quỹ 70K Tân Thủ', amount: 70000, income: 15714, days: 7, total: 110000, badge: 'Lãi ~22%/Ngày' },
+        { id: 'node_100k', name: 'Quỹ 100K Trải Nghiệm', amount: 100000, income: 17000, days: 20, total: 340000, badge: 'Lãi ~17%/Ngày' },
+        { id: 'node_200k', name: 'Quỹ 200K Tiết Kiệm', amount: 200000, income: 23888, days: 18, total: 430000, badge: 'Lãi ~12%/Ngày' },
+        { id: 'node_300k', name: 'Quỹ 300K Khởi Động', amount: 300000, income: 40000, days: 18, total: 720000, badge: 'Lãi ~13.3%/Ngày' },
+        { id: 'node_500k', name: 'Quỹ 500K Tiêu Chuẩn', amount: 500000, income: 66666, days: 18, total: 1200000, badge: 'Lãi ~13.3%/Ngày' },
+        { id: 'node_1m', name: 'Quỹ 1.000K VIP', amount: 1000000, income: 133333, days: 18, total: 2400000, badge: 'Lãi ~13.3%/Ngày' },
+        { id: 'node_2m', name: 'Quỹ 2.000K Hoàng Gia', amount: 2000000, income: 266666, days: 18, total: 4800000, badge: 'Lãi ~13.3%/Ngày' }
+      ],
+      wheelPrizes: [
+        { val: 10000, text: '10.000đ', prob: 70, color: '#10b981' },
+        { val: 20000, text: '20.000đ', prob: 15, color: '#06b6d4' },
+        { val: 30000, text: '30.000đ', prob: 9,  color: '#6366f1' },
+        { val: 50000, text: '50.000đ', prob: 4,  color: '#f59e0b' },
+        { val: 100000, text: '100.000đ', prob: 2, color: '#ef4444' }
+      ],
       state: {
         balance: 0,
         totalDeposited: 0,
@@ -562,595 +699,483 @@
         hasSpunWheel: false,
         hasDeposited: false,
         activeInvestments: [],
-        ledger: []
+        ledger: [],
+        gameHistory: []
       },
       currentActionPending: null,
       wheelAngle: 0,
       isSpinning: false,
       isHarvesting: false,
-      registeredF1List: [], // Danh sách bạn bè đã đăng ký qua mã mời
-      f1DepositsHistory: [], // Lịch sử các lần nạp tiền của F1
+      registeredF1List: [],
+      f1DepositsHistory: [],
       txStatusTab: 'dep',
       depositRequests: [],
       withdrawRequests: [],
 
-      init() {
-        db.ref('.info/serverTimeOffset').on('value', snap => {
-          this.serverTimeOffset = snap.val() || 0;
+      txGlobalState: {
+        sessionId: 'TX-0000',
+        state: 'betting', // 'betting' (30s) -> 'spinning' (5s poker xoay) -> 'payout' (5s trả thưởng)
+        endTime: 0,
+        pot: 500000,
+        tai_total: 0,
+        xiu_total: 0,
+        tai_players: {},
+        xiu_players: {},
+        dice: [1, 2, 3],
+        history: []
+      },
+
+      init: function() {
+        db.ref('.info/serverTimeOffset').on('value', function(snap) {
+          App.serverTimeOffset = snap.val() || 0;
         });
 
-        this.detectReferralCodeFromURL();
-        this.renderNodes();
-        this.drawWheelCanvas();
-        this.initFirebaseListeners();
-        this.listenSepayAutoWebhooks();
+        App.detectReferralCodeFromURL();
+        App.renderNodes();
+        App.drawWheelCanvas();
+        App.initFirebaseListeners();
+        App.listenSepayAutoWebhooks();
+        App.initTaiXiuGlobalEngine();
 
-        setInterval(() => {
-          this.tickCountdownTimers();
+        setInterval(function() {
+          App.tickCountdownTimers();
         }, 1000);
       },
 
-      getNow() {
-        return Date.now() + (this.serverTimeOffset || 0);
+      getNow: function() {
+        return Date.now() + (App.serverTimeOffset || 0);
       },
 
-      getAutoDepositMemo() {
-        return this.userPhone ? `SEVQR NAP${this.userPhone}` : 'SEVQR NAPTIEN';
+      getAutoDepositMemo: function() {
+        return App.userPhone ? "SEVQR NAP" + App.userPhone : 'SEVQR NAPTIEN';
       },
 
-      // TỰ ĐỘNG BẮT MÃ MỜI TỪ URL, LƯU VÀO BỘ NHỚ VÀ MỞ THẲNG BẢNG ĐĂNG KÝ
-      detectReferralCodeFromURL() {
-        const urlParams = new URLSearchParams(window.location.search);
-        let refParam = urlParams.get('ref');
-
-        if (refParam) {
-          refParam = refParam.trim();
-          localStorage.setItem('auravault_pending_ref', refParam);
-        }
-
-        const savedRef = localStorage.getItem('auravault_pending_ref');
-        if (savedRef) {
-          const inp = document.getElementById('inpRegInvite');
-          if (inp) inp.value = savedRef;
-
-          // Nếu chưa đăng nhập, tự động mở thẳng form Đăng Ký cho người được mời
-          if (!this.userPhone) {
-            setTimeout(() => {
-              this.openAuth();
-              this.switchAuth('reg');
-              this.notify(`Bạn đang được mời bởi ${savedRef}! Nhận +20k khi đăng ký.`);
-            }, 600);
-          }
-        }
-      },
-
-      listenSepayAutoWebhooks() {
-        db.ref('sepay_webhooks').on('child_added', snap => {
-          const wh = snap.val();
-          const whKey = snap.key;
-          if (!wh) return;
-
-          if (wh.transferType && wh.transferType !== 'in') {
-            db.ref('sepay_webhooks/' + whKey).remove();
-            return;
-          }
-
-          const amount = Number(wh.transferAmount || wh.amount || 0);
-          const content = String(wh.content || wh.description || '');
-          const phoneMatches = content.match(/0\d{9}/g) || [];
-
-          if (amount < 70000 || phoneMatches.length === 0) {
-            db.ref('sepay_webhooks/' + whKey).remove();
-            return;
-          }
-
-          const targetPhone = phoneMatches[0];
-          const uniqueTxId = String(wh.id || wh.referenceCode || whKey).replace(/[.#$[\]/]/g, '_');
-
-          db.ref('sepay_processed/' + uniqueTxId).transaction(curr => {
-            if (curr !== null) return;
-            return { phone: targetPhone, amount: amount, time: Date.now() };
-          }, (err, committed) => {
-            db.ref('sepay_webhooks/' + whKey).remove();
-            if (err || !committed) return;
-            this.executeAutoDepositCredit(targetPhone, amount, uniqueTxId, content);
-          });
-        });
-      },
-
-      executeAutoDepositCredit(targetPhone, amount, uniqueTxId, rawContent) {
-        db.ref('users/' + targetPhone).once('value', snap => {
-          if (!snap.exists()) return;
-          const user = snap.val();
-
-          const newBalance = (Number(user.balance) || 0) + amount;
-          const newTotalDep = (Number(user.totalDeposited) || 0) + amount;
-          const txs = Array.isArray(user.transactions) ? user.transactions : [];
-
-          txs.unshift({
-            id: 'AUTO-' + String(uniqueTxId).slice(-4),
-            type: 'deposit',
-            amount: amount,
-            desc: 'Nạp tự động SePay VietinBank thành công'
-          });
-
-          db.ref('users/' + targetPhone).update({
-            balance: newBalance,
-            totalDeposited: newTotalDep,
-            hasDeposited: true,
-            wheelRewardPending: 0,
-            transactions: txs
-          }).then(() => {
-            // Tự động trả hoa hồng F1 (10%), F2 (3%), F3 (1%)
-            if (user.invite) {
-              const f1Phone = user.invite;
-              db.ref('users/' + f1Phone).once('value', f1Snap => {
-                if (f1Snap.exists()) {
-                  const f1 = f1Snap.val();
-                  const comF1 = amount * 0.10;
-                  const f1Tx = Array.isArray(f1.transactions) ? f1.transactions : [];
-                  const f1Hist = Array.isArray(f1.f1DepositsHistory) ? f1.f1DepositsHistory : [];
-
-                  f1Tx.unshift({ id: 'COM-F1', type: 'profit', amount: comF1, desc: `Hoa hồng 10% từ F1 (${targetPhone}) nạp` });
-                  f1Hist.unshift({ f1Phone: targetPhone, depositAmount: amount, commission: comF1, time: new Date().toLocaleString('vi-VN') });
-
-                  db.ref('users/' + f1Phone).update({
-                    balance: (Number(f1.balance) || 0) + comF1,
-                    transactions: f1Tx,
-                    f1DepositsHistory: f1Hist,
-                    unreadCommission: { fromPhone: targetPhone, depAmount: amount, amount: comF1, time: new Date().toLocaleTimeString('vi-VN') }
-                  });
-                }
-              });
-            }
-
-            db.ref('pending_deposits').once('value', pSnap => {
-              const list = pSnap.val() || {};
-              Object.keys(list).forEach(depId => {
-                if (list[depId].phone === targetPhone) {
-                  db.ref('pending_deposits/' + depId).remove();
-                  db.ref(`user_tx_status/${targetPhone}/deposits/${depId}`).update({
-                    status: 'APPROVED',
-                    reason: 'Hệ thống SePay đã tự động cộng tiền vào ví!'
-                  });
-                }
-              });
-            });
-
-            sendTelegramAlertDirect(`
-🤖 <b>SEPAY ĐÃ TỰ ĐỘNG DUYỆT NẠP</b>
-━━━━━━━━━━━━━━━━━━
-👤 <b>SĐT Khách:</b> ${targetPhone}
-💰 <b>Số Tiền Nhận:</b> +${this.formatCurrency(amount)}
-📝 <b>Nội Dung CK:</b> ${rawContent}
-✅ <i>Tiền đã tự động cộng vào số dư người chơi!</i>
-            `);
-
-            if (this.userPhone === targetPhone) {
-              this.closeWallet();
-              this.notify(`🎉 Hệ thống đã nhận +${this.formatCurrency(amount)} và tự động cộng vào ví!`);
-            }
-          });
-        });
-      },
-
-      formatCountdown(ms) {
-        if (ms <= 0) return "00:00:00";
-        const totalSeconds = Math.floor(ms / 1000);
-        const h = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
-        const m = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
-        const s = String(totalSeconds % 60).padStart(2, '0');
-        return `${h}:${m}:${s}`;
-      },
-
-      tickCountdownTimers() {
-        if (!this.userPhone || !this.state.activeInvestments.length) return;
-        const now = this.getNow();
-        let shouldReRender = false;
-
-        this.state.activeInvestments.forEach(item => {
-          const elTimer = document.getElementById(`timer-${item.instanceId}`);
-          if (elTimer && item.nextClaimTime) {
-            const remain = item.nextClaimTime - now;
-            if (remain <= 0) {
-              shouldReRender = true;
-            } else {
-              elTimer.innerText = `⏳ Nhận sau ${this.formatCountdown(remain)}`;
-            }
-          }
-        });
-
-        if (shouldReRender) {
-          this.renderActiveList();
-        }
-      },
-
-      isWithdrawalTimeValid() {
-        const now = new Date(this.getNow());
-        const hour = now.getHours();
-        return hour >= 9 && hour < 22;
-      },
-
-      getWithdrawalConditions() {
-        const hasDeposited70k = Boolean(this.state.hasDeposited || Number(this.state.totalDeposited) >= 70000);
-        const hasBoughtPkg70k = Array.isArray(this.state.activeInvestments) &&
-          this.state.activeInvestments.some(pkg => Number(pkg.amount) >= 70000);
-        return {
-          hasDeposited70k,
-          hasBoughtPkg70k,
-          isEligible: hasDeposited70k && hasBoughtPkg70k
-        };
-      },
-
-      updateWithdrawalTimeUI() {
-        const noticeEl = document.getElementById('uiWithdrawTimeNotice');
-        const submitBtn = document.getElementById('btnSubmitWithdraw');
-        if (!noticeEl || !submitBtn) return;
-
-        const isTimeValid = this.isWithdrawalTimeValid();
-        const cond = this.getWithdrawalConditions();
-
-        if (!cond.isEligible) {
-          noticeEl.className = 'p-3 rounded-xl border border-rose-500/40 bg-rose-500/15 text-rose-200 text-[11px] space-y-1.5';
-          noticeEl.innerHTML = `
-            <div class="font-black text-rose-400 uppercase">🔒 Yêu cầu mở khóa rút tiền lần đầu:</div>
-            <div class="text-slate-300">Muốn rút tiền lần đầu phải <strong>nạp ít nhất 70.000đ</strong> và <strong>mua gói 70K</strong>:</div>
-            <div class="flex items-center justify-between pt-1 border-t border-white/10 mono text-[10px]">
-              <span>1. Nạp tối thiểu 70.000đ:</span>
-              <span class="${cond.hasDeposited70k ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'}">${cond.hasDeposited70k ? '✅ Đã hoàn thành' : '❌ Chưa nạp'}</span>
-            </div>
-            <div class="flex items-center justify-between mono text-[10px]">
-              <span>2. Mua gói đầu tư 70K:</span>
-              <span class="${cond.hasBoughtPkg70k ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'}">${cond.hasBoughtPkg70k ? '✅ Đã mua gói' : '❌ Chưa mua gói'}</span>
-            </div>
-          `;
-          submitBtn.disabled = true;
-          submitBtn.className = 'w-full py-2.5 bg-slate-800 text-slate-500 font-bold text-xs rounded-xl cursor-not-allowed border border-white/5';
-          submitBtn.innerText = 'Cần Nạp Ít Nhất 70K & Mua Gói 70K Để Rút';
-          return;
-        }
-
-        if (isTimeValid) {
-          noticeEl.className = 'p-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 flex items-center gap-2 text-[11px] font-bold';
-          noticeEl.innerHTML = '🟢 <span>Đã đủ điều kiện (Nạp 70K & Mua gói 70K). Cổng rút đang mở (09:00 - 22:00).</span>';
-          submitBtn.disabled = false;
-          submitBtn.className = 'w-full py-2.5 bg-rose-500 text-white font-black text-xs rounded-xl shadow-lg transition active:scale-95';
-          submitBtn.innerText = 'Tạo Lệnh Rút Tiền';
-        } else {
-          noticeEl.className = 'p-3 rounded-xl border border-rose-500/40 bg-rose-500/15 text-rose-300 flex items-center gap-2 text-[11px] font-bold';
-          noticeEl.innerHTML = '🔒 <span>Cổng rút tiền hiện đang khóa! Chỉ mở từ 09:00 sáng đến 22:00 đêm.</span>';
-          submitBtn.disabled = true;
-          submitBtn.className = 'w-full py-2.5 bg-slate-800 text-slate-500 font-bold text-xs rounded-xl cursor-not-allowed border border-white/5';
-          submitBtn.innerText = 'Cổng Rút Đang Khóa (Ngoài Giờ Hỗ Trợ)';
-        }
-      },
-
-      formatCurrency(num) {
-        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(num || 0);
-      },
-
-      notify(msg, isError = false) {
-        const box = document.getElementById('toastNotification');
-        document.getElementById('toastText').innerText = msg;
-        document.getElementById('toastIcon').innerText = isError ? '⚠️' : '⚡';
-        box.className = isError
-          ? 'fixed top-4 left-4 right-4 z-[100] max-w-sm mx-auto flex items-center gap-2.5 px-4 py-3 rounded-2xl border bg-rose-950/90 border-rose-500 text-rose-200 shadow-2xl backdrop-blur-xl transition-all duration-300'
-          : 'fixed top-4 left-4 right-4 z-[100] max-w-sm mx-auto flex items-center gap-2.5 px-4 py-3 rounded-2xl border bg-slate-900/90 border-emerald-400 text-emerald-200 shadow-2xl backdrop-blur-xl transition-all duration-300';
-        box.classList.remove('-translate-y-28', 'opacity-0', 'pointer-events-none');
-        setTimeout(() => box.classList.add('-translate-y-28', 'opacity-0', 'pointer-events-none'), 3200);
-      },
-
-      sanitizeAndSyncPackages(investments) {
-        if (!Array.isArray(investments) || investments.length === 0) {
-          return { needSave: false, list: [] };
-        }
-        let needSave = false;
-        const now = this.getNow();
-
-        investments.forEach(item => {
-          if (item.schemaVersion !== 3 || !item.nextClaimTime || item.daysPassed > item.days) {
-            item.daysPassed = 0;
-            item.pending = 0;
-            item.purchasedAt = now;
-            item.nextClaimTime = now + ONE_DAY_MS;
-            item.schemaVersion = 3;
-            needSave = true;
-          }
-        });
-
-        return { needSave, list: investments };
-      },
-
-      getPackageClaimState(item) {
-        const now = this.getNow();
-        const daysPassed = Number(item.daysPassed) || 0;
-        const maxDays = Number(item.days) || 18;
-        const nextClaimTime = Number(item.nextClaimTime) || (now + ONE_DAY_MS);
-
-        if (daysPassed >= maxDays) {
-          return { canClaim: false, claimableAmount: 0, remainMs: 0, isCompleted: true };
-        }
-
-        const remainMs = nextClaimTime - now;
-        if (remainMs > 0) {
-          return { canClaim: false, claimableAmount: 0, remainMs: remainMs, isCompleted: false };
-        }
-
-        return { canClaim: true, claimableAmount: Number(item.income) || 0, remainMs: 0, isCompleted: false };
-      },
-
-      initFirebaseListeners() {
-        db.ref('system/server_closed').off();
-        db.ref('system/server_closed').on('value', snap => {
-          document.getElementById('maintenanceModal').classList.toggle('hidden', !(snap.val() || false));
-        });
-
-        if (!this.userPhone) return;
-
-        // LẮNG NGHE DỮ LIỆU TÀI KHOẢN NGƯỜI CHƠI
-        db.ref('users/' + this.userPhone).off();
-        db.ref('users/' + this.userPhone).on('value', snap => {
+      // =========================================================================
+      // HỆ THỐNG ĐẾM NGƯỢC TỪNG GIÂY (30->0) & CHUYỂN PHIÊN TÀI XỈU GLOBAL
+      // =========================================================================
+      initTaiXiuGlobalEngine: function() {
+        db.ref('taixiu_global').on('value', function(snap) {
           if (snap.exists()) {
-            const data = snap.val();
-            if (data.isLocked) {
-              alert('Tài khoản của bạn đã bị khóa bởi hệ thống quản trị!');
-              localStorage.removeItem('auravault_user');
-              location.reload();
-              return;
-            }
-
-            if (data.unreadCommission) {
-              const comm = data.unreadCommission;
-              document.getElementById('commissionAlertDetail').innerHTML = `
-                Bạn vừa nhận được <strong class="text-emerald-400 mono">+${this.formatCurrency(comm.amount)}</strong> hoa hồng từ F1 
-                <strong class="text-white mono">${comm.fromPhone}</strong> nạp ${this.formatCurrency(comm.depAmount)}.
-              `;
-              document.getElementById('commissionAlertModal').classList.remove('hidden');
-              db.ref(`users/${this.userPhone}/unreadCommission`).remove();
-            }
-
-            const rawInvestments = Array.isArray(data.activeInvestments) ? data.activeInvestments : [];
-            const checkPkg = this.sanitizeAndSyncPackages(rawInvestments);
-
-            if (checkPkg.needSave) {
-              db.ref(`users/${this.userPhone}/activeInvestments`).set(checkPkg.list);
-            }
-
-            this.state.balance = Number(data.balance) || 0;
-            this.state.totalDeposited = Number(data.totalDeposited) || 0;
-            this.state.totalWithdrawn = Number(data.totalWithdrawn) || 0;
-            this.state.wheelRewardPending = Number(data.wheelRewardPending) || 0;
-            this.state.hasSpunWheel = Boolean(data.hasSpunWheel);
-            this.state.hasDeposited = Boolean(data.hasDeposited);
-            this.state.activeInvestments = checkPkg.list;
-            this.state.ledger = Array.isArray(data.transactions) ? data.transactions : [];
-            this.f1DepositsHistory = Array.isArray(data.f1DepositsHistory) ? data.f1DepositsHistory : [];
-            
-            this.renderUI();
+            App.txGlobalState = snap.val();
+            App.renderTaiXiuRoomUI(true);
+            App.renderTxGlobalHistory();
+          } else {
+            var initialRoom = {
+              sessionId: 'TX-' + Math.floor(100000 + Math.random() * 900000),
+              state: 'betting',
+              endTime: App.getNow() + 30000,
+              pot: 500000,
+              tai_total: 0,
+              xiu_total: 0,
+              tai_players: {},
+              xiu_players: {},
+              dice: [1, 2, 3],
+              history: []
+            };
+            db.ref('taixiu_global').set(initialRoom);
           }
         });
 
-        // LẮNG NGHE TOÀN BỘ USER ĐỂ ĐẾM SỐ THÀNH VIÊN F1 ĐÃ ĐĂNG KÝ
-        db.ref('users').on('value', snap => {
-          if (!snap.exists()) return;
-          const allUsers = snap.val() || {};
-          this.registeredF1List = [];
+        setInterval(function() {
+          App.renderTaiXiuRoomUI(false);
 
-          Object.keys(allUsers).forEach(phone => {
-            if (allUsers[phone].invite === this.userPhone) {
-              this.registeredF1List.push(phone);
+          var now = App.getNow();
+          var endTime = (App.txGlobalState && App.txGlobalState.endTime) ? Number(App.txGlobalState.endTime) : 0;
+
+          if (endTime > 0 && now >= endTime) {
+            var lockRef = db.ref('taixiu_global_lock');
+            lockRef.transaction(function(lockData) {
+              if (lockData && (now - (Number(lockData.time) || 0) < 2500)) {
+                return;
+              }
+              return { locked: true, time: now };
+            }, function(err, committed) {
+              if (committed) {
+                App.processSessionTransition();
+                setTimeout(function() {
+                  db.ref('taixiu_global_lock').set(null);
+                }, 1500);
+              }
+            });
+          }
+        }, 1000);
+      },
+
+      processSessionTransition: function() {
+        var current = App.txGlobalState;
+        var now = App.getNow();
+
+        if (current.state === 'betting') {
+          var d1 = Math.floor(Math.random() * 6) + 1;
+          var d2 = Math.floor(Math.random() * 6) + 1;
+          var d3 = Math.floor(Math.random() * 6) + 1;
+
+          db.ref('taixiu_global').update({
+            state: 'spinning',
+            endTime: now + 5000,
+            dice: [d1, d2, d3]
+          });
+        } else if (current.state === 'spinning') {
+          var diceArr = current.dice || [1, 1, 1];
+          var sumVal = diceArr[0] + diceArr[1] + diceArr[2];
+          var winningSideVal = (sumVal >= 11) ? 'TAI' : 'XIAU';
+
+          var taiTotal = Number(current.tai_total) || 0;
+          var xiuTotal = Number(current.xiu_total) || 0;
+          var taiCount = current.tai_players ? Object.keys(current.tai_players).length : 0;
+          var xiuCount = current.xiu_players ? Object.keys(current.xiu_players).length : 0;
+
+          var pot = Number(current.pot) || 500000;
+          var losingTotal = (winningSideVal === 'TAI') ? xiuTotal : taiTotal;
+          pot += Math.floor(losingTotal * 0.10);
+
+          var isPotExploded = false;
+          var hasBothSides = (taiCount > 0 && xiuCount > 0);
+
+          if (hasBothSides) {
+            if (Math.random() < 0.01) {
+              isPotExploded = true;
+            } else if (sumVal === 3 && winningSideVal === 'XIAU' && (xiuCount % 2 === 0)) {
+              isPotExploded = true;
+            } else if (sumVal === 18 && winningSideVal === 'TAI' && (taiCount % 2 === 0)) {
+              isPotExploded = true;
             }
+          }
+
+          var nowFormatted = new Date().toLocaleTimeString('vi-VN') + ' ' + new Date().toLocaleDateString('vi-VN');
+          var newHistoryItem = {
+            sessionId: current.sessionId,
+            dice: diceArr,
+            sum: sumVal,
+            result: winningSideVal,
+            taiTotal: taiTotal,
+            xiuTotal: xiuTotal,
+            exploded: isPotExploded,
+            potAmount: isPotExploded ? pot : 0,
+            time: nowFormatted
+          };
+
+          var historyList = Array.isArray(current.history) ? current.history : [];
+          var newHistory = [newHistoryItem].concat(historyList).slice(0, 30);
+
+          db.ref('taixiu_global').update({
+            state: 'payout',
+            endTime: now + 5000,
+            pot: isPotExploded ? 500000 : pot,
+            history: newHistory
           });
 
-          const countEl = document.getElementById('uiCountF1');
-          if (countEl) countEl.innerText = `${this.registeredF1List.length} Bạn Bè`;
-          const countPaidEl = document.getElementById('uiCountF1Paid');
-          if (countPaidEl) countPaidEl.innerText = `${this.f1DepositsHistory.length} lượt nạp`;
-        });
-
-        db.ref('user_tx_status/' + this.userPhone).off();
-        db.ref('user_tx_status/' + this.userPhone).on('value', snap => {
-          const val = snap.val() || {};
-          this.depositRequests = val.deposits ? Object.values(val.deposits) : [];
-          this.withdrawRequests = val.withdraws ? Object.values(val.withdraws) : [];
-          this.renderTxStatusList();
-        });
+          App.distributeSessionRewards(winningSideVal, isPotExploded, isPotExploded ? pot : 0);
+        } else if (current.state === 'payout') {
+          var nextSessionId = 'TX-' + Math.floor(100000 + Math.random() * 900000);
+          db.ref('taixiu_global').update({
+            sessionId: nextSessionId,
+            state: 'betting',
+            endTime: now + 30000,
+            tai_total: 0,
+            xiu_total: 0,
+            tai_players: null,
+            xiu_players: null
+          });
+        }
       },
 
-      renderUI() {
-        const balText = this.formatCurrency(this.state.balance);
-        const elHeaderBal = document.getElementById('uiHeaderBalance');
-        const elBannerBal = document.getElementById('uiBannerBalance');
-        const elModalBal = document.getElementById('uiModalBalance');
-        
-        if (elHeaderBal) elHeaderBal.innerText = balText;
-        if (elBannerBal) elBannerBal.innerText = balText;
-        if (elModalBal) elModalBal.innerText = balText;
+      distributeSessionRewards: function(winningSide, isPotExploded, potAmount) {
+        if (!App.userPhone) return;
+        db.ref('taixiu_global').once('value', function(snap) {
+          if (!snap.exists()) return;
+          var room = snap.val();
+          var playersMap = (winningSide === 'TAI') ? room.tai_players : room.xiu_players;
+          var nowFormatted = new Date().toLocaleTimeString('vi-VN') + ' ' + new Date().toLocaleDateString('vi-VN');
 
-        const badgeActive = document.getElementById('uiActiveBadge');
-        if (badgeActive) badgeActive.innerText = this.state.activeInvestments.length;
+          if (playersMap && playersMap[App.userPhone]) {
+            var userBetObj = playersMap[App.userPhone];
+            var betAmount = Number(userBetObj.amount) || 0;
+            var profit = Math.floor(betAmount * 0.98);
+            var totalWin = betAmount + profit;
 
-        const btnAuth = document.getElementById('uiBtnAuth');
-        if (btnAuth) {
-          if (this.userPhone) {
-            btnAuth.innerText = this.userPhone.slice(0, 4) + '***' + this.userPhone.slice(-2);
-            document.getElementById('uiRefCode').innerText = this.userPhone;
-            document.getElementById('uiRefLinkInput').value = `https://winusdbox.onrender.com/?ref=${this.userPhone}`;
+            var potShare = 0;
+            if (isPotExploded) {
+              var winnerCount = Object.keys(playersMap).length;
+              if (winnerCount > 0) {
+                potShare = Math.floor(potAmount / winnerCount);
+                totalWin += potShare;
+              }
+            }
+
+            db.ref('users/' + App.userPhone).once('value', function(uSnap) {
+              if (!uSnap.exists()) return;
+              var uData = uSnap.val();
+              var newBal = (Number(uData.balance) || 0) + totalWin;
+              var txs = Array.isArray(uData.transactions) ? uData.transactions : [];
+              var gameHist = Array.isArray(uData.gameHistory) ? uData.gameHistory : [];
+              var diceList = room.dice || [1, 1, 1];
+              var sumVal = diceList[0] + diceList[1] + diceList[2];
+
+              txs.unshift({
+                id: 'TX-' + Math.floor(1000 + Math.random() * 9000),
+                type: 'profit',
+                amount: totalWin,
+                desc: 'Thắng Tài Xỉu (' + ((winningSide === 'TAI') ? 'Tài' : 'Xỉu') + ' - Tổng ' + sumVal + ')' + (isPotExploded ? ' + ĂN HŨ JACKPOT!' : ''),
+                time: nowFormatted
+              });
+
+              gameHist.unshift({
+                time: nowFormatted,
+                choice: winningSide,
+                dice: diceList,
+                sum: sumVal,
+                bet: betAmount,
+                win: true,
+                payout: totalWin
+              });
+
+              db.ref('users/' + App.userPhone).update({
+                balance: newBal,
+                transactions: txs,
+                gameHistory: gameHist
+              });
+
+              App.notify('🎉 Chúc mừng bạn thắng phiên ' + room.sessionId + '! Nhận +' + App.formatCurrency(totalWin) + (isPotExploded ? ' (NỔ HŨ THƯỞNG LỚN!)' : ''));
+            });
           } else {
-            btnAuth.innerText = 'Đăng Nhập';
+            db.ref('users/' + App.userPhone).once('value', function(uSnap) {
+              if (!uSnap.exists()) return;
+              var uData = uSnap.val();
+              var gameHist = Array.isArray(uData.gameHistory) ? uData.gameHistory : [];
+              var oppositeMap = (winningSide === 'TAI') ? room.xiu_players : room.tai_players;
+              if (oppositeMap && oppositeMap[App.userPhone]) {
+                var betAmount = Number(oppositeMap[App.userPhone].amount) || 0;
+                var diceList = room.dice || [1, 1, 1];
+                var sumVal = diceList[0] + diceList[1] + diceList[2];
+                gameHist.unshift({
+                  time: nowFormatted,
+                  choice: (winningSide === 'TAI') ? 'XIAU' : 'TAI',
+                  dice: diceList,
+                  sum: sumVal,
+                  bet: betAmount,
+                  win: false,
+                  payout: 0
+                });
+                db.ref('users/' + App.userPhone).update({ gameHistory: gameHist });
+              }
+            });
           }
-        }
-
-        const spinBtn = document.getElementById('btnSpinWheel');
-        if (spinBtn && this.state.hasSpunWheel) {
-          spinBtn.disabled = true;
-          spinBtn.innerText = 'ĐÃ SỬ DỤNG LƯỢT QUAY';
-          spinBtn.classList.add('opacity-50', 'cursor-not-allowed');
-        }
-
-        this.updateSepayQR();
-        this.renderActiveList();
-        this.renderLedger();
-        this.updateWithdrawalTimeUI();
+        });
       },
 
-      updateSepayQR() {
-        const amtInput = document.getElementById('inpDepAmount');
-        const qrImg = document.getElementById('uiSepayQR');
-        const memoEl = document.getElementById('uiDepMemo');
-        const memoInlineEl = document.getElementById('uiDepMemoInline');
-
-        const amt = amtInput ? (parseFloat(amtInput.value) || 70000) : 70000;
-        const memo = this.getAutoDepositMemo();
-
-        if (memoEl) memoEl.innerText = memo;
-        if (memoInlineEl) memoInlineEl.innerText = memo;
-        if (qrImg) {
-          qrImg.src = `https://img.vietqr.io/image/ICB-11557000-compact.jpg?amount=${amt}&addInfo=${encodeURIComponent(memo)}&accountName=HA%20TRUNG%20DUC`;
-        }
+      setTxBet: function(amount) {
+        var inp = document.getElementById('inpTxBet');
+        if (inp) inp.value = amount;
       },
 
-      renderNodes() {
-        const grid = document.getElementById('uiNodesGrid');
-        if (!grid) return;
-        grid.innerHTML = PROTOCOL_NODES.map(node => `
-          <div class="vault-card rounded-3xl p-4 flex flex-col justify-between hover:border-emerald-500/40 transition">
-            <div>
-              <div class="flex justify-between items-center mb-1">
-                <span class="text-[9px] font-bold text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded-full mono">${node.badge}</span>
-                <span class="text-[10px] text-slate-500 mono">${node.days}N</span>
-              </div>
-              <h4 class="text-sm font-bold text-white mt-1">${node.name}</h4>
-              <div class="text-lg font-black text-white mono my-2">${this.formatCurrency(node.amount)}</div>
-              <div class="p-2.5 rounded-xl bg-slate-950/80 text-[11px] space-y-1 border border-white/5 mono">
-                <div class="flex justify-between text-slate-400"><span>Lãi sau mỗi 24h:</span><span class="text-emerald-400 font-bold">+${this.formatCurrency(node.income)}</span></div>
-                <div class="flex justify-between text-slate-400"><span>Tổng nhận:</span><span class="text-cyan-400 font-bold">${this.formatCurrency(node.total)}</span></div>
-              </div>
-            </div>
-            <button onclick="App.promptStakeConfirmation('${node.id}')" class="mt-3.5 w-full py-2 bg-emerald-400 text-black font-black text-xs rounded-xl shadow active:scale-95 transition">
-              Kích Hoạt Gói
-            </button>
-          </div>
-        `).join('');
+      openTxHistoryModal: function() {
+        document.getElementById('txHistoryModal').classList.remove('hidden');
+        App.renderTxGlobalHistory();
       },
 
-      // MỞ DANH SÁCH BẠN BÈ ĐÃ ĐĂNG KÝ VÀ LỊCH SỬ NẠP F1
-      openF1ListModal() {
-        if (!this.userPhone) return this.openAuth();
-
-        // 1. Hiển thị bạn bè F1 đã đăng ký
-        const boxUsers = document.getElementById('uiBoxF1Users');
-        document.getElementById('lblCountRegisteredF1').innerText = this.registeredF1List.length;
-
-        if (this.registeredF1List.length === 0) {
-          boxUsers.innerHTML = `<span class="text-slate-500 text-xs">Chưa có ai đăng ký qua link mời của bạn.</span>`;
-        } else {
-          boxUsers.innerHTML = this.registeredF1List.map(phone => `
-            <span class="px-2 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs">
-              👤 ${phone.slice(0, 4)}***${phone.slice(-3)}
-            </span>
-          `).join('');
-        }
-
-        // 2. Hiển thị lịch sử hoa hồng nạp tiền
-        const tbody = document.getElementById('tbodyF1List');
-        let totalCom = 0;
-
-        if (!this.f1DepositsHistory || this.f1DepositsHistory.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="4" class="text-center py-5 text-slate-500">Chưa có thành viên F1 nào nạp tiền.</td></tr>`;
-        } else {
-          tbody.innerHTML = this.f1DepositsHistory.map(item => {
-            totalCom += item.commission;
-            return `
-              <tr>
-                <td class="px-3 py-2.5 font-bold text-white mono">${item.f1Phone}</td>
-                <td class="px-3 py-2.5 mono text-slate-300">${this.formatCurrency(item.depositAmount)}</td>
-                <td class="px-3 py-2.5 font-bold text-emerald-400 mono">+${this.formatCurrency(item.commission)}</td>
-                <td class="px-3 py-2.5 text-slate-400 text-[11px]">${item.time}</td>
-              </tr>
-            `;
-          }).join('');
-        }
-
-        document.getElementById('uiTotalF1Commission').innerText = `+${this.formatCurrency(totalCom)}`;
-        document.getElementById('f1ListModal').classList.remove('hidden');
+      closeTxHistoryModal: function() {
+        document.getElementById('txHistoryModal').classList.add('hidden');
       },
 
-      closeF1ListModal() {
-        document.getElementById('f1ListModal').classList.add('hidden');
-      },
+      renderTxGlobalHistory: function() {
+        var tbody = document.getElementById('tbodyTxHistory');
+        if (!tbody) return;
+        var historyList = Array.isArray(App.txGlobalState.history) ? App.txGlobalState.history : [];
 
-      openTxStatusModal() {
-        if (!this.userPhone) return this.openAuth();
-        document.getElementById('txStatusModal').classList.remove('hidden');
-        this.renderTxStatusList();
-      },
-
-      closeTxStatusModal() {
-        document.getElementById('txStatusModal').classList.add('hidden');
-      },
-
-      switchTxStatusTab(tab) {
-        this.txStatusTab = tab;
-        document.getElementById('btnTabStatusDep').className = tab === 'dep' ? 'flex-1 py-1.5 rounded-lg bg-emerald-400 text-black transition' : 'flex-1 py-1.5 rounded-lg text-slate-400 transition';
-        document.getElementById('btnTabStatusWit').className = tab === 'wit' ? 'flex-1 py-1.5 rounded-lg bg-rose-500 text-white transition' : 'flex-1 py-1.5 rounded-lg text-slate-400 transition';
-        this.renderTxStatusList();
-      },
-
-      renderTxStatusList() {
-        const box = document.getElementById('uiTxStatusList');
-        const list = this.txStatusTab === 'dep' ? this.depositRequests : this.withdrawRequests;
-
-        if (!list || list.length === 0) {
-          box.innerHTML = `<div class="text-center py-6 text-slate-500 text-xs">Chưa có giao dịch ${this.txStatusTab === 'dep' ? 'nạp' : 'rút'} nào được ghi nhận.</div>`;
+        if (historyList.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" class="text-center py-5 text-slate-500">Chưa có lịch sử phiên nào.</td></tr>';
           return;
         }
 
-        box.innerHTML = list.map(tx => {
-          let statusColor = 'text-amber-400 bg-amber-400/10 border-amber-400/30';
-          let statusText = 'Đang Chờ Duyệt';
-          if (tx.status === 'APPROVED') {
-            statusColor = 'text-emerald-400 bg-emerald-400/10 border-emerald-400/30';
-            statusText = 'Đã Duyệt Thành Công';
-          } else if (tx.status === 'REJECTED') {
-            statusColor = 'text-rose-400 bg-rose-400/10 border-rose-400/30';
-            statusText = 'Bị Từ Chối';
-          }
-
-          return `
-            <div class="p-3 bg-slate-950/80 rounded-2xl border border-white/5 space-y-1.5 text-xs">
-              <div class="flex justify-between items-center">
-                <span class="mono text-slate-400 text-[10px]">${tx.id}</span>
-                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${statusColor}">${statusText}</span>
-              </div>
-              <div class="flex justify-between items-center">
-                <span class="text-slate-400">Số tiền:</span>
-                <span class="font-bold text-white mono text-sm">${this.formatCurrency(tx.amount)}</span>
-              </div>
-              <div class="flex justify-between items-center text-[11px] text-slate-500">
-                <span>Thời gian:</span>
-                <span>${tx.time || 'Vừa xong'}</span>
-              </div>
-              ${tx.reason ? `
-                <div class="p-2 bg-rose-950/40 border border-rose-500/30 rounded-xl text-[11px] text-rose-300">
-                  <strong>Lý do từ Admin:</strong> ${tx.reason}
-                </div>
-              ` : ''}
-            </div>
-          `;
+        tbody.innerHTML = historyList.map(function(item) {
+          var diceStr = Array.isArray(item.dice) ? item.dice.join(',') : '';
+          var totalBet = (Number(item.taiTotal) || 0) + (Number(item.xiuTotal) || 0);
+          return '<tr>' +
+            '<td class="px-3 py-2 mono text-[10px] text-slate-400">' + (item.time || '--:--') + '</td>' +
+            '<td class="px-3 py-2 mono text-cyan-400 font-bold">' + item.sessionId + '</td>' +
+            '<td class="px-3 py-2 mono text-white">' + ((item.result === 'TAI') ? 'Tài' : 'Xỉu') + ' (' + item.sum + ': ' + diceStr + ')</td>' +
+            '<td class="px-3 py-2 mono text-slate-300">' + App.formatCurrency(totalBet) + '</td>' +
+            '<td class="px-3 py-2 text-right mono ' + (item.exploded ? 'text-amber-400 font-black animate-pulse' : 'text-slate-500') + '">' +
+              (item.exploded ? '💥 ' + App.formatCurrency(item.potAmount) : 'Không') +
+            '</td>' +
+          '</tr>';
         }).join('');
       },
 
-      drawWheelCanvas(angle = 0) {
-        const cvs = document.getElementById('wheelCanvas');
+      placeBet: function(choice) {
+        if (!App.userPhone) { App.openAuth(); return App.notify('Vui lòng đăng nhập trước!', true); }
+        if (App.txGlobalState.state !== 'betting') {
+          return App.notify('Đang trong thời gian quay poker hoặc trả thưởng, không thể đặt cược!', true);
+        }
+
+        var betAmt = parseFloat(document.getElementById('inpTxBet').value);
+        if (isNaN(betAmt) || betAmt < 2000) return App.notify('Mức cược tối thiểu là 2.000 VNĐ!', true);
+        if (betAmt > 10000000) return App.notify('Mức cược tối đa là 10.000.000 VNĐ!', true);
+        if (betAmt > App.state.balance) return App.notify('Số dư khả dụng không đủ để đặt cược!', true);
+
+        var newBal = App.state.balance - betAmt;
+        var cleanPhone = String(App.userPhone).replace(/[.#$[\]/]/g, '_');
+
+        var roomRef = db.ref('taixiu_global');
+        roomRef.transaction(function(room) {
+          if (!room || room.state !== 'betting') return;
+
+          if (choice === 'TAI') {
+            room.tai_total = (Number(room.tai_total) || 0) + betAmt;
+            room.tai_players = room.tai_players || {};
+            var curTai = room.tai_players[cleanPhone] ? (Number(room.tai_players[cleanPhone].amount) || 0) : 0;
+            room.tai_players[cleanPhone] = { amount: curTai + betAmt };
+          } else {
+            room.xiu_total = (Number(room.xiu_total) || 0) + betAmt;
+            room.xiu_players = room.xiu_players || {};
+            var curXiu = room.xiu_players[cleanPhone] ? (Number(room.xiu_players[cleanPhone].amount) || 0) : 0;
+            room.xiu_players[cleanPhone] = { amount: curXiu + betAmt };
+          }
+          return room;
+        }, function(err, committed) {
+          if (err || !committed) {
+            return App.notify('Phiên cược đã đóng hoặc lỗi đồng bộ!', true);
+          }
+
+          var nowFormatted = new Date().toLocaleTimeString('vi-VN') + ' ' + new Date().toLocaleDateString('vi-VN');
+          var newLedger = [].concat(App.state.ledger);
+          newLedger.unshift({
+            id: 'TX-' + Math.floor(1000 + Math.random() * 9000),
+            type: 'invest',
+            amount: betAmt,
+            desc: 'Đặt cược Tài Xỉu (' + ((choice === 'TAI') ? 'Tài' : 'Xỉu') + ') - ' + App.formatCurrency(betAmt),
+            time: nowFormatted
+          });
+
+          db.ref('users/' + App.userPhone).update({
+            balance: newBal,
+            transactions: newLedger
+          }).then(function() {
+            App.notify('Đã đặt thành công ' + App.formatCurrency(betAmt) + ' vào cửa ' + ((choice === 'TAI') ? 'Tài' : 'Xỉu') + '!');
+          });
+        });
+      },
+
+      renderTaiXiuRoomUI: function(forceDiceRebuild) {
+        var state = App.txGlobalState.state || 'betting';
+        var now = App.getNow();
+        var endTime = Number(App.txGlobalState.endTime) || 0;
+        var maxSec = (state === 'betting') ? 30 : 5;
+        var remainMs = Math.max(0, endTime - now);
+        var remainSec = Math.min(maxSec, Math.max(0, Math.floor((remainMs + 950) / 1000)));
+        if (remainMs <= 0) remainSec = 0;
+
+        var elSession = document.getElementById('uiTxSessionId');
+        var elPot = document.getElementById('uiJackpotPot');
+        var elTaiTot = document.getElementById('uiTaiTotal');
+        var elXiuTot = document.getElementById('uiXiuTotal');
+        var elTaiCnt = document.getElementById('uiTaiCount');
+        var elXiuCnt = document.getElementById('uiXiuCount');
+        var elBigTimer = document.getElementById('uiTxBigTimer');
+
+        if (elSession) elSession.innerText = App.txGlobalState.sessionId || 'TX-000';
+        if (elPot) elPot.innerText = App.formatCurrency(App.txGlobalState.pot || 500000);
+        if (elTaiTot) elTaiTot.innerText = App.formatCurrency(App.txGlobalState.tai_total || 0);
+        if (elXiuTot) elXiuTot.innerText = App.formatCurrency(App.txGlobalState.xiu_total || 0);
+
+        var taiCount = App.txGlobalState.tai_players ? Object.keys(App.txGlobalState.tai_players).length : 0;
+        var xiuCount = App.txGlobalState.xiu_players ? Object.keys(App.txGlobalState.xiu_players).length : 0;
+        if (elTaiCnt) elTaiCnt.innerText = taiCount + ' người';
+        if (elXiuCnt) elXiuCnt.innerText = xiuCount + ' người';
+
+        var cleanPhone = App.userPhone ? String(App.userPhone).replace(/[.#$[\]/]/g, '_') : '';
+        var myTaiBet = (App.txGlobalState.tai_players && App.txGlobalState.tai_players[cleanPhone]) ? (Number(App.txGlobalState.tai_players[cleanPhone].amount) || 0) : 0;
+        var myXiuBet = (App.txGlobalState.xiu_players && App.txGlobalState.xiu_players[cleanPhone]) ? (Number(App.txGlobalState.xiu_players[cleanPhone].amount) || 0) : 0;
+        var totalMyBet = myTaiBet + myXiuBet;
+        var betBox = document.getElementById('uiUserCurrentBet');
+        if (betBox) betBox.innerText = 'Bạn đã cược phiên này: ' + App.formatCurrency(totalMyBet);
+
+        var badge = document.getElementById('uiTxStateBadge');
+        var diceContainer = document.getElementById('txDiceContainer');
+        var overlayText = document.getElementById('txResultOverlayText');
+        var btnTai = document.getElementById('btnBetTai');
+        var btnXiu = document.getElementById('btnBetXiu');
+
+        if (!badge || !diceContainer) return;
+
+        var stateChanged = (App.lastRenderedState !== state) || Boolean(forceDiceRebuild);
+        App.lastRenderedState = state;
+
+        if (state === 'betting') {
+          badge.className = 'px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-400 font-bold uppercase mono';
+          badge.innerText = 'Đang Đặt Cược (' + remainSec + 's)';
+          if (elBigTimer) {
+            elBigTimer.className = 'w-14 h-14 rounded-full bg-slate-900 border-2 border-emerald-400 flex items-center justify-center text-xl font-black mono text-emerald-400 shadow-lg';
+            elBigTimer.innerText = remainSec + 's';
+          }
+          btnTai.disabled = false;
+          btnXiu.disabled = false;
+          btnTai.className = 'w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-black text-xs shadow transition active:scale-95';
+          btnXiu.className = 'w-full py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-black font-black text-xs shadow transition active:scale-95';
+          
+          if (stateChanged) {
+            diceContainer.innerHTML = 
+              '<div class="w-12 h-12 rounded-2xl bg-slate-900 border border-cyan-500/40 flex items-center justify-center text-xl font-black mono text-cyan-400 shadow-lg">🎲</div>' +
+              '<div class="w-12 h-12 rounded-2xl bg-slate-900 border border-cyan-500/40 flex items-center justify-center text-xl font-black mono text-cyan-400 shadow-lg">🎲</div>' +
+              '<div class="w-12 h-12 rounded-2xl bg-slate-900 border border-cyan-500/40 flex items-center justify-center text-xl font-black mono text-cyan-400 shadow-lg">🎲</div>';
+          }
+          overlayText.innerText = 'Thời gian đặt cược còn ' + remainSec + ' giây...';
+        } else if (state === 'spinning') {
+          badge.className = 'px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-400 font-bold uppercase mono animate-pulse';
+          badge.innerText = 'Poker Xoay (' + remainSec + 's)';
+          if (elBigTimer) {
+            elBigTimer.className = 'w-14 h-14 rounded-full bg-slate-900 border-2 border-amber-400 flex items-center justify-center text-xl font-black mono text-amber-400 shadow-lg animate-pulse';
+            elBigTimer.innerText = remainSec + 's';
+          }
+          btnTai.disabled = true;
+          btnXiu.disabled = true;
+          btnTai.className = 'w-full py-2.5 rounded-xl bg-slate-800 text-slate-500 font-bold text-xs cursor-not-allowed';
+          btnXiu.className = 'w-full py-2.5 rounded-xl bg-slate-800 text-slate-500 font-bold text-xs cursor-not-allowed';
+
+          if (stateChanged) {
+            diceContainer.innerHTML = 
+              '<div class="w-12 h-12 rounded-2xl bg-slate-900 border border-amber-500 flex items-center justify-center text-xl font-black mono text-amber-400 animate-poker">🃏</div>' +
+              '<div class="w-12 h-12 rounded-2xl bg-slate-900 border border-amber-500 flex items-center justify-center text-xl font-black mono text-amber-400 animate-poker">🎲</div>' +
+              '<div class="w-12 h-12 rounded-2xl bg-slate-900 border border-amber-500 flex items-center justify-center text-xl font-black mono text-amber-400 animate-poker">🃏</div>';
+          }
+          overlayText.innerText = 'Đang lắc Poker & Xúc Xắc (' + remainSec + 's)... Đã khóa đặt cược!';
+        } else if (state === 'payout') {
+          badge.className = 'px-2.5 py-1 rounded-lg bg-purple-500/20 text-purple-400 font-bold uppercase mono';
+          badge.innerText = 'Trả Thưởng (' + remainSec + 's)';
+          if (elBigTimer) {
+            elBigTimer.className = 'w-14 h-14 rounded-full bg-slate-900 border-2 border-purple-400 flex items-center justify-center text-xl font-black mono text-purple-400 shadow-lg';
+            elBigTimer.innerText = remainSec + 's';
+          }
+          btnTai.disabled = true;
+          btnXiu.disabled = true;
+          btnTai.className = 'w-full py-2.5 rounded-xl bg-slate-800 text-slate-500 font-bold text-xs cursor-not-allowed';
+          btnXiu.className = 'w-full py-2.5 rounded-xl bg-slate-800 text-slate-500 font-bold text-xs cursor-not-allowed';
+
+          var dice = App.txGlobalState.dice || [1, 1, 1];
+          var sum = dice[0] + dice[1] + dice[2];
+          var isTai = sum >= 11;
+
+          if (stateChanged) {
+            diceContainer.innerHTML = dice.map(function(d) {
+              return '<div class="w-12 h-12 rounded-2xl bg-slate-900 border-2 border-emerald-400 flex items-center justify-center text-xl font-black mono text-emerald-300 shadow-xl">' + d + '</div>';
+            }).join('');
+          }
+          overlayText.innerHTML = 'Kết quả: <strong class="text-emerald-400">' + sum + ' (' + (isTai ? 'TÀI' : 'XỈU') + ')</strong> - Trả thưởng & sang phiên sau (' + remainSec + 's)...';
+        }
+      },
+
+      drawWheelCanvas: function(angle) {
+        if (angle === undefined) angle = App.wheelAngle;
+        var cvs = document.getElementById('wheelCanvas');
         if (!cvs) return;
-        const ctx = cvs.getContext('2d');
-        const cx = cvs.width / 2, cy = cvs.height / 2, r = cx - 6;
-        const slice = (2 * Math.PI) / WHEEL_PRIZES.length;
+        var ctx = cvs.getContext('2d');
+        var cx = cvs.width / 2, cy = cvs.height / 2, r = cx - 6;
+        var slice = (2 * Math.PI) / App.wheelPrizes.length;
 
         ctx.clearRect(0, 0, cvs.width, cvs.height);
-        WHEEL_PRIZES.forEach((p, i) => {
-          const start = angle + i * slice;
+        App.wheelPrizes.forEach(function(p, i) {
+          var start = angle + i * slice;
           ctx.beginPath();
           ctx.moveTo(cx, cy);
           ctx.arc(cx, cy, r, start, start + slice);
@@ -1172,119 +1197,138 @@
         });
       },
 
-      spinWheel() {
-        if (!this.userPhone) { this.openAuth(); return this.notify('Vui lòng đăng nhập trước!', true); }
-        if (this.state.hasSpunWheel) return this.notify('Bạn đã quay vòng quay tân thủ rồi!', true);
-        if (this.isSpinning) return;
+      // =========================================================================
+      // VÒNG QUAY MAY MẮN: YÊU CẦU TỔNG NẠP >= 200.000Đ MỚI ĐƯỢC QUAY
+      // =========================================================================
+      spinWheel: function() {
+        if (!App.userPhone) {
+          App.openAuth();
+          return App.notify('Vui lòng đăng nhập trước!', true);
+        }
+        if (App.state.hasSpunWheel) {
+          return App.notify('Bạn đã sử dụng lượt quay may mắn này rồi!', true);
+        }
 
-        this.isSpinning = true;
+        var currentTotalDep = Number(App.state.totalDeposited) || 0;
+        if (currentTotalDep < 200000) {
+          var missingAmt = 200000 - currentTotalDep;
+          return App.notify('Yêu cầu tổng nạp từ 200.000đ trở lên để quay! Bạn còn thiếu ' + App.formatCurrency(missingAmt) + '.', true);
+        }
 
-        const rand = Math.random() * 100;
-        let cum = 0, selIdx = 0;
-        for (let i = 0; i < WHEEL_PRIZES.length; i++) {
-          cum += WHEEL_PRIZES[i].prob;
+        if (App.isSpinning) return;
+
+        App.isSpinning = true;
+
+        var rand = Math.random() * 100;
+        var cum = 0, selIdx = 0;
+        for (var i = 0; i < App.wheelPrizes.length; i++) {
+          cum += App.wheelPrizes[i].prob;
           if (rand < cum) { selIdx = i; break; }
         }
 
-        const slice = (2 * Math.PI) / WHEEL_PRIZES.length;
-        const targetStop = ((3 * Math.PI / 2) - (selIdx * slice + slice / 2) + 2 * Math.PI) % (2 * Math.PI);
-        const diff = (targetStop - (this.wheelAngle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
-        const startAngle = this.wheelAngle;
-        const totalRot = 6 * 2 * Math.PI + diff;
-        const startTime = performance.now();
+        var slice = (2 * Math.PI) / App.wheelPrizes.length;
+        var targetStop = ((3 * Math.PI / 2) - (selIdx * slice + slice / 2) + 2 * Math.PI) % (2 * Math.PI);
+        var diff = (targetStop - (App.wheelAngle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+        var startAngle = App.wheelAngle;
+        var totalRot = 6 * 2 * Math.PI + diff;
+        var startTime = performance.now();
 
-        const animate = (time) => {
-          const progress = Math.min((time - startTime) / 3600, 1);
-          this.wheelAngle = startAngle + (1 - Math.pow(1 - progress, 3)) * totalRot;
-          this.drawWheelCanvas(this.wheelAngle);
+        var animate = function(time) {
+          var progress = Math.min((time - startTime) / 3600, 1);
+          App.wheelAngle = startAngle + (1 - Math.pow(1 - progress, 3)) * totalRot;
+          App.drawWheelCanvas(App.wheelAngle);
 
           if (progress < 1) {
             requestAnimationFrame(animate);
           } else {
-            this.isSpinning = false;
-            const rewardPrize = WHEEL_PRIZES[selIdx];
+            App.isSpinning = false;
+            var rewardPrize = App.wheelPrizes[selIdx];
 
-            const newBalance = (this.state.balance || 0) + rewardPrize.val;
-            const newTransactions = [...this.state.ledger];
+            var newBalance = (App.state.balance || 0) + rewardPrize.val;
+            var newTransactions = [].concat(App.state.ledger);
+            var nowFormatted = new Date().toLocaleTimeString('vi-VN') + ' ' + new Date().toLocaleDateString('vi-VN');
             newTransactions.unshift({
               id: 'WHEEL-' + Math.floor(1000 + Math.random() * 9000),
               type: 'profit',
               amount: rewardPrize.val,
-              desc: `Thưởng Vòng Quay Tân Thủ (+${rewardPrize.text})`
+              desc: 'Thưởng Vòng Quay May Mắn (+' + rewardPrize.text + ')',
+              time: nowFormatted
             });
 
-            db.ref('users/' + this.userPhone).update({
+            db.ref('users/' + App.userPhone).update({
               balance: newBalance,
               hasSpunWheel: true,
               wheelRewardPending: 0,
               transactions: newTransactions
-            }).then(() => {
-              this.renderUI();
-              alert(`🎉 Chúc mừng bạn đã quay trúng ${rewardPrize.text}! Tiền thưởng đã được cộng thẳng vào số dư.`);
+            }).then(function() {
+              App.renderUI();
+              alert('🎉 Chúc mừng bạn đã quay trúng ' + rewardPrize.text + '! Tiền thưởng đã được cộng thẳng vào số dư.');
             });
           }
         };
         requestAnimationFrame(animate);
       },
 
-      promptStakeConfirmation(nodeId) {
-        if (!this.userPhone) { this.openAuth(); return this.notify('Vui lòng đăng nhập trước!', true); }
-        const node = PROTOCOL_NODES.find(n => n.id === nodeId);
-        if (this.state.balance < node.amount) return this.notify('Số dư khả dụng không đủ, hãy nạp thêm!', true);
+      promptStakeConfirmation: function(nodeId) {
+        if (!App.userPhone) { App.openAuth(); return App.notify('Vui lòng đăng nhập trước!', true); }
+        var node = App.protocolNodes.find(function(n) { return n.id === nodeId; });
+        if (App.state.balance < node.amount) return App.notify('Số dư khả dụng không đủ, hãy nạp thêm!', true);
 
-        this.currentActionPending = { type: 'STAKE', data: node };
+        App.currentActionPending = { type: 'STAKE', data: node };
         document.getElementById('confirmActionTitle').innerText = 'Xác Nhận Mua Gói Đầu Tư';
-        document.getElementById('confirmActionDesc').innerText = `Kích hoạt ${node.name} với số tiền ${this.formatCurrency(node.amount)}? (Lãi ngày đầu tiên sẽ mở khóa sau đúng 24 giờ)`;
+        document.getElementById('confirmActionDesc').innerText = 'Kích hoạt ' + node.name + ' với số tiền ' + App.formatCurrency(node.amount) + '? (Lãi ngày đầu tiên sẽ mở khóa sau đúng 24 giờ)';
         
-        document.getElementById('btnConfirmActionYes').onclick = () => this.executeAction();
-        document.getElementById('btnConfirmActionNo').onclick = () => this.openRejectModal();
+        document.getElementById('btnConfirmActionYes').onclick = function() { App.executeAction(); };
+        document.getElementById('btnConfirmActionNo').onclick = function() { App.openRejectModal(); };
         document.getElementById('confirmActionModal').classList.remove('hidden');
       },
 
-      promptWithdrawConfirmation() {
-        if (!this.userPhone) return this.openAuth();
+      promptWithdrawConfirmation: function() {
+        if (!App.userPhone) return App.openAuth();
 
-        const cond = this.getWithdrawalConditions();
+        var cond = App.getWithdrawalConditions();
         if (!cond.hasDeposited70k) {
-          return this.notify('Muốn rút tiền lần đầu phải nạp ít nhất 70.000đ và mua gói 70K! (Bạn chưa nạp đủ 70K)', true);
+          return App.notify('Muốn rút tiền lần đầu phải nạp ít nhất 70.000đ và mua gói 70K! (Bạn chưa nạp đủ 70K)', true);
         }
         if (!cond.hasBoughtPkg70k) {
-          return this.notify('Muốn rút tiền lần đầu phải nạp ít nhất 70.000đ và mua gói 70K! (Bạn chưa mua gói 70K)', true);
+          return App.notify('Muốn rút tiền lần đầu phải nạp ít nhất 70.000đ và mua gói 70K! (Bạn chưa mua gói 70K)', true);
         }
 
-        if (!this.isWithdrawalTimeValid()) {
-          return this.notify('Hệ thống chỉ hỗ trợ rút tiền từ 09:00 sáng đến 22:00 đêm!', true);
+        if (!App.isWithdrawalTimeValid()) {
+          return App.notify('Hệ thống chỉ hỗ trợ rút tiền từ 09:00 sáng đến 22:00 đêm!', true);
         }
 
-        const amt = parseFloat(document.getElementById('inpWitAmount').value);
-        const bank = document.getElementById('inpWitBank').value;
-        const stk = document.getElementById('inpWitSTK').value.trim();
-        const name = document.getElementById('inpWitName').value.trim().toUpperCase();
+        var amt = parseFloat(document.getElementById('inpWitAmount').value);
+        var bank = document.getElementById('inpWitBank').value;
+        var stk = document.getElementById('inpWitSTK').value.trim();
+        var name = document.getElementById('inpWitName').value.trim().toUpperCase();
 
-        if (!stk || !name) return this.notify('Vui lòng điền đủ STK và Họ Tên!', true);
-        if (amt < 30000) return this.notify('Rút tối thiểu từ 30.000 VNĐ!', true);
-        if (amt > this.state.balance) return this.notify('Số dư khả dụng không đủ để rút!', true);
+        if (!stk || !name) return App.notify('Vui lòng điền đủ STK và Họ Tên!', true);
+        if (amt < 30000) return App.notify('Rút tối thiểu từ 30.000 VNĐ!', true);
+        if (amt > App.state.balance) return App.notify('Số dư khả dụng không đủ để rút!', true);
 
-        this.currentActionPending = { type: 'WITHDRAW', data: { amt, bank, stk, name } };
+        App.currentActionPending = { type: 'WITHDRAW', data: { amt: amt, bank: bank, stk: stk, name: name } };
         document.getElementById('confirmActionTitle').innerText = 'Xác Nhận Rút Tiền Về Ngân Hàng';
-        document.getElementById('confirmActionDesc').innerText = `Rút ${this.formatCurrency(amt)} về STK ${stk} (${bank} - ${name})?`;
+        document.getElementById('confirmActionDesc').innerText = 'Rút ' + App.formatCurrency(amt) + ' về STK ' + stk + ' (' + bank + ' - ' + name + ')?';
 
-        document.getElementById('btnConfirmActionYes').onclick = () => this.executeAction();
-        document.getElementById('btnConfirmActionNo').onclick = () => this.openRejectModal();
+        document.getElementById('btnConfirmActionYes').onclick = function() { App.executeAction(); };
+        document.getElementById('btnConfirmActionNo').onclick = function() { App.openRejectModal(); };
         document.getElementById('confirmActionModal').classList.remove('hidden');
       },
 
-      executeAction() {
+      executeAction: function() {
         document.getElementById('confirmActionModal').classList.add('hidden');
-        if (!this.currentActionPending) return;
+        if (!App.currentActionPending) return;
 
-        if (this.currentActionPending.type === 'STAKE') {
-          const node = this.currentActionPending.data;
-          if (this.state.balance < node.amount) return this.notify('Số dư không đủ!', true);
+        var nowFormatted = new Date().toLocaleTimeString('vi-VN') + ' ' + new Date().toLocaleDateString('vi-VN');
 
-          const now = this.getNow();
-          const newBal = this.state.balance - node.amount;
-          const newInvestments = [...this.state.activeInvestments];
+        if (App.currentActionPending.type === 'STAKE') {
+          var node = App.currentActionPending.data;
+          if (App.state.balance < node.amount) return App.notify('Số dư không đủ!', true);
+
+          var now = App.getNow();
+          var newBal = App.state.balance - node.amount;
+          var newInvestments = [].concat(App.state.activeInvestments);
 
           newInvestments.unshift({
             instanceId: 'ACT-' + Math.floor(1000 + Math.random() * 9000),
@@ -1299,187 +1343,181 @@
             schemaVersion: 3
           });
 
-          const newTransactions = [...this.state.ledger];
+          var newTransactions = [].concat(App.state.ledger);
           newTransactions.unshift({
             id: 'TX-' + Math.floor(1000 + Math.random() * 9000),
             type: 'invest',
             amount: node.amount,
-            desc: `Đầu tư ${node.name} (Nhận lãi sau 24h)`
+            desc: 'Đầu tư ' + node.name + ' (Nhận lãi sau 24h)',
+            time: nowFormatted
           });
 
-          db.ref('users/' + this.userPhone).update({
+          db.ref('users/' + App.userPhone).update({
             balance: newBal,
             activeInvestments: newInvestments,
             transactions: newTransactions
-          }).then(() => {
-            this.notify(`Đã mua ${node.name}! Sau đúng 24h sẽ nhận được lãi ngày đầu tiên.`);
+          }).then(function() {
+            App.notify('Đã mua ' + node.name + '! Sau đúng 24h sẽ nhận được lãi ngày đầu tiên.');
           });
-        } else if (this.currentActionPending.type === 'WITHDRAW') {
-          const cond = this.getWithdrawalConditions();
+        } else if (App.currentActionPending.type === 'WITHDRAW') {
+          var cond = App.getWithdrawalConditions();
           if (!cond.isEligible) {
-            this.currentActionPending = null;
-            return this.notify('Muốn rút tiền lần đầu phải nạp ít nhất 70.000đ và mua gói 70K!', true);
+            App.currentActionPending = null;
+            return App.notify('Muốn rút tiền lần đầu phải nạp ít nhất 70.000đ và mua gói 70K!', true);
           }
 
-          if (!this.isWithdrawalTimeValid()) {
-            this.currentActionPending = null;
-            return this.notify('Ngoài khung giờ hỗ trợ (09:00 - 22:00). Lệnh rút bị hủy!', true);
+          if (!App.isWithdrawalTimeValid()) {
+            App.currentActionPending = null;
+            return App.notify('Ngoài khung giờ hỗ trợ (09:00 - 22:00). Lệnh rút bị hủy!', true);
           }
 
-          const { amt, bank, stk, name } = this.currentActionPending.data;
-          const witId = 'WIT-' + Math.floor(1000 + Math.random() * 9000);
+          var witDataPending = App.currentActionPending.data;
+          var amt = witDataPending.amt, bank = witDataPending.bank, stk = witDataPending.stk, name = witDataPending.name;
+          var witId = 'WIT-' + Math.floor(1000 + Math.random() * 9000);
           
-          const newBal = this.state.balance - amt;
-          const newWithdrawn = (this.state.totalWithdrawn || 0) + amt;
+          var newBalWit = App.state.balance - amt;
+          var newWithdrawn = (App.state.totalWithdrawn || 0) + amt;
 
-          db.ref('users/' + this.userPhone).update({
-            balance: newBal,
+          db.ref('users/' + App.userPhone).update({
+            balance: newBalWit,
             totalWithdrawn: newWithdrawn
-          }).then(() => {
-            const witData = {
-              id: witId, phone: this.userPhone, bank, stk, name, amount: amt, status: 'PENDING', time: new Date().toLocaleTimeString()
+          }).then(function() {
+            var witData = {
+              id: witId, phone: App.userPhone, bank: bank, stk: stk, name: name, amount: amt, status: 'PENDING', time: nowFormatted
             };
             db.ref('pending_withdraws/' + witId).set(witData);
-            db.ref(`user_tx_status/${this.userPhone}/withdraws/${witId}`).set(witData);
+            db.ref('user_tx_status/' + App.userPhone + '/withdraws/' + witId).set(witData);
             
-            sendTelegramAlertDirect(`
-⚠️ <b>CÓ LỆNH RÚT TIỀN MỚI</b>
-━━━━━━━━━━━━━━━━━━
-👤 <b>SĐT Người Rút:</b> ${this.userPhone}
-💰 <b>Số Tiền:</b> ${this.formatCurrency(amt)}
-🏦 <b>Ngân Hàng:</b> ${bank}
-💳 <b>Số Tài Khoản:</b> ${stk}
-📛 <b>Chủ Tài Khoản:</b> ${name}
-🆔 <b>Mã Lệnh:</b> ${witId}
-⏰ <b>Thời Gian:</b> ${new Date().toLocaleTimeString()}
-            `);
+            sendTelegramAlertDirect(
+              '⚠️ <b>CÓ LỆNH RÚT TIỀN MỚI</b>\n' +
+              '━━━━━━━━━━━━━━━━━━\n' +
+              '👤 <b>SĐT Người Rút:</b> ' + App.userPhone + '\n' +
+              '💰 <b>Số Tiền:</b> ' + App.formatCurrency(amt) + '\n' +
+              '🏦 <b>Ngân Hàng:</b> ' + bank + '\n' +
+              '💳 <b>Số Tài Khoản:</b> ' + stk + '\n' +
+              '📛 <b>Chủ Tài Khoản:</b> ' + name + '\n' +
+              '🆔 <b>Mã Lệnh:</b> ' + witId + '\n' +
+              '⏰ <b>Thời Gian:</b> ' + nowFormatted
+            );
 
-            this.closeWallet();
-            this.notify(`Lệnh rút ${this.formatCurrency(amt)} đã gửi lên hàng chờ duyệt!`);
+            App.closeWallet();
+            App.notify('Lệnh rút ' + App.formatCurrency(amt) + ' đã gửi lên hàng chờ duyệt!');
           });
         }
-        this.currentActionPending = null;
+        App.currentActionPending = null;
       },
 
-      openRejectModal() {
+      openRejectModal: function() {
         document.getElementById('confirmActionModal').classList.add('hidden');
         document.getElementById('inpRejectReason').value = '';
         document.getElementById('rejectReasonModal').classList.remove('hidden');
       },
 
-      submitRejectReason() {
-        const reason = document.getElementById('inpRejectReason').value.trim();
+      submitRejectReason: function() {
+        var reason = document.getElementById('inpRejectReason').value.trim();
         if (!reason) return alert('Vui lòng nhập lý do từ chối!');
 
-        const logId = 'REJ-' + Math.floor(1000 + Math.random() * 9000);
-        const actionName = this.currentActionPending ? this.currentActionPending.type : 'UNKNOWN';
+        var logId = 'REJ-' + Math.floor(1000 + Math.random() * 9000);
+        var actionName = App.currentActionPending ? App.currentActionPending.type : 'UNKNOWN';
+        var nowFormatted = new Date().toLocaleTimeString('vi-VN') + ' ' + new Date().toLocaleDateString('vi-VN');
 
         db.ref('cancelled_logs/' + logId).set({
           id: logId,
-          phone: this.userPhone,
+          phone: App.userPhone,
           action: actionName,
           reason: reason,
-          time: new Date().toLocaleTimeString()
+          time: nowFormatted
         });
 
-        sendTelegramAlertDirect(`
-❌ <b>NGƯỜI CHƠI TỪ CHỐI THAO TÁC</b>
-━━━━━━━━━━━━━━━━━━
-👤 <b>SĐT:</b> ${this.userPhone}
-⚙️ <b>Hành Động:</b> ${actionName}
-💬 <b>Lý Do Người Chơi:</b> "${reason}"
-⏰ <b>Thời Gian:</b> ${new Date().toLocaleTimeString()}
-        `);
+        sendTelegramAlertDirect(
+          '❌ <b>NGƯỜI CHƠI TỪ CHỐI THAO TÁC</b>\n' +
+          '━━━━━━━━━━━━━━━━━━\n' +
+          '👤 <b>SĐT:</b> ' + App.userPhone + '\n' +
+          '⚙️ <b>Hành Động:</b> ' + actionName + '\n' +
+          '💬 <b>Lý Do Người Chơi:</b> "' + reason + '"\n' +
+          '⏰ <b>Thời Gian:</b> ' + nowFormatted
+        );
 
         document.getElementById('rejectReasonModal').classList.add('hidden');
-        this.notify('Đã gửi phản hồi từ chối lên hệ thống Admin.');
-        this.currentActionPending = null;
+        App.notify('Đã gửi phản hồi từ chối lên hệ thống Admin.');
+        App.currentActionPending = null;
       },
 
-      renderActiveList() {
-        const box = document.getElementById('uiActiveList');
+      renderActiveList: function() {
+        var box = document.getElementById('uiActiveList');
         if (!box) return;
-        if (this.state.activeInvestments.length === 0) {
-          box.innerHTML = `<div class="text-center py-5 text-slate-500 text-xs">Chưa có quỹ nào đang hoạt động.</div>`;
+        if (App.state.activeInvestments.length === 0) {
+          box.innerHTML = '<div class="text-center py-5 text-slate-500 text-xs">Chưa có quỹ nào đang hoạt động.</div>';
           return;
         }
-        box.innerHTML = this.state.activeInvestments.map(item => {
-          const claimInfo = this.getPackageClaimState(item);
-          return `
-            <div class="p-3.5 bg-slate-950/80 rounded-2xl border border-white/5 flex items-center justify-between text-xs gap-2">
-              <div>
-                <div class="font-bold text-white">${item.name} <span class="text-emerald-400 mono">(${item.daysPassed || 0}/${item.days} ngày)</span></div>
-                <div class="text-slate-400 text-[11px] mt-0.5">
-                  Lãi chờ nhận: <strong class="${claimInfo.canClaim ? 'text-emerald-400' : 'text-slate-500'} mono">+${this.formatCurrency(claimInfo.claimableAmount)}</strong>
-                </div>
-                <div class="text-[10px] text-amber-400/80 mono mt-0.5">Định mức: +${this.formatCurrency(item.income)} / sau mỗi 24h</div>
-              </div>
-              ${claimInfo.isCompleted ? `
-                <button disabled class="px-3 py-2 bg-slate-900 text-slate-500 font-bold rounded-xl border border-white/5 cursor-not-allowed shrink-0 text-[11px]">
-                  Đã Hoàn Tất
-                </button>
-              ` : claimInfo.canClaim ? `
-                <button onclick="App.harvestSingle('${item.instanceId}')" class="px-3.5 py-2 bg-amber-400 text-black font-black rounded-xl active:scale-95 transition shrink-0 shadow-lg">
-                  Thu Hoạch
-                </button>
-              ` : `
-                <button disabled id="timer-${item.instanceId}" class="px-3 py-2 bg-slate-900 text-amber-400/90 mono font-bold rounded-xl border border-amber-500/20 cursor-not-allowed shrink-0 text-[11px]">
-                  ⏳ Nhận sau ${this.formatCountdown(claimInfo.remainMs)}
-                </button>
-              `}
-            </div>
-          `;
+        box.innerHTML = App.state.activeInvestments.map(function(item) {
+          var claimInfo = App.getPackageClaimState(item);
+          return '<div class="p-3.5 bg-slate-950/80 rounded-2xl border border-white/5 flex items-center justify-between text-xs gap-2">' +
+            '<div>' +
+              '<div class="font-bold text-white">' + item.name + ' <span class="text-emerald-400 mono">(' + (item.daysPassed || 0) + '/' + item.days + ' ngày)</span></div>' +
+              '<div class="text-slate-400 text-[11px] mt-0.5">' +
+                'Lãi chờ nhận: <strong class="' + (claimInfo.canClaim ? 'text-emerald-400' : 'text-slate-500') + ' mono">+' + App.formatCurrency(claimInfo.claimableAmount) + '</strong>' +
+              '</div>' +
+              '<div class="text-[10px] text-amber-400/80 mono mt-0.5">Định mức: +' + App.formatCurrency(item.income) + ' / sau mỗi 24h</div>' +
+            '</div>' +
+            (claimInfo.isCompleted ? 
+              '<button disabled class="px-3 py-2 bg-slate-900 text-slate-500 font-bold rounded-xl border border-white/5 cursor-not-allowed shrink-0 text-[11px]">Đã Hoàn Tất</button>' :
+              claimInfo.canClaim ? 
+              '<button onclick="App.harvestSingle(\'' + item.instanceId + '\')" class="px-3.5 py-2 bg-amber-400 text-black font-black rounded-xl active:scale-95 transition shrink-0 shadow-lg">Thu Hoạch</button>' :
+              '<button disabled id="timer-' + item.instanceId + '" class="px-3 py-2 bg-slate-900 text-amber-400/90 mono font-bold rounded-xl border border-amber-500/20 cursor-not-allowed shrink-0 text-[11px]">⏳ Nhận sau ' + App.formatCountdown(claimInfo.remainMs) + '</button>'
+            ) +
+          '</div>';
         }).join('');
       },
 
-      harvestSingle(instId) {
-        if (this.isHarvesting) return;
-        const target = this.state.activeInvestments.find(i => i.instanceId === instId);
+      harvestSingle: function(instId) {
+        if (App.isHarvesting) return;
+        var target = App.state.activeInvestments.find(function(i) { return i.instanceId === instId; });
         if (!target) return;
 
-        const claimInfo = this.getPackageClaimState(target);
+        var claimInfo = App.getPackageClaimState(target);
         if (!claimInfo.canClaim || claimInfo.claimableAmount <= 0) {
-          return this.notify(`Chưa đủ 24 giờ! Còn phải chờ ${this.formatCountdown(claimInfo.remainMs)} nữa mới nhận được lãi.`, true);
+          return App.notify('Chưa đủ 24 giờ! Còn phải chờ ' + App.formatCountdown(claimInfo.remainMs) + ' nữa mới nhận được lãi.', true);
         }
 
-        this.isHarvesting = true;
-        const now = this.getNow();
-        const amt = claimInfo.claimableAmount;
-        const newBal = this.state.balance + amt;
+        App.isHarvesting = true;
+        var now = App.getNow();
+        var amt = claimInfo.claimableAmount;
+        var newBal = App.state.balance + amt;
 
         target.daysPassed = (Number(target.daysPassed) || 0) + 1;
         target.pending = 0;
         target.nextClaimTime = now + ONE_DAY_MS;
         target.schemaVersion = 3;
 
-        const newLedger = [...this.state.ledger];
+        var nowFormatted = new Date().toLocaleTimeString('vi-VN') + ' ' + new Date().toLocaleDateString('vi-VN');
+        var newLedger = [].concat(App.state.ledger);
         newLedger.unshift({
           id: 'TX-' + Math.floor(1000 + Math.random() * 9000),
           type: 'profit',
           amount: amt,
-          desc: `Nhận lãi ngày ${target.daysPassed}/${target.days} - ${target.name}`
+          desc: 'Nhận lãi ngày ' + target.daysPassed + '/' + target.days + ' - ' + target.name,
+          time: nowFormatted
         });
 
-        db.ref('users/' + this.userPhone).update({
+        db.ref('users/' + App.userPhone).update({
           balance: newBal,
-          activeInvestments: this.state.activeInvestments,
+          activeInvestments: App.state.activeInvestments,
           transactions: newLedger
-        }).then(() => {
-          this.isHarvesting = false;
-          this.renderUI();
-          this.notify(`Đã nhận +${this.formatCurrency(amt)} (Ngày ${target.daysPassed}/${target.days})! Đã khóa đếm ngược 24h cho ngày tiếp theo.`);
-        }).catch(() => {
-          this.isHarvesting = false;
-        });
+        }).then(function() {
+          App.isHarvesting = false;
+          App.renderUI();
+          App.notify('Đã nhận +' + App.formatCurrency(amt) + ' (Ngày ' + target.daysPassed + '/' + target.days + ')! Đã khóa đếm ngược 24h.');
+        }).catch(function() { App.isHarvesting = false; });
       },
 
-      harvestAll() {
-        if (this.isHarvesting) return;
-        let total = 0;
-        const now = this.getNow();
+      harvestAll: function() {
+        if (App.isHarvesting) return;
+        var total = 0;
+        var now = App.getNow();
 
-        this.state.activeInvestments.forEach(item => {
-          const claimInfo = this.getPackageClaimState(item);
+        App.state.activeInvestments.forEach(function(item) {
+          var claimInfo = App.getPackageClaimState(item);
           if (claimInfo.canClaim && claimInfo.claimableAmount > 0) {
             total += claimInfo.claimableAmount;
             item.daysPassed = (Number(item.daysPassed) || 0) + 1;
@@ -1490,74 +1528,75 @@
         });
 
         if (total <= 0) {
-          return this.notify('Không thể nhận! Khi mới mua gói phải chờ đủ 24 giờ đếm ngược mới nhận được lãi.', true);
+          return App.notify('Không thể nhận! Khi mới mua gói phải chờ đủ 24 giờ đếm ngược mới nhận được lãi.', true);
         }
 
-        this.isHarvesting = true;
-        const newBal = this.state.balance + total;
-        const newLedger = [...this.state.ledger];
+        App.isHarvesting = true;
+        var newBal = App.state.balance + total;
+        var nowFormatted = new Date().toLocaleTimeString('vi-VN') + ' ' + new Date().toLocaleDateString('vi-VN');
+        var newLedger = [].concat(App.state.ledger);
         newLedger.unshift({
           id: 'TX-' + Math.floor(1000 + Math.random() * 9000),
           type: 'profit',
           amount: total,
-          desc: 'Thu hoạch tất cả các quỹ đã đủ 24h'
+          desc: 'Thu hoạch tất cả các quỹ đã đủ 24h',
+          time: nowFormatted
         });
 
-        db.ref('users/' + this.userPhone).update({
+        db.ref('users/' + App.userPhone).update({
           balance: newBal,
-          activeInvestments: this.state.activeInvestments,
+          activeInvestments: App.state.activeInvestments,
           transactions: newLedger
-        }).then(() => {
-          this.isHarvesting = false;
-          this.renderUI();
-          this.notify(`Đã thu hoạch tất cả +${this.formatCurrency(total)}! Đã khóa đếm ngược 24h tiếp theo.`);
-        }).catch(() => {
-          this.isHarvesting = false;
-        });
+        }).then(function() {
+          App.isHarvesting = false;
+          App.renderUI();
+          App.notify('Đã thu hoạch tất cả +' + App.formatCurrency(total) + '! Đã khóa đếm ngược 24h.');
+        }).catch(function() { App.isHarvesting = false; });
       },
 
-      renderLedger() {
-        const el = document.getElementById('uiLedgerBody');
+      renderLedger: function() {
+        var el = document.getElementById('uiLedgerBody');
         if (!el) return;
-        el.innerHTML = this.state.ledger.map(tx => `
-          <tr>
-            <td class="px-3.5 py-2.5 mono text-[10px] text-slate-400">${tx.id}</td>
-            <td class="px-3.5 py-2.5 font-bold uppercase text-[10px] text-slate-300">${tx.type}</td>
-            <td class="px-3.5 py-2.5 font-bold text-emerald-400 mono">${this.formatCurrency(tx.amount)}</td>
-            <td class="px-3.5 py-2.5 text-slate-300 text-xs">${tx.desc}</td>
-          </tr>
-        `).join('');
+        el.innerHTML = App.state.ledger.map(function(tx) {
+          return '<tr>' +
+            '<td class="px-3.5 py-2.5 mono text-[10px] text-slate-400">' + (tx.time || '--:--') + '</td>' +
+            '<td class="px-3.5 py-2.5 mono text-[10px] text-slate-400">' + tx.id + '</td>' +
+            '<td class="px-3.5 py-2.5 font-bold uppercase text-[10px] text-slate-300">' + tx.type + '</td>' +
+            '<td class="px-3.5 py-2.5 font-bold text-emerald-400 mono">' + App.formatCurrency(tx.amount) + '</td>' +
+            '<td class="px-3.5 py-2.5 text-slate-300 text-xs">' + tx.desc + '</td>' +
+          '</tr>';
+        }).join('');
       },
 
-      // XỬ LÝ ĐĂNG KÝ (TỰ ĐỘNG GẮN MÃ MỜI ĐÃ LƯU TRONG MÁY)
-      async handleRegister() {
-        const phone = document.getElementById('inpRegPhone').value.trim();
-        const pass = document.getElementById('inpRegPass').value;
-        const inviteInput = document.getElementById('inpRegInvite').value.trim();
-        const invite = inviteInput || localStorage.getItem('auravault_pending_ref') || '';
+      handleRegister: async function() {
+        var phone = document.getElementById('inpRegPhone').value.trim();
+        var pass = document.getElementById('inpRegPass').value;
+        var inviteInput = document.getElementById('inpRegInvite').value.trim();
+        var invite = inviteInput || localStorage.getItem('auravault_pending_ref') || '';
 
-        if (!/^\d{10}$/.test(phone)) return this.notify('SĐT phải đủ 10 số!', true);
-        if (pass.length < 8) return this.notify('Mật khẩu tối thiểu 8 ký tự!', true);
+        if (!/^\d{10}$/.test(phone)) return App.notify('SĐT phải đủ 10 số!', true);
+        if (pass.length < 8) return App.notify('Mật khẩu tối thiểu 8 ký tự!', true);
 
-        let userIp = 'unknown_ip';
+        var userIp = 'unknown_ip';
         try {
-          const res = await fetch('https://api.ipify.org?format=json');
-          const data = await res.json();
-          userIp = data.ip.replace(/[.#$[\]]/g, '_');
+          var res = await fetch('https://api.ipify.org?format=json');
+          var data = await res.json();
+          userIp = data.ip.replace(/[.#$[\]/]/g, '_');
         } catch (e) {
           console.warn('Cannot fetch IP:', e);
         }
 
-        db.ref('users/' + phone).once('value', snap => {
-          if (snap.exists()) return this.notify('SĐT này đã được đăng ký!', true);
+        db.ref('users/' + phone).once('value', function(snap) {
+          if (snap.exists()) return App.notify('SĐT này đã được đăng ký!', true);
 
-          db.ref('ip_logs/' + userIp).once('value', ipSnap => {
-            const count = ipSnap.val() || 0;
-            const willLock = count >= 2;
+          db.ref('ip_logs/' + userIp).once('value', function(ipSnap) {
+            var count = ipSnap.val() || 0;
+            var willLock = count >= 2;
+            var nowFormatted = new Date().toLocaleTimeString('vi-VN') + ' ' + new Date().toLocaleDateString('vi-VN');
 
-            const newAcc = {
-              phone, pass, invite: invite || '',
-              userIp,
+            var newAcc = {
+              phone: phone, pass: pass, invite: invite || '',
+              userIp: userIp,
               isLocked: willLock,
               balance: 20000,
               totalDeposited: 0,
@@ -1566,192 +1605,754 @@
               hasSpunWheel: false,
               hasDeposited: false,
               activeInvestments: [],
+              gameHistory: [],
               f1DepositsHistory: [],
-              transactions: [{ id: 'TX-20K', type: 'profit', amount: 20000, desc: 'Thưởng Đăng Ký Tân Thủ' }]
+              transactions: [{ id: 'TX-20K', type: 'profit', amount: 20000, desc: 'Thưởng Đăng Ký Tân Thủ', time: nowFormatted }]
             };
 
-            db.ref('users/' + phone).set(newAcc).then(() => {
+            db.ref('users/' + phone).set(newAcc).then(function() {
               db.ref('ip_logs/' + userIp).set(count + 1);
 
               if (willLock) {
                 alert('Phát hiện IP đã tạo trên 2 tài khoản. Tài khoản mới này đã tự động bị khóa bảo vệ hệ thống!');
               } else {
-                this.userPhone = phone;
+                App.userPhone = phone;
                 localStorage.setItem('auravault_user', phone);
-                localStorage.removeItem('auravault_pending_ref'); // Xóa mã tạm sau khi đăng ký xong
-                this.closeAuth();
-                this.initFirebaseListeners();
-                this.notify('Đăng ký thành công! Nhận +20.000đ.');
+                localStorage.removeItem('auravault_pending_ref');
+                App.closeAuth();
+                App.initFirebaseListeners();
+                App.notify('Đăng ký thành công! Nhận +20.000đ.');
               }
             });
           });
         });
       },
 
-      handleLogin() {
-        const phone = document.getElementById('inpLoginPhone').value.trim();
-        const pass = document.getElementById('inpLoginPass').value;
+      handleLogin: function() {
+        var phone = document.getElementById('inpLoginPhone').value.trim();
+        var pass = document.getElementById('inpLoginPass').value;
 
-        if (!phone || !pass) return this.notify('Vui lòng điền đủ SĐT và Mật khẩu!', true);
+        if (!phone || !pass) return App.notify('Vui lòng điền đủ SĐT và Mật khẩu!', true);
 
-        db.ref('users/' + phone).once('value', snap => {
-          if (!snap.exists()) return this.notify('SĐT chưa được đăng ký trong hệ thống!', true);
-          const acc = snap.val();
-          if (acc.pass !== pass) return this.notify('Mật khẩu không chính xác!', true);
-          if (acc.isLocked) return this.notify('Tài khoản đã bị tạm khóa!', true);
+        db.ref('users/' + phone).once('value', function(snap) {
+          if (!snap.exists()) return App.notify('SĐT chưa được đăng ký trong hệ thống!', true);
+          var acc = snap.val();
+          if (acc.pass !== pass) return App.notify('Mật khẩu không chính xác!', true);
+          if (acc.isLocked) return App.notify('Tài khoản đã bị tạm khóa!', true);
 
-          this.userPhone = phone;
+          App.userPhone = phone;
           localStorage.setItem('auravault_user', phone);
-          this.closeAuth();
-          this.initFirebaseListeners();
-          this.notify('Đăng nhập thành công!');
+          App.closeAuth();
+          App.initFirebaseListeners();
+          App.notify('Đăng nhập thành công!');
         });
       },
 
-      handleDeposit() {
-        if (!this.userPhone) { this.openAuth(); return this.notify('Vui lòng đăng nhập trước!', true); }
-        const amt = parseFloat(document.getElementById('inpDepAmount').value);
-        if (isNaN(amt) || amt < 70000) return this.notify('Nạp tối thiểu từ 70.000 VNĐ!', true);
+      handleDeposit: function() {
+        if (!App.userPhone) { App.openAuth(); return App.notify('Vui lòng đăng nhập trước!', true); }
+        var amt = parseFloat(document.getElementById('inpDepAmount').value);
+        if (isNaN(amt) || amt < 70000) return App.notify('Nạp tối thiểu từ 70.000 VNĐ!', true);
 
-        const depId = 'DEP-' + Math.floor(1000 + Math.random() * 9000);
-        const memo = this.getAutoDepositMemo();
-        const depData = {
+        var depId = 'DEP-' + Math.floor(1000 + Math.random() * 9000);
+        var memo = App.getAutoDepositMemo();
+        var nowFormatted = new Date().toLocaleTimeString('vi-VN') + ' ' + new Date().toLocaleDateString('vi-VN');
+        var depData = {
           id: depId,
-          phone: this.userPhone,
+          phone: App.userPhone,
           memo: memo,
           amount: amt,
           status: 'PENDING',
-          time: new Date().toLocaleTimeString()
+          time: nowFormatted
         };
 
-        db.ref('pending_deposits/' + depId).set(depData).then(() => {
-          db.ref(`user_tx_status/${this.userPhone}/deposits/${depId}`).set(depData);
+        db.ref('pending_deposits/' + depId).set(depData).then(function() {
+          db.ref('user_tx_status/' + App.userPhone + '/deposits/' + depId).set(depData);
 
-          sendTelegramAlertDirect(`
-🔔 <b>CÓ LỆNH NẠP TIỀN MỚI</b>
-━━━━━━━━━━━━━━━━━━
-👤 <b>SĐT Người Nạp:</b> ${this.userPhone}
-💰 <b>Số Tiền:</b> ${this.formatCurrency(amt)}
-📝 <b>Nội Dung CK:</b> ${memo}
-🆔 <b>Mã Giao Dịch:</b> ${depId}
-🏦 <b>Ngân Hàng Nhận:</b> VietinBank (HA TRUNG DUC)
-⏰ <b>Thời Gian:</b> ${new Date().toLocaleTimeString()}
-          `);
+          sendTelegramAlertDirect(
+            '🔔 <b>CÓ LỆNH NẠP TIỀN MỚI</b>\n' +
+            '━━━━━━━━━━━━━━━━━━\n' +
+            '👤 <b>SĐT Người Nạp:</b> ' + App.userPhone + '\n' +
+            '💰 <b>Số Tiền:</b> ' + App.formatCurrency(amt) + '\n' +
+            '📝 <b>Nội Dung CK:</b> ' + memo + '\n' +
+            '🆔 <b>Mã Giao Dịch:</b> ' + depId + '\n' +
+            '🏦 <b>Ngân Hàng Nhận:</b> VietinBank (HA TRUNG DUC)\n' +
+            '⏰ <b>Thời Gian:</b> ' + nowFormatted
+          );
 
-          this.closeWallet();
-          this.notify(`Đã gửi lệnh nạp ${this.formatCurrency(amt)}. Hệ thống sẽ tự động cộng khi nhận được chuyển khoản!`);
+          App.closeWallet();
+          App.notify('Đã gửi lệnh nạp ' + App.formatCurrency(amt) + '. Hệ thống sẽ tự động cộng khi nhận được chuyển khoản!');
         });
       },
 
-      openGiftModal() {
-        if (!this.userPhone) return this.openAuth();
+      openGiftModal: function() {
+        if (!App.userPhone) return App.openAuth();
         document.getElementById('giftModal').classList.remove('hidden');
       },
-      closeGiftModal() {
+      closeGiftModal: function() {
         document.getElementById('giftModal').classList.add('hidden');
       },
 
-      claimGiftCode() {
-        const code = document.getElementById('inpGiftCode').value.trim().toUpperCase();
-        if (!code) return this.notify('Vui lòng nhập mã code!', true);
+      claimGiftCode: function() {
+        var code = document.getElementById('inpGiftCode').value.trim().toUpperCase();
+        if (!code) return App.notify('Vui lòng nhập mã code!', true);
 
-        db.ref('giftcodes/' + code).once('value', snap => {
-          if (!snap.exists()) return this.notify('Mã code không tồn tại!', true);
-          const gc = snap.val();
+        db.ref('giftcodes/' + code).once('value', function(snap) {
+          if (!snap.exists()) return App.notify('Mã code không tồn tại!', true);
+          var gc = snap.val();
 
-          if (gc.usedUsers && gc.usedUsers[this.userPhone]) {
-            return this.notify('Bạn đã dùng mã này rồi!', true);
+          if (gc.usedUsers && gc.usedUsers[App.userPhone]) {
+            return App.notify('Bạn đã dùng mã này rồi!', true);
           }
-          if ((gc.usedCount || 0) >= gc.maxUses) return this.notify('Mã code đã hết số lượt nhập!', true);
+          if ((gc.usedCount || 0) >= gc.maxUses) return App.notify('Mã code đã hết số lượt nhập!', true);
 
-          const reward = Math.floor(Math.random() * (gc.max - gc.min + 1)) + gc.min;
-          const newBal = this.state.balance + reward;
-          const newLedger = [...this.state.ledger];
+          var reward = Math.floor(Math.random() * (gc.max - gc.min + 1)) + gc.min;
+          var newBal = App.state.balance + reward;
+          var nowFormatted = new Date().toLocaleTimeString('vi-VN') + ' ' + new Date().toLocaleDateString('vi-VN');
+          var newLedger = [].concat(App.state.ledger);
           newLedger.unshift({
             id: 'GIFT-' + code,
             type: 'profit',
             amount: reward,
-            desc: `Nhận thưởng Giftcode ${code}`
+            desc: 'Nhận thưởng Giftcode ' + code,
+            time: nowFormatted
           });
 
-          db.ref('users/' + this.userPhone).update({
+          db.ref('users/' + App.userPhone).update({
             balance: newBal,
             transactions: newLedger
           });
 
-          db.ref(`giftcodes/${code}/usedCount`).set((gc.usedCount || 0) + 1);
-          db.ref(`giftcodes/${code}/usedUsers/${this.userPhone}`).set(true);
+          db.ref('giftcodes/' + code + '/usedCount').set((gc.usedCount || 0) + 1);
+          db.ref('giftcodes/' + code + '/usedUsers/' + App.userPhone).set(true);
 
-          this.closeGiftModal();
-          this.notify(`🎁 Bạn đã nhận +${this.formatCurrency(reward)} từ Giftcode!`);
+          App.closeGiftModal();
+          App.notify('🎁 Bạn đã nhận thưởng +' + App.formatCurrency(reward) + ' từ Giftcode!');
         });
       },
 
-      navigate(tabKey) {
-        ['nodes', 'active', 'wheel', 'referral', 'ledger'].forEach(k => {
+      detectReferralCodeFromURL: function() {
+        var urlParams = new URLSearchParams(window.location.search);
+        var refParam = urlParams.get('ref');
+
+        if (refParam) {
+          refParam = refParam.trim();
+          localStorage.setItem('auravault_pending_ref', refParam);
+        }
+
+        var savedRef = localStorage.getItem('auravault_pending_ref');
+        if (savedRef) {
+          var inp = document.getElementById('inpRegInvite');
+          if (inp) inp.value = savedRef;
+
+          if (!App.userPhone) {
+            setTimeout(function() {
+              App.openAuth();
+              App.switchAuth('reg');
+              App.notify('Bạn đang được mời bởi ' + savedRef + '! Nhận +20k khi đăng ký.');
+            }, 600);
+          }
+        }
+      },
+
+      navigate: function(tabKey) {
+        var tabs = ['nodes', 'active', 'wheel', 'taixiu', 'referral', 'ledger'];
+        tabs.forEach(function(k) {
           document.getElementById('view-' + k).classList.toggle('hidden', k !== tabKey);
           document.getElementById('tabBtn-' + k).className = (k === tabKey)
             ? 'px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-emerald-400 text-black shadow-md shadow-emerald-400/20 transition'
             : 'px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-slate-900 text-slate-400 border border-white/5 transition';
         });
-        if (tabKey === 'wheel') this.drawWheelCanvas(this.wheelAngle);
-        if (tabKey === 'active') this.renderActiveList();
+        if (tabKey === 'wheel') App.drawWheelCanvas(App.wheelAngle);
+        if (tabKey === 'active') App.renderActiveList();
+        if (tabKey === 'taixiu') App.renderTaiXiuRoomUI(true);
       },
 
-      openAuth() { document.getElementById('authModal').classList.remove('hidden'); },
-      closeAuth() { document.getElementById('authModal').classList.add('hidden'); },
-      switchAuth(tab) {
+      openAuth: function() { document.getElementById('authModal').classList.remove('hidden'); },
+      closeAuth: function() { document.getElementById('authModal').classList.add('hidden'); },
+      switchAuth: function(tab) {
         document.getElementById('authForm-login').classList.toggle('hidden', tab !== 'login');
         document.getElementById('authForm-reg').classList.toggle('hidden', tab !== 'reg');
-        document.getElementById('authTab-login').className = tab === 'login' ? 'flex-1 py-1.5 rounded-lg bg-emerald-400 text-black' : 'flex-1 py-1.5 rounded-lg text-slate-400';
-        document.getElementById('authTab-reg').className = tab === 'reg' ? 'flex-1 py-1.5 rounded-lg bg-cyan-400 text-black' : 'flex-1 py-1.5 rounded-lg text-slate-400';
+        document.getElementById('authTab-login').className = (tab === 'login') ? 'flex-1 py-1.5 rounded-lg bg-emerald-400 text-black' : 'flex-1 py-1.5 rounded-lg text-slate-400';
+        document.getElementById('authTab-reg').className = (tab === 'reg') ? 'flex-1 py-1.5 rounded-lg bg-cyan-400 text-black' : 'flex-1 py-1.5 rounded-lg text-slate-400';
       },
 
-      openWallet(mode) {
-        if (!this.userPhone) return this.openAuth();
+      openWallet: function(mode) {
+        if (!App.userPhone) return App.openAuth();
         document.getElementById('walletModal').classList.remove('hidden');
-        this.updateSepayQR();
-        this.switchWalletTab(mode === 'deposit' ? 'dep' : 'wit');
+        App.updateSepayQR();
+        App.switchWalletTab(mode === 'deposit' ? 'dep' : 'wit');
       },
-      closeWallet() { document.getElementById('walletModal').classList.add('hidden'); },
-      switchWalletTab(tab) {
+      closeWallet: function() { document.getElementById('walletModal').classList.add('hidden'); },
+      switchWalletTab: function(tab) {
         document.getElementById('walletView-dep').classList.toggle('hidden', tab !== 'dep');
         document.getElementById('walletView-wit').classList.toggle('hidden', tab !== 'wit');
-        document.getElementById('walletTab-dep').className = tab === 'dep' ? 'flex-1 py-1.5 rounded-lg bg-emerald-400 text-black' : 'flex-1 py-1.5 rounded-lg text-slate-400';
-        document.getElementById('walletTab-wit').className = tab === 'wit' ? 'flex-1 py-1.5 rounded-lg bg-rose-500 text-white' : 'flex-1 py-1.5 rounded-lg text-slate-400';
+        document.getElementById('walletTab-dep').className = (tab === 'dep') ? 'flex-1 py-1.5 rounded-lg bg-emerald-400 text-black' : 'flex-1 py-1.5 rounded-lg text-slate-400';
+        document.getElementById('walletTab-wit').className = (tab === 'wit') ? 'flex-1 py-1.5 rounded-lg bg-rose-500 text-white' : 'flex-1 py-1.5 rounded-lg text-slate-400';
         
         if (tab === 'dep') {
-          this.updateSepayQR();
+          App.updateSepayQR();
         } else if (tab === 'wit') {
-          this.updateWithdrawalTimeUI();
+          App.updateWithdrawalTimeUI();
         }
       },
 
-      copySTK() {
+      copySTK: function() {
         copyTextUniversal('11557000');
-        this.notify('Đã sao chép STK VietinBank: 11557000');
+        App.notify('Đã sao chép STK VietinBank: 11557000');
       },
-      copyDepMemo() {
-        const memo = this.getAutoDepositMemo();
+      copyDepMemo: function() {
+        var memo = App.getAutoDepositMemo();
         copyTextUniversal(memo);
-        this.notify('Đã sao chép nội dung CK: ' + memo);
+        App.notify('Đã sao chép nội dung CK: ' + memo);
       },
-      copyRefCode() {
-        if (this.userPhone) {
-          copyTextUniversal(this.userPhone);
-          this.notify('Đã sao chép mã mời: ' + this.userPhone);
+      copyRefCode: function() {
+        if (App.userPhone) {
+          copyTextUniversal(App.userPhone);
+          App.notify('Đã sao chép mã mời: ' + App.userPhone);
         }
       },
-      copyRefLink() {
-        if (this.userPhone) {
-          const link = document.getElementById('uiRefLinkInput').value;
+      copyRefLink: function() {
+        if (App.userPhone) {
+          var link = document.getElementById('uiRefLinkInput').value;
           copyTextUniversal(link);
-          this.notify('Đã sao chép liên kết giới thiệu!');
+          App.notify('Đã sao chép liên kết giới thiệu!');
+        }
+      },
+
+      formatCurrency: function(num) {
+        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(num || 0);
+      },
+
+      notify: function(msg, isError) {
+        var box = document.getElementById('toastNotification');
+        document.getElementById('toastText').innerText = msg;
+        document.getElementById('toastIcon').innerText = isError ? '⚠️' : '⚡';
+        box.className = isError
+          ? 'fixed top-4 left-4 right-4 z-[100] max-w-sm mx-auto flex items-center gap-2.5 px-4 py-3 rounded-2xl border bg-rose-950/90 border-rose-500 text-rose-200 shadow-2xl backdrop-blur-xl transition-all duration-300'
+          : 'fixed top-4 left-4 right-4 z-[100] max-w-sm mx-auto flex items-center gap-2.5 px-4 py-3 rounded-2xl border bg-slate-900/90 border-emerald-400 text-emerald-200 shadow-2xl backdrop-blur-xl transition-all duration-300';
+        box.classList.remove('-translate-y-28', 'opacity-0', 'pointer-events-none');
+        setTimeout(function() { box.classList.add('-translate-y-28', 'opacity-0', 'pointer-events-none'); }, 3200);
+      },
+
+      sanitizeAndSyncPackages: function(investments) {
+        if (!Array.isArray(investments) || investments.length === 0) {
+          return { needSave: false, list: [] };
+        }
+        var needSave = false;
+        var now = App.getNow();
+
+        investments.forEach(function(item) {
+          if (item.schemaVersion !== 3 || !item.nextClaimTime || item.daysPassed > item.days) {
+            item.daysPassed = 0;
+            item.pending = 0;
+            item.purchasedAt = now;
+            item.nextClaimTime = now + ONE_DAY_MS;
+            item.schemaVersion = 3;
+            needSave = true;
+          }
+        });
+
+        return { needSave: needSave, list: investments };
+      },
+
+      getPackageClaimState: function(item) {
+        var now = App.getNow();
+        var daysPassed = Number(item.daysPassed) || 0;
+        var maxDays = Number(item.days) || 18;
+        var nextClaimTime = Number(item.nextClaimTime) || (now + ONE_DAY_MS);
+
+        if (daysPassed >= maxDays) {
+          return { canClaim: false, claimableAmount: 0, remainMs: 0, isCompleted: true };
+        }
+
+        var remainMs = nextClaimTime - now;
+        if (remainMs > 0) {
+          return { canClaim: false, claimableAmount: 0, remainMs: remainMs, isCompleted: false };
+        }
+
+        return { canClaim: true, claimableAmount: Number(item.income) || 0, remainMs: 0, isCompleted: false };
+      },
+
+      renderNodes: function() {
+        var grid = document.getElementById('uiNodesGrid');
+        if (!grid) return;
+        grid.innerHTML = App.protocolNodes.map(function(node) {
+          return '<div class="vault-card rounded-3xl p-4 flex flex-col justify-between hover:border-emerald-500/40 transition">' +
+            '<div>' +
+              '<div class="flex justify-between items-center mb-1">' +
+                '<span class="text-[9px] font-bold text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded-full mono">' + node.badge + '</span>' +
+                '<span class="text-[10px] text-slate-500 mono">' + node.days + 'N</span>' +
+              '</div>' +
+              '<h4 class="text-sm font-bold text-white mt-1">' + node.name + '</h4>' +
+              '<div class="text-lg font-black text-white mono my-2">' + App.formatCurrency(node.amount) + '</div>' +
+              '<div class="p-2.5 rounded-xl bg-slate-950/80 text-[11px] space-y-1 border border-white/5 mono">' +
+                '<div class="flex justify-between text-slate-400"><span>Lãi sau mỗi 24h:</span><span class="text-emerald-400 font-bold">+' + App.formatCurrency(node.income) + '</span></div>' +
+                '<div class="flex justify-between text-slate-400"><span>Tổng nhận:</span><span class="text-cyan-400 font-bold">' + App.formatCurrency(node.total) + '</span></div>' +
+              '</div>' +
+            '</div>' +
+            '<button onclick="App.promptStakeConfirmation(\'' + node.id + '\')" class="mt-3.5 w-full py-2 bg-emerald-400 text-black font-black text-xs rounded-xl shadow active:scale-95 transition">' +
+              'Kích Hoạt Gói' +
+            '</button>' +
+          '</div>';
+        }).join('');
+      },
+
+      openF1ListModal: function() {
+        if (!App.userPhone) return App.openAuth();
+
+        var boxUsers = document.getElementById('uiBoxF1Users');
+        document.getElementById('lblCountRegisteredF1').innerText = App.registeredF1List.length;
+
+        if (App.registeredF1List.length === 0) {
+          boxUsers.innerHTML = '<span class="text-slate-500 text-xs">Chưa có ai đăng ký qua link mời của bạn.</span>';
+        } else {
+          boxUsers.innerHTML = App.registeredF1List.map(function(phone) {
+            return '<span class="px-2 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs">' +
+              '👤 ' + phone.slice(0, 4) + '***' + phone.slice(-3) +
+            '</span>';
+          }).join('');
+        }
+
+        var tbody = document.getElementById('tbodyF1List');
+        var totalCom = 0;
+
+        if (!App.f1DepositsHistory || App.f1DepositsHistory.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="4" class="text-center py-5 text-slate-500">Chưa có thành viên F1 nào nạp tiền.</td></tr>';
+        } else {
+          tbody.innerHTML = App.f1DepositsHistory.map(function(item) {
+            totalCom += item.commission;
+            return '<tr>' +
+              '<td class="px-3 py-2.5 font-bold text-white mono">' + item.f1Phone + '</td>' +
+              '<td class="px-3 py-2.5 mono text-slate-300">' + App.formatCurrency(item.depositAmount) + '</td>' +
+              '<td class="px-3 py-2.5 font-bold text-emerald-400 mono">+' + App.formatCurrency(item.commission) + '</td>' +
+              '<td class="px-3 py-2.5 text-slate-400 text-[11px]">' + item.time + '</td>' +
+            '</tr>';
+          }).join('');
+        }
+
+        document.getElementById('uiTotalF1Commission').innerText = '+' + App.formatCurrency(totalCom);
+        document.getElementById('f1ListModal').classList.remove('hidden');
+      },
+
+      closeF1ListModal: function() {
+        document.getElementById('f1ListModal').classList.add('hidden');
+      },
+
+      openTxStatusModal: function() {
+        if (!App.userPhone) return App.openAuth();
+        document.getElementById('txStatusModal').classList.remove('hidden');
+        App.renderTxStatusList();
+      },
+
+      closeTxStatusModal: function() {
+        document.getElementById('txStatusModal').classList.add('hidden');
+      },
+
+      switchTxStatusTab: function(tab) {
+        App.txStatusTab = tab;
+        document.getElementById('btnTabStatusDep').className = (tab === 'dep') ? 'flex-1 py-1.5 rounded-lg bg-emerald-400 text-black transition' : 'flex-1 py-1.5 rounded-lg text-slate-400 transition';
+        document.getElementById('btnTabStatusWit').className = (tab === 'wit') ? 'flex-1 py-1.5 rounded-lg bg-rose-500 text-white transition' : 'flex-1 py-1.5 rounded-lg text-slate-400 transition';
+        App.renderTxStatusList();
+      },
+
+      renderTxStatusList: function() {
+        var box = document.getElementById('uiTxStatusList');
+        var list = (App.txStatusTab === 'dep') ? App.depositRequests : App.withdrawRequests;
+
+        if (!list || list.length === 0) {
+          box.innerHTML = '<div class="text-center py-6 text-slate-500 text-xs">Chưa có giao dịch ' + ((App.txStatusTab === 'dep') ? 'nạp' : 'rút') + ' nào được ghi nhận.</div>';
+          return;
+        }
+
+        box.innerHTML = list.map(function(tx) {
+          var statusColor = 'text-amber-400 bg-amber-400/10 border-amber-400/30';
+          var statusText = 'Đang Chờ Duyệt';
+          if (tx.status === 'APPROVED') {
+            statusColor = 'text-emerald-400 bg-emerald-400/10 border-emerald-400/30';
+            statusText = 'Đã Duyệt Thành Công';
+          } else if (tx.status === 'REJECTED') {
+            statusColor = 'text-rose-400 bg-rose-400/10 border-rose-400/30';
+            statusText = 'Bị Từ Chối';
+          }
+
+          return '<div class="p-3 bg-slate-950/80 rounded-2xl border border-white/5 space-y-1.5 text-xs">' +
+            '<div class="flex justify-between items-center">' +
+              '<span class="mono text-slate-400 text-[10px]">' + tx.id + '</span>' +
+              '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ' + statusColor + '">' + statusText + '</span>' +
+            '</div>' +
+            '<div class="flex justify-between items-center">' +
+              '<span class="text-slate-400">Số tiền:</span>' +
+              '<span class="font-bold text-white mono text-sm">' + App.formatCurrency(tx.amount) + '</span>' +
+            '</div>' +
+            '<div class="flex justify-between items-center text-[11px] text-slate-500">' +
+              '<span>Thời gian:</span>' +
+              '<span>' + (tx.time || 'Vừa xong') + '</span>' +
+            '</div>' +
+            (tx.reason ? 
+              '<div class="p-2 bg-rose-950/40 border border-rose-500/30 rounded-xl text-[11px] text-rose-300">' +
+                '<strong>Lý do từ Admin:</strong> ' + tx.reason +
+              '</div>' : '') +
+          '</div>';
+        }).join('');
+      },
+
+      listenSepayAutoWebhooks: function() {
+        db.ref('sepay_webhooks').on('child_added', function(snap) {
+          var wh = snap.val();
+          var whKey = snap.key;
+          if (!wh) return;
+
+          if (wh.transferType && wh.transferType !== 'in') {
+            db.ref('sepay_webhooks/' + whKey).remove();
+            return;
+          }
+
+          var amount = Number(wh.transferAmount || wh.amount || 0);
+          var content = String(wh.content || wh.description || '');
+          var phoneMatches = content.match(/0\d{9}/g) || [];
+
+          if (amount < 70000 || phoneMatches.length === 0) {
+            db.ref('sepay_webhooks/' + whKey).remove();
+            return;
+          }
+
+          var targetPhone = phoneMatches[0];
+          var uniqueTxId = String(wh.id || wh.referenceCode || whKey).replace(/[.#$[\]/]/g, '_');
+
+          db.ref('sepay_processed/' + uniqueTxId).transaction(function(curr) {
+            if (curr !== null) return;
+            return { phone: targetPhone, amount: amount, time: Date.now() };
+          }, function(err, committed) {
+            db.ref('sepay_webhooks/' + whKey).remove();
+            if (err || !committed) return;
+            App.executeAutoDepositCredit(targetPhone, amount, uniqueTxId, content);
+          });
+        });
+      },
+
+      executeAutoDepositCredit: function(targetPhone, amount, uniqueTxId, rawContent) {
+        db.ref('users/' + targetPhone).once('value', function(snap) {
+          if (!snap.exists()) return;
+          var user = snap.val();
+
+          var newBalance = (Number(user.balance) || 0) + amount;
+          var newTotalDep = (Number(user.totalDeposited) || 0) + amount;
+          var txs = Array.isArray(user.transactions) ? user.transactions : [];
+
+          txs.unshift({
+            id: 'AUTO-' + String(uniqueTxId).slice(-4),
+            type: 'deposit',
+            amount: amount,
+            desc: 'Nạp tự động SePay VietinBank thành công'
+          });
+
+          db.ref('users/' + targetPhone).update({
+            balance: newBalance,
+            totalDeposited: newTotalDep,
+            hasDeposited: true,
+            wheelRewardPending: 0,
+            transactions: txs
+          }).then(function() {
+            if (user.invite) {
+              var f1Phone = user.invite;
+              db.ref('users/' + f1Phone).once('value', function(f1Snap) {
+                if (f1Snap.exists()) {
+                  var f1 = f1Snap.val();
+                  var comF1 = amount * 0.10;
+                  var f1Tx = Array.isArray(f1.transactions) ? f1.transactions : [];
+                  var f1Hist = Array.isArray(f1.f1DepositsHistory) ? f1.f1DepositsHistory : [];
+
+                  f1Tx.unshift({ id: 'COM-F1', type: 'profit', amount: comF1, desc: 'Hoa hồng 10% từ F1 (' + targetPhone + ') nạp' });
+                  f1Hist.unshift({ f1Phone: targetPhone, depositAmount: amount, commission: comF1, time: new Date().toLocaleString('vi-VN') });
+
+                  db.ref('users/' + f1Phone).update({
+                    balance: (Number(f1.balance) || 0) + comF1,
+                    transactions: f1Tx,
+                    f1DepositsHistory: f1Hist,
+                    unreadCommission: { fromPhone: targetPhone, depAmount: amount, amount: comF1, time: new Date().toLocaleTimeString('vi-VN') }
+                  });
+                }
+              });
+            }
+
+            db.ref('pending_deposits').once('value', function(pSnap) {
+              var list = pSnap.val() || {};
+              Object.keys(list).forEach(function(depId) {
+                if (list[depId].phone === targetPhone) {
+                  db.ref('pending_deposits/' + depId).remove();
+                  db.ref('user_tx_status/' + targetPhone + '/deposits/' + depId).update({
+                    status: 'APPROVED',
+                    reason: 'Hệ thống SePay đã tự động cộng tiền vào ví!'
+                  });
+                }
+              });
+            });
+
+            sendTelegramAlertDirect(
+              '🤖 <b>SEPAY ĐÃ TỰ ĐỘNG DUYỆT NẠP</b>\n' +
+              '━━━━━━━━━━━━━━━━━━\n' +
+              '👤 <b>SĐT Khách:</b> ' + targetPhone + '\n' +
+              '💰 <b>Số Tiền Nhận:</b> +' + App.formatCurrency(amount) + '\n' +
+              '📝 <b>Nội Dung CK:</b> ' + rawContent + '\n' +
+              '✅ <i>Tiền đã tự động cộng vào số dư người chơi!</i>'
+            );
+
+            if (App.userPhone === targetPhone) {
+              App.closeWallet();
+              App.notify('🎉 Hệ thống đã nhận +' + App.formatCurrency(amount) + ' và tự động cộng vào ví!');
+            }
+          });
+        });
+      },
+
+      formatCountdown: function(ms) {
+        if (ms <= 0) return "00:00:00";
+        var totalSeconds = Math.floor(ms / 1000);
+        var h = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
+        var m = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+        var s = String(totalSeconds % 60).padStart(2, '0');
+        return h + ':' + m + ':' + s;
+      },
+
+      tickCountdownTimers: function() {
+        if (!App.userPhone || !App.state.activeInvestments.length) return;
+        var now = App.getNow();
+        var shouldReRender = false;
+
+        App.state.activeInvestments.forEach(function(item) {
+          var elTimer = document.getElementById('timer-' + item.instanceId);
+          if (elTimer && item.nextClaimTime) {
+            var remain = item.nextClaimTime - now;
+            if (remain <= 0) {
+              shouldReRender = true;
+            } else {
+              elTimer.innerText = '⏳ Nhận sau ' + App.formatCountdown(remain);
+            }
+          }
+        });
+
+        if (shouldReRender) {
+          App.renderActiveList();
+        }
+      },
+
+      isWithdrawalTimeValid: function() {
+        var now = new Date(App.getNow());
+        var hour = now.getHours();
+        return hour >= 9 && hour < 22;
+      },
+
+      getWithdrawalConditions: function() {
+        var hasDeposited70k = Boolean(App.state.hasDeposited || Number(App.state.totalDeposited) >= 70000);
+        var hasBoughtPkg70k = Array.isArray(App.state.activeInvestments) &&
+          App.state.activeInvestments.some(function(pkg) { return Number(pkg.amount) >= 70000; });
+        return {
+          hasDeposited70k: hasDeposited70k,
+          hasBoughtPkg70k: hasBoughtPkg70k,
+          isEligible: hasDeposited70k && hasBoughtPkg70k
+        };
+      },
+
+      updateWithdrawalTimeUI: function() {
+        var noticeEl = document.getElementById('uiWithdrawTimeNotice');
+        var submitBtn = document.getElementById('btnSubmitWithdraw');
+        if (!noticeEl || !submitBtn) return;
+
+        var isTimeValid = App.isWithdrawalTimeValid();
+        var cond = App.getWithdrawalConditions();
+
+        if (!cond.isEligible) {
+          noticeEl.className = 'p-3 rounded-xl border border-rose-500/40 bg-rose-500/15 text-rose-200 text-[11px] space-y-1.5';
+          noticeEl.innerHTML = 
+            '<div class="font-black text-rose-400 uppercase">🔒 Yêu cầu mở khóa rút tiền lần đầu:</div>' +
+            '<div class="text-slate-300">Muốn rút tiền lần đầu phải <strong>nạp ít nhất 70.000đ</strong> và <strong>mua gói 70K</strong>:</div>' +
+            '<div class="flex items-center justify-between pt-1 border-t border-white/10 mono text-[10px]">' +
+              '<span>1. Nạp tối thiểu 70.000đ:</span>' +
+              '<span class="' + (cond.hasDeposited70k ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold') + '">' + (cond.hasDeposited70k ? '✅ Đã hoàn thành' : '❌ Chưa nạp') + '</span>' +
+            '</div>' +
+            '<div class="flex items-center justify-between mono text-[10px]">' +
+              '<span>2. Mua gói đầu tư 70K:</span>' +
+              '<span class="' + (cond.hasBoughtPkg70k ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold') + '">' + (cond.hasBoughtPkg70k ? '✅ Đã mua gói' : '❌ Chưa mua gói') + '</span>' +
+            '</div>';
+          submitBtn.disabled = true;
+          submitBtn.className = 'w-full py-2.5 bg-slate-800 text-slate-500 font-bold text-xs rounded-xl cursor-not-allowed border border-white/5';
+          submitBtn.innerText = 'Cần Nạp Ít Nhất 70K & Mua Gói 70K Để Rút';
+          return;
+        }
+
+        if (isTimeValid) {
+          noticeEl.className = 'p-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 flex items-center gap-2 text-[11px] font-bold';
+          noticeEl.innerHTML = '🟢 <span>Đã đủ điều kiện (Nạp 70K & Mua gói 70K). Cổng rút đang mở (09:00 - 22:00).</span>';
+          submitBtn.disabled = false;
+          submitBtn.className = 'w-full py-2.5 bg-rose-500 text-white font-black text-xs rounded-xl shadow-lg transition active:scale-95';
+          submitBtn.innerText = 'Tạo Lệnh Rút Tiền';
+        } else {
+          noticeEl.className = 'p-3 rounded-xl border border-rose-500/40 bg-rose-500/15 text-rose-300 flex items-center gap-2 text-[11px] font-bold';
+          noticeEl.innerHTML = '🔒 <span>Cổng rút tiền hiện đang khóa! Chỉ mở từ 09:00 sáng đến 22:00 đêm.</span>';
+          submitBtn.disabled = true;
+          submitBtn.className = 'w-full py-2.5 bg-slate-800 text-slate-500 font-bold text-xs rounded-xl cursor-not-allowed border border-white/5';
+          submitBtn.innerText = 'Cổng Rút Đang Khóa (Ngoài Giờ Hỗ Trợ)';
+        }
+      },
+
+      initFirebaseListeners: function() {
+        db.ref('system/server_closed').off();
+        db.ref('system/server_closed').on('value', function(snap) {
+          document.getElementById('maintenanceModal').classList.toggle('hidden', !(snap.val() || false));
+        });
+
+        if (!App.userPhone) return;
+
+        db.ref('users/' + App.userPhone).off();
+        db.ref('users/' + App.userPhone).on('value', function(snap) {
+          if (snap.exists()) {
+            var data = snap.val();
+            if (data.isLocked) {
+              alert('Tài khoản của bạn đã bị khóa bởi hệ thống quản trị!');
+              localStorage.removeItem('auravault_user');
+              location.reload();
+              return;
+            }
+
+            if (data.unreadCommission) {
+              var comm = data.unreadCommission;
+              document.getElementById('commissionAlertDetail').innerHTML = 
+                'Bạn vừa nhận được <strong class="text-emerald-400 mono">+' + App.formatCurrency(comm.amount) + '</strong> hoa hồng từ F1 ' +
+                '<strong class="text-white mono">' + comm.fromPhone + '</strong> nạp ' + App.formatCurrency(comm.depAmount) + '.';
+              document.getElementById('commissionAlertModal').classList.remove('hidden');
+              db.ref('users/' + App.userPhone + '/unreadCommission').remove();
+            }
+
+            var rawInvestments = Array.isArray(data.activeInvestments) ? data.activeInvestments : [];
+            var checkPkg = App.sanitizeAndSyncPackages(rawInvestments);
+
+            if (checkPkg.needSave) {
+              db.ref('users/' + App.userPhone + '/activeInvestments').set(checkPkg.list);
+            }
+
+            App.state.balance = Number(data.balance) || 0;
+            App.state.totalDeposited = Number(data.totalDeposited) || 0;
+            App.state.totalWithdrawn = Number(data.totalWithdrawn) || 0;
+            App.state.wheelRewardPending = Number(data.wheelRewardPending) || 0;
+            App.state.hasSpunWheel = Boolean(data.hasSpunWheel);
+            App.state.hasDeposited = Boolean(data.hasDeposited);
+            App.state.activeInvestments = checkPkg.list;
+            App.state.ledger = Array.isArray(data.transactions) ? data.transactions : [];
+            App.state.gameHistory = Array.isArray(data.gameHistory) ? data.gameHistory : [];
+            App.f1DepositsHistory = Array.isArray(data.f1DepositsHistory) ? data.f1DepositsHistory : [];
+            
+            App.renderUI();
+          }
+        });
+
+        db.ref('users').on('value', function(snap) {
+          if (!snap.exists()) return;
+          var allUsers = snap.val() || {};
+          App.registeredF1List = [];
+
+          Object.keys(allUsers).forEach(function(phone) {
+            if (allUsers[phone].invite === App.userPhone) {
+              App.registeredF1List.push(phone);
+            }
+          });
+
+          var countEl = document.getElementById('uiCountF1');
+          if (countEl) countEl.innerText = App.registeredF1List.length + ' Bạn Bè';
+          var countPaidEl = document.getElementById('uiCountF1Paid');
+          if (countPaidEl) countPaidEl.innerText = App.f1DepositsHistory.length + ' lượt nạp';
+        });
+
+        db.ref('user_tx_status/' + App.userPhone).off();
+        db.ref('user_tx_status/' + App.userPhone).on('value', function(snap) {
+          var val = snap.val() || {};
+          App.depositRequests = val.deposits ? Object.values(val.deposits) : [];
+          App.withdrawRequests = val.withdraws ? Object.values(val.withdraws) : [];
+          App.renderTxStatusList();
+        });
+      },
+
+      renderUI: function() {
+        var balText = App.formatCurrency(App.state.balance);
+        var elHeaderBal = document.getElementById('uiHeaderBalance');
+        var elBannerBal = document.getElementById('uiBannerBalance');
+        var elModalBal = document.getElementById('uiModalBalance');
+        
+        if (elHeaderBal) elHeaderBal.innerText = balText;
+        if (elBannerBal) elBannerBal.innerText = balText;
+        if (elModalBal) elModalBal.innerText = balText;
+
+        var badgeActive = document.getElementById('uiActiveBadge');
+        if (badgeActive) badgeActive.innerText = App.state.activeInvestments.length;
+
+        var btnAuth = document.getElementById('uiBtnAuth');
+        if (btnAuth) {
+          if (App.userPhone) {
+            btnAuth.innerText = App.userPhone.slice(0, 4) + '***' + App.userPhone.slice(-2);
+            document.getElementById('uiRefCode').innerText = App.userPhone;
+            document.getElementById('uiRefLinkInput').value = 'https://winusdbox.onrender.com/?ref=' + App.userPhone;
+          } else {
+            btnAuth.innerText = 'Đăng Nhập';
+          }
+        }
+
+        // CẬP NHẬT TRẠNG THÁI VÒNG QUAY MAY MẮN (YÊU CẦU TỔNG NẠP >= 200K)
+        var spinBtn = document.getElementById('btnSpinWheel');
+        var wheelDepAmtEl = document.getElementById('uiWheelDepositedAmt');
+        var wheelBadgeEl = document.getElementById('uiWheelStatusBadge');
+        var totalDep = Number(App.state.totalDeposited) || 0;
+
+        if (wheelDepAmtEl) wheelDepAmtEl.innerText = App.formatCurrency(totalDep);
+        if (wheelBadgeEl) {
+          if (totalDep >= 200000) {
+            wheelBadgeEl.className = 'px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold text-[10px]';
+            wheelBadgeEl.innerText = '✅ Đủ điều kiện';
+          } else {
+            wheelBadgeEl.className = 'px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 font-bold text-[10px]';
+            wheelBadgeEl.innerText = '🔒 Chưa đủ 200K';
+          }
+        }
+
+        if (spinBtn) {
+          if (App.state.hasSpunWheel) {
+            spinBtn.disabled = true;
+            spinBtn.innerText = 'ĐÃ SỬ DỤNG LƯỢT QUAY';
+            spinBtn.className = 'w-full py-3 bg-slate-800 text-slate-500 font-black text-xs rounded-xl cursor-not-allowed opacity-60';
+          } else if (totalDep < 200000) {
+            spinBtn.disabled = false;
+            spinBtn.innerText = 'CẦN TỔNG NẠP TỪ 200K ĐỂ QUAY';
+            spinBtn.className = 'w-full py-3 bg-slate-800 text-amber-400 border border-amber-500/30 font-black text-xs rounded-xl shadow active:scale-95 transition';
+          } else {
+            spinBtn.disabled = false;
+            spinBtn.innerText = 'QUAY THƯỞNG NGAY';
+            spinBtn.className = 'w-full py-3 bg-gradient-to-r from-amber-400 to-orange-400 text-black font-black text-xs rounded-xl shadow-lg active:scale-95 transition';
+          }
+        }
+
+        App.updateSepayQR();
+        App.renderNodes();
+        App.renderActiveList();
+        App.renderLedger();
+        App.updateWithdrawalTimeUI();
+      },
+
+      updateSepayQR: function() {
+        var amtInput = document.getElementById('inpDepAmount');
+        var qrImg = document.getElementById('uiSepayQR');
+        var memoEl = document.getElementById('uiDepMemo');
+        var memoInlineEl = document.getElementById('uiDepMemoInline');
+
+        var amt = amtInput ? (parseFloat(amtInput.value) || 70000) : 70000;
+        var memo = App.getAutoDepositMemo();
+
+        if (memoEl) memoEl.innerText = memo;
+        if (memoInlineEl) memoInlineEl.innerText = memo;
+        if (qrImg) {
+          qrImg.src = 'https://img.vietqr.io/image/ICB-11557000-compact.jpg?amount=' + amt + '&addInfo=' + encodeURIComponent(memo) + '&accountName=HA%20TRUNG%20DUC';
         }
       }
     };
 
-    window.onload = () => App.init();
+    window.onload = function() { App.init(); };
   </script>
 </body>
 </html>
