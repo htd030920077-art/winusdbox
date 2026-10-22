@@ -16,7 +16,7 @@
 </head>
 <body class="selection:bg-emerald-500 selection:text-slate-950 min-h-screen pb-12">
 
-  <!-- MÀN HÌNH NHẬP MẬT KHẨU -->
+  <!-- MÀN HÌNH NHẬP MẬT KHẨU (td1234) -->
   <div id="adminAuthScreen" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950">
     <div class="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4 text-center">
       <div class="w-12 h-12 rounded-2xl bg-rose-600/20 text-rose-500 flex items-center justify-center mx-auto text-xl font-black">🔒</div>
@@ -74,7 +74,7 @@
         </div>
       </div>
 
-      <!-- KHU VỰC THỐNG KÊ GÓI ĐẦU TƯ (THU GỌN VÀO NÚT BẤM MỞ TAB RIÊNG) -->
+      <!-- KHU VỰC THỐNG KÊ GÓI ĐẦU TƯ -->
       <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl flex items-center justify-between">
         <div>
           <h3 class="text-sm font-black text-white">📊 Thống Kê Số Lượng Người Mua Gói Đầu Tư</h3>
@@ -156,7 +156,7 @@
           </div>
         </div>
 
-        <!-- TAB 4: TẠO CODE NGẪU NHIÊN KHOẢNG MIN - MAX & GIỚI HẠN LƯỢT -->
+        <!-- TAB 4: TẠO CODE NGẪU NHIÊN -->
         <div id="adminTab-codeGen" class="space-y-4 hidden max-w-2xl">
           <h3 class="text-sm font-black text-white">🎁 Tạo Mã Code Thưởng Tiền Ngẫu Nhiên (Bao Lì Xì)</h3>
           <p class="text-xs text-slate-400">Thiết lập khoảng tiền thưởng ngẫu nhiên và giới hạn số lượt người nhập.</p>
@@ -242,7 +242,7 @@
   </div>
 
   <script>
-    // XÁC THỰC MẬT KHẨU ADMIN
+    // XÁC THỰC MẬT KHẨU ADMIN (td1234)
     function verifyAdminPassword() {
       const pass = document.getElementById('adminPasswordInput').value;
       if (pass === 'td1234') {
@@ -322,7 +322,7 @@
         </div>
       `).join('');
 
-      // Bảng nạp
+      // Bảng nạp (Đọc từ fin_pending_deposits)
       const depTbody = document.getElementById('adminDepositTable');
       if (deposits.length === 0) {
         depTbody.innerHTML = `<tr><td colspan="4" class="text-center py-6 text-slate-500">Chưa có lệnh nạp tiền nào chờ duyệt.</td></tr>`;
@@ -359,7 +359,7 @@
         `).join('');
       }
 
-      // Bảng thành viên
+      // Bảng thành viên (Đọc từ fin_users)
       const userTbody = document.getElementById('adminUserTable');
       if (users.length === 0) {
         userTbody.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-slate-500">Chưa có thành viên nào.</td></tr>`;
@@ -414,6 +414,7 @@
       });
     }
 
+    // DUYỆT NẠP VÀ TRẢ HOA HỒNG 3 CẤP
     function approveDeposit(idx) {
       let deposits = JSON.parse(localStorage.getItem('fin_pending_deposits') || '[]');
       let users = JSON.parse(localStorage.getItem('fin_users') || '[]');
@@ -588,7 +589,7 @@
     }
 
     window.onload = function() {
-      // Giữ nguyên màn hình yêu cầu nhập mật khẩu td1234
+      // Giữ nguyên bảo mật, chờ nhập mật khẩu td1234
     };
   </script>
 </body>
