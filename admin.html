@@ -16,208 +16,241 @@
 </head>
 <body class="selection:bg-emerald-500 selection:text-slate-950 min-h-screen pb-12">
 
-  <!-- ADMIN HEADER -->
-  <header class="bg-slate-900 border-b border-slate-800 px-4 py-3 flex justify-between items-center sticky top-0 z-50">
-    <div class="flex items-center gap-2">
-      <div class="w-8 h-8 rounded-xl bg-rose-600 flex items-center justify-center font-black text-white text-sm">A</div>
-      <span class="font-black text-base tracking-tight text-white">FININVEST ADMIN PANEL (REAL-TIME)</span>
-    </div>
-    <div class="flex items-center gap-3">
-      <span class="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-xs font-bold">🟢 Real-Time Sync</span>
-      <button onclick="resetSystemData()" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl transition">Reset Dữ Liệu</button>
-    </div>
-  </header>
-
-  <!-- MAIN CONTAINER -->
-  <main class="max-w-7xl mx-auto px-4 pt-6 space-y-6">
-
-    <!-- THỐNG KÊ TỔNG QUAN -->
-    <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-lg">
-        <div class="text-xs text-slate-400 font-bold uppercase">Tổng Thành Viên Tham Gia</div>
-        <div id="statTotalUsers" class="text-2xl font-black text-white mt-1">0</div>
-      </div>
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-lg">
-        <div class="text-xs text-slate-400 font-bold uppercase">Tổng Số Người Đã Nạp</div>
-        <div id="statTotalDepositors" class="text-2xl font-black text-cyan-400 mt-1">0</div>
-      </div>
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-lg">
-        <div class="text-xs text-slate-400 font-bold uppercase">Tổng Nạp Tích Lũy</div>
-        <div id="statDeposit" class="text-2xl font-black text-emerald-400 mt-1">0 ₫</div>
-      </div>
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-lg">
-        <div class="text-xs text-slate-400 font-bold uppercase">Lệnh Chờ Duyệt (Nạp/Rút)</div>
-        <div id="statPending" class="text-2xl font-black text-amber-400 mt-1">0</div>
-      </div>
-    </div>
-
-    <!-- KHU VỰC THỐNG KÊ GÓI ĐẦU TƯ (THU GỌN VÀO NÚT BẤM MỞ TAB RIÊNG) -->
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl flex items-center justify-between">
+  <!-- MÀN HÌNH NHẬP MẬT KHẨU -->
+  <div id="adminAuthScreen" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950">
+    <div class="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4 text-center">
+      <div class="w-12 h-12 rounded-2xl bg-rose-600/20 text-rose-500 flex items-center justify-center mx-auto text-xl font-black">🔒</div>
       <div>
-        <h3 class="text-sm font-black text-white">📊 Thống Kê Số Lượng Người Mua Gói Đầu Tư</h3>
-        <p class="text-xs text-slate-400">Xem chi tiết số lượng thành viên đã tham gia từng gói.</p>
+        <h2 class="text-base font-black text-white">Xác Thực Quản Trị Viên</h2>
+        <p class="text-xs text-slate-400 mt-1">Vui lòng nhập mật khẩu để truy cập trang Admin.</p>
       </div>
-      <button onclick="openPackageStatsModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl shadow transition">
-        Xem Thống Kê Gói &gt;
+      <div>
+        <input type="password" id="adminPasswordInput" placeholder="Nhập mật khẩu..." onkeydown="if(event.key==='Enter') verifyAdminPassword()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white text-center font-mono focus:border-rose-500 focus:outline-none">
+      </div>
+      <button onclick="verifyAdminPassword()" class="w-full py-3 bg-rose-600 hover:bg-rose-500 text-white font-black text-xs rounded-xl shadow-lg transition">
+        Truy Cập Hệ Thống
       </button>
-    </div>
-
-    <!-- KHU VỰC QUẢN LÝ TAB -->
-    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-5">
-      <div class="flex flex-wrap border-b border-slate-800 pb-3 gap-2">
-        <button onclick="switchAdminTab('deposits')" id="btnAdminTab-deposits" class="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-500 text-slate-950 transition">Duyệt Nạp (<span id="badgeDep">0</span>)</button>
-        <button onclick="switchAdminTab('withdraws')" id="btnAdminTab-withdraws" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 text-slate-400 transition">Duyệt Rút (<span id="badgeWit">0</span>)</button>
-        <button onclick="switchAdminTab('users')" id="btnAdminTab-users" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 text-slate-400 transition">Quản Lý Thành Viên</button>
-        <button onclick="switchAdminTab('codeGen')" id="btnAdminTab-codeGen" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 text-slate-400 transition">Tạo Code Ngẫu Nhiên</button>
-      </div>
-
-      <!-- TAB 1: DUYỆT NẠP -->
-      <div id="adminTab-deposits" class="space-y-4">
-        <h3 class="text-sm font-bold text-white">Danh Sách Yêu Cầu Nạp Tiền Thời Gian Thực</h3>
-        <div class="overflow-x-auto rounded-2xl border border-slate-800">
-          <table class="w-full text-left text-xs text-slate-300">
-            <thead class="bg-slate-950 text-[10px] uppercase font-bold text-slate-400 border-b border-slate-800">
-              <tr>
-                <th class="px-3.5 py-3">Mã GD</th>
-                <th class="px-3.5 py-3">Số Điện Thoại / SĐT CK</th>
-                <th class="px-3.5 py-3">Số Tiền Nạp</th>
-                <th class="px-3.5 py-3 text-right">Thao Tác Duyệt</th>
-              </tr>
-            </thead>
-            <tbody id="adminDepositTable" class="divide-y divide-slate-800">
-              <tr><td colspan="4" class="text-center py-6 text-slate-500">Chưa có lệnh nạp tiền nào.</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- TAB 2: DUYỆT RÚT -->
-      <div id="adminTab-withdraws" class="space-y-4 hidden">
-        <h3 class="text-sm font-bold text-white">Danh Sách Lệnh Rút Tiền Cần Giải Ngân</h3>
-        <div class="overflow-x-auto rounded-2xl border border-slate-800">
-          <table class="w-full text-left text-xs text-slate-300">
-            <thead class="bg-slate-950 text-[10px] uppercase font-bold text-slate-400 border-b border-slate-800">
-              <tr>
-                <th class="px-3.5 py-3">Mã GD</th>
-                <th class="px-3.5 py-3">SĐT Người Rút</th>
-                <th class="px-3.5 py-3">Thông Tin Ngân Hàng</th>
-                <th class="px-3.5 py-3">Số Tiền</th>
-                <th class="px-3.5 py-3 text-right">Thao Tác</th>
-              </tr>
-            </thead>
-            <tbody id="adminWithdrawTable" class="divide-y divide-slate-800">
-              <tr><td colspan="5" class="text-center py-6 text-slate-500">Chưa có lệnh rút tiền nào.</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- TAB 3: QUẢN LÝ THÀNH VIÊN -->
-      <div id="adminTab-users" class="space-y-4 hidden">
-        <h3 class="text-sm font-bold text-white">Danh Sách Thành Viên & Chỉnh Sửa Thông Tin Thời Gian Thực</h3>
-        <div class="overflow-x-auto rounded-2xl border border-slate-800">
-          <table class="w-full text-left text-xs text-slate-300">
-            <thead class="bg-slate-950 text-[10px] uppercase font-bold text-slate-400 border-b border-slate-800">
-              <tr>
-                <th class="px-3.5 py-3">SĐT / Mã Mời</th>
-                <th class="px-3.5 py-3">Số Dư Ví</th>
-                <th class="px-3.5 py-3">Ngân Hàng & STK</th>
-                <th class="px-3.5 py-3">Trạng Thái</th>
-                <th class="px-3.5 py-3 text-right">Chỉnh Sửa</th>
-              </tr>
-            </thead>
-            <tbody id="adminUserTable" class="divide-y divide-slate-800">
-              <tr><td colspan="5" class="text-center py-6 text-slate-500">Chưa có thành viên nào.</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- TAB 4: TẠO CODE NGẪU NHIÊN KHOẢNG MIN - MAX & GIỚI HẠN LƯỢT -->
-      <div id="adminTab-codeGen" class="space-y-4 hidden max-w-2xl">
-        <h3 class="text-sm font-black text-white">🎁 Tạo Mã Code Thưởng Tiền Ngẫu Nhiên (Bao Lì Xì)</h3>
-        <p class="text-xs text-slate-400">Thiết lập khoảng tiền thưởng ngẫu nhiên và giới hạn số lượt người nhập.</p>
-        
-        <div class="space-y-3 p-4 bg-slate-950 rounded-2xl border border-slate-800">
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="block text-xs text-slate-400 mb-1">Mức Thưởng Tối Thiểu (VNĐ)</label>
-              <input type="number" id="codeMinVal" value="1000" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-bold">
-            </div>
-            <div>
-              <label class="block text-xs text-slate-400 mb-1">Mức Thưởng Tối Đa (VNĐ)</label>
-              <input type="number" id="codeMaxVal" value="10000" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-bold">
-            </div>
-          </div>
-          <div>
-            <label class="block text-xs text-slate-400 mb-1">Giới Hạn Lượt Nhập (Số người tối đa được dùng)</label>
-            <input type="number" id="codeMaxUses" value="10" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-bold">
-          </div>
-
-          <div class="pt-2">
-            <button onclick="createFirebaseGiftCode()" class="w-full py-3 bg-purple-600 hover:bg-purple-500 text-white font-black text-xs rounded-xl shadow-lg transition">
-              ✨ Tạo Mã Code Lì Xì Lên Hệ Thống
-            </button>
-          </div>
-
-          <div id="generatedCodeResult" class="hidden p-3.5 bg-slate-900 rounded-xl border border-purple-500/40 text-xs font-mono text-purple-300 space-y-1"></div>
-        </div>
-      </div>
-
-    </div>
-
-  </main>
-
-  <!-- MODAL THỐNG KÊ SỐ LƯỢNG NGƯỜI MUA GÓI -->
-  <div id="packageStatsModal" class="fixed inset-0 z-50 flex items-center justify-center p-3 bg-slate-950/85 backdrop-blur-md hidden">
-    <div class="w-full max-w-lg bg-slate-900 border border-slate-800 rounded-3xl p-5 space-y-4">
-      <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-        <h3 class="font-black text-white text-sm">📊 Thống Kê Chi Tiết Số Người Mua Gói</h3>
-        <button onclick="document.getElementById('packageStatsModal').classList.add('hidden')" class="text-slate-400 font-bold">✕</button>
-      </div>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="modalPackageStatsGrid"></div>
-      <button onclick="document.getElementById('packageStatsModal').classList.add('hidden')" class="w-full py-2 bg-slate-800 text-white font-bold text-xs rounded-xl">Đóng Lại</button>
     </div>
   </div>
 
-  <!-- MODAL CHỈNH SỬA THÔNG TIN THÀNH VIÊN -->
-  <div id="editUserModal" class="fixed inset-0 z-50 flex items-center justify-center p-3 bg-slate-950/85 backdrop-blur-md hidden">
-    <div class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-5 space-y-4">
-      <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-        <h3 class="font-black text-white text-sm" id="editModalTitle">Chỉnh Sửa Thành Viên</h3>
-        <button onclick="document.getElementById('editUserModal').classList.add('hidden')" class="text-slate-400 font-bold">✕</button>
+  <!-- NỘI DUNG CHÍNH (ẨN KHI CHƯA ĐĂNG NHẬP) -->
+  <div id="adminMainContent" class="hidden">
+    <!-- ADMIN HEADER -->
+    <header class="bg-slate-900 border-b border-slate-800 px-4 py-3 flex justify-between items-center sticky top-0 z-50">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-xl bg-rose-600 flex items-center justify-center font-black text-white text-sm">A</div>
+        <span class="font-black text-base tracking-tight text-white">FININVEST ADMIN PANEL (REAL-TIME)</span>
       </div>
-      <input type="hidden" id="editUserPhone">
-      <div class="space-y-3 text-xs">
+      <div class="flex items-center gap-3">
+        <span class="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-xs font-bold">🟢 Real-Time Sync</span>
+        <button onclick="resetSystemData()" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl transition">Reset Dữ Liệu</button>
+      </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="max-w-7xl mx-auto px-4 pt-6 space-y-6">
+
+      <!-- THỐNG KÊ TỔNG QUAN -->
+      <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-lg">
+          <div class="text-xs text-slate-400 font-bold uppercase">Tổng Thành Viên Tham Gia</div>
+          <div id="statTotalUsers" class="text-2xl font-black text-white mt-1">0</div>
+        </div>
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-lg">
+          <div class="text-xs text-slate-400 font-bold uppercase">Tổng Số Người Đã Nạp</div>
+          <div id="statTotalDepositors" class="text-2xl font-black text-cyan-400 mt-1">0</div>
+        </div>
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-lg">
+          <div class="text-xs text-slate-400 font-bold uppercase">Tổng Nạp Tích Lũy</div>
+          <div id="statDeposit" class="text-2xl font-black text-emerald-400 mt-1">0 ₫</div>
+        </div>
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-lg">
+          <div class="text-xs text-slate-400 font-bold uppercase">Lệnh Chờ Duyệt (Nạp/Rút)</div>
+          <div id="statPending" class="text-2xl font-black text-amber-400 mt-1">0</div>
+        </div>
+      </div>
+
+      <!-- KHU VỰC THỐNG KÊ GÓI ĐẦU TƯ (THU GỌN VÀO NÚT BẤM MỞ TAB RIÊNG) -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl flex items-center justify-between">
         <div>
-          <label class="block text-slate-400 mb-1">Số Dư Ví (VNĐ)</label>
-          <input type="number" id="editBalance" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white font-bold">
+          <h3 class="text-sm font-black text-white">📊 Thống Kê Số Lượng Người Mua Gói Đầu Tư</h3>
+          <p class="text-xs text-slate-400">Xem chi tiết số lượng thành viên đã tham gia từng gói.</p>
         </div>
-        <div>
-          <label class="block text-slate-400 mb-1">Số Tài Khoản Ngân Hàng</label>
-          <input type="text" id="editStk" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white font-mono">
+        <button onclick="openPackageStatsModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl shadow transition">
+          Xem Thống Kê Gói &gt;
+        </button>
+      </div>
+
+      <!-- KHU VỰC QUẢN LÝ TAB -->
+      <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-5">
+        <div class="flex flex-wrap border-b border-slate-800 pb-3 gap-2">
+          <button onclick="switchAdminTab('deposits')" id="btnAdminTab-deposits" class="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-500 text-slate-950 transition">Duyệt Nạp (<span id="badgeDep">0</span>)</button>
+          <button onclick="switchAdminTab('withdraws')" id="btnAdminTab-withdraws" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 text-slate-400 transition">Duyệt Rút (<span id="badgeWit">0</span>)</button>
+          <button onclick="switchAdminTab('users')" id="btnAdminTab-users" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 text-slate-400 transition">Quản Lý Thành Viên</button>
+          <button onclick="switchAdminTab('codeGen')" id="btnAdminTab-codeGen" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 text-slate-400 transition">Tạo Code Ngẫu Nhiên</button>
         </div>
-        <div>
-          <label class="block text-slate-400 mb-1">Tên Chủ Tài Khoản Ngân Hàng</label>
-          <input type="text" id="editName" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white uppercase font-bold">
+
+        <!-- TAB 1: DUYỆT NẠP -->
+        <div id="adminTab-deposits" class="space-y-4">
+          <h3 class="text-sm font-bold text-white">Danh Sách Yêu Cầu Nạp Tiền Thời Gian Thực</h3>
+          <div class="overflow-x-auto rounded-2xl border border-slate-800">
+            <table class="w-full text-left text-xs text-slate-300">
+              <thead class="bg-slate-950 text-[10px] uppercase font-bold text-slate-400 border-b border-slate-800">
+                <tr>
+                  <th class="px-3.5 py-3">Mã GD</th>
+                  <th class="px-3.5 py-3">Số Điện Thoại / SĐT CK</th>
+                  <th class="px-3.5 py-3">Số Tiền Nạp</th>
+                  <th class="px-3.5 py-3 text-right">Thao Tác Duyệt</th>
+                </tr>
+              </thead>
+              <tbody id="adminDepositTable" class="divide-y divide-slate-800">
+                <tr><td colspan="4" class="text-center py-6 text-slate-500">Chưa có lệnh nạp tiền nào.</td></tr>
+              </tbody>
+            </table>
+          </div>
         </div>
-        <div>
-          <label class="block text-slate-400 mb-1">Mật Khẩu Mới</label>
-          <input type="text" id="editPass" placeholder="Để trống nếu không đổi..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white">
+
+        <!-- TAB 2: DUYỆT RÚT -->
+        <div id="adminTab-withdraws" class="space-y-4 hidden">
+          <h3 class="text-sm font-bold text-white">Danh Sách Lệnh Rút Tiền Cần Giải Ngân</h3>
+          <div class="overflow-x-auto rounded-2xl border border-slate-800">
+            <table class="w-full text-left text-xs text-slate-300">
+              <thead class="bg-slate-950 text-[10px] uppercase font-bold text-slate-400 border-b border-slate-800">
+                <tr>
+                  <th class="px-3.5 py-3">Mã GD</th>
+                  <th class="px-3.5 py-3">SĐT Người Rút</th>
+                  <th class="px-3.5 py-3">Thông Tin Ngân Hàng</th>
+                  <th class="px-3.5 py-3">Số Tiền</th>
+                  <th class="px-3.5 py-3 text-right">Thao Tác</th>
+                </tr>
+              </thead>
+              <tbody id="adminWithdrawTable" class="divide-y divide-slate-800">
+                <tr><td colspan="5" class="text-center py-6 text-slate-500">Chưa có lệnh rút tiền nào.</td></tr>
+              </tbody>
+            </table>
+          </div>
         </div>
-        <div class="flex items-center justify-between p-2 bg-slate-950 rounded-xl border border-slate-800">
-          <span class="text-slate-400 font-bold">Khóa Tài Khoản:</span>
-          <input type="checkbox" id="editIsLocked" class="w-4 h-4 accent-rose-500 cursor-pointer">
+
+        <!-- TAB 3: QUẢN LÝ THÀNH VIÊN -->
+        <div id="adminTab-users" class="space-y-4 hidden">
+          <h3 class="text-sm font-bold text-white">Danh Sách Thành Viên & Chỉnh Sửa Thông Tin Thời Gian Thực</h3>
+          <div class="overflow-x-auto rounded-2xl border border-slate-800">
+            <table class="w-full text-left text-xs text-slate-300">
+              <thead class="bg-slate-950 text-[10px] uppercase font-bold text-slate-400 border-b border-slate-800">
+                <tr>
+                  <th class="px-3.5 py-3">SĐT / Mã Mời</th>
+                  <th class="px-3.5 py-3">Số Dư Ví</th>
+                  <th class="px-3.5 py-3">Ngân Hàng & STK</th>
+                  <th class="px-3.5 py-3">Trạng Thái</th>
+                  <th class="px-3.5 py-3 text-right">Chỉnh Sửa</th>
+                </tr>
+              </thead>
+              <tbody id="adminUserTable" class="divide-y divide-slate-800">
+                <tr><td colspan="5" class="text-center py-6 text-slate-500">Chưa có thành viên nào.</td></tr>
+              </tbody>
+            </table>
+          </div>
         </div>
-        <div class="flex gap-2 pt-2">
-          <button onclick="saveUserDataChanges()" class="flex-1 py-2.5 bg-emerald-500 text-slate-950 font-black rounded-xl">Lưu Thay Đổi</button>
-          <button onclick="deleteThisUser()" class="px-4 py-2.5 bg-rose-600 text-white font-bold rounded-xl">Xóa TK</button>
+
+        <!-- TAB 4: TẠO CODE NGẪU NHIÊN KHOẢNG MIN - MAX & GIỚI HẠN LƯỢT -->
+        <div id="adminTab-codeGen" class="space-y-4 hidden max-w-2xl">
+          <h3 class="text-sm font-black text-white">🎁 Tạo Mã Code Thưởng Tiền Ngẫu Nhiên (Bao Lì Xì)</h3>
+          <p class="text-xs text-slate-400">Thiết lập khoảng tiền thưởng ngẫu nhiên và giới hạn số lượt người nhập.</p>
+          
+          <div class="space-y-3 p-4 bg-slate-950 rounded-2xl border border-slate-800">
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs text-slate-400 mb-1">Mức Thưởng Tối Thiểu (VNĐ)</label>
+                <input type="number" id="codeMinVal" value="1000" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-bold">
+              </div>
+              <div>
+                <label class="block text-xs text-slate-400 mb-1">Mức Thưởng Tối Đa (VNĐ)</label>
+                <input type="number" id="codeMaxVal" value="10000" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-bold">
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">Giới Hạn Lượt Nhập (Số người tối đa được dùng)</label>
+              <input type="number" id="codeMaxUses" value="10" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-bold">
+            </div>
+
+            <div class="pt-2">
+              <button onclick="createFirebaseGiftCode()" class="w-full py-3 bg-purple-600 hover:bg-purple-500 text-white font-black text-xs rounded-xl shadow-lg transition">
+                ✨ Tạo Mã Code Lì Xì Lên Hệ Thống
+              </button>
+            </div>
+
+            <div id="generatedCodeResult" class="hidden p-3.5 bg-slate-900 rounded-xl border border-purple-500/40 text-xs font-mono text-purple-300 space-y-1"></div>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+
+    <!-- MODAL THỐNG KÊ SỐ LƯỢNG NGƯỜI MUA GÓI -->
+    <div id="packageStatsModal" class="fixed inset-0 z-50 flex items-center justify-center p-3 bg-slate-950/85 backdrop-blur-md hidden">
+      <div class="w-full max-w-lg bg-slate-900 border border-slate-800 rounded-3xl p-5 space-y-4">
+        <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+          <h3 class="font-black text-white text-sm">📊 Thống Kê Chi Tiết Số Người Mua Gói</h3>
+          <button onclick="document.getElementById('packageStatsModal').classList.add('hidden')" class="text-slate-400 font-bold">✕</button>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="modalPackageStatsGrid"></div>
+        <button onclick="document.getElementById('packageStatsModal').classList.add('hidden')" class="w-full py-2 bg-slate-800 text-white font-bold text-xs rounded-xl">Đóng Lại</button>
+      </div>
+    </div>
+
+    <!-- MODAL CHỈNH SỬA THÔNG TIN THÀNH VIÊN -->
+    <div id="editUserModal" class="fixed inset-0 z-50 flex items-center justify-center p-3 bg-slate-950/85 backdrop-blur-md hidden">
+      <div class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-5 space-y-4">
+        <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+          <h3 class="font-black text-white text-sm" id="editModalTitle">Chỉnh Sửa Thành Viên</h3>
+          <button onclick="document.getElementById('editUserModal').classList.add('hidden')" class="text-slate-400 font-bold">✕</button>
+        </div>
+        <input type="hidden" id="editUserPhone">
+        <div class="space-y-3 text-xs">
+          <div>
+            <label class="block text-slate-400 mb-1">Số Dư Ví (VNĐ)</label>
+            <input type="number" id="editBalance" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white font-bold">
+          </div>
+          <div>
+            <label class="block text-slate-400 mb-1">Số Tài Khoản Ngân Hàng</label>
+            <input type="text" id="editStk" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white font-mono">
+          </div>
+          <div>
+            <label class="block text-slate-400 mb-1">Tên Chủ Tài Khoản Ngân Hàng</label>
+            <input type="text" id="editName" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white uppercase font-bold">
+          </div>
+          <div>
+            <label class="block text-slate-400 mb-1">Mật Khẩu Mới</label>
+            <input type="text" id="editPass" placeholder="Để trống nếu không đổi..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white">
+          </div>
+          <div class="flex items-center justify-between p-2 bg-slate-950 rounded-xl border border-slate-800">
+            <span class="text-slate-400 font-bold">Khóa Tài Khoản:</span>
+            <input type="checkbox" id="editIsLocked" class="w-4 h-4 accent-rose-500 cursor-pointer">
+          </div>
+          <div class="flex gap-2 pt-2">
+            <button onclick="saveUserDataChanges()" class="flex-1 py-2.5 bg-emerald-500 text-slate-950 font-black rounded-xl">Lưu Thay Đổi</button>
+            <button onclick="deleteThisUser()" class="px-4 py-2.5 bg-rose-600 text-white font-bold rounded-xl">Xóa TK</button>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
   <script>
+    // XÁC THỰC MẬT KHẨU ADMIN
+    function verifyAdminPassword() {
+      const pass = document.getElementById('adminPasswordInput').value;
+      if (pass === 'td1234') {
+        document.getElementById('adminAuthScreen').classList.add('hidden');
+        document.getElementById('adminMainContent').classList.remove('hidden');
+        loadAdminData();
+      } else {
+        alert('Mật khẩu quản trị không chính xác!');
+        document.getElementById('adminPasswordInput').value = '';
+      }
+    }
+
     // Khởi tạo Firebase cho Admin
     const firebaseConfig = {
       databaseURL: "https://winusdbox-default-rtdb.asia-southeast1.firebasedatabase.app/"
@@ -366,13 +399,46 @@
         targetUser.hasDeposited = true;
         targetUser.notifications = targetUser.notifications || [];
         targetUser.notifications.unshift({ title: 'Nạp tiền thành công', msg: `Lệnh nạp ${formatVND(d.amount)} đã được duyệt vào ví!`, time: 'Vừa xong' });
+
+        let currentLevelUserPhone = targetUser.invite;
+        if (currentLevelUserPhone) {
+          let f1User = users.find(u => u.phone === currentLevelUserPhone);
+          if (f1User) {
+            const comF1 = d.amount * 0.10;
+            f1User.balance = (f1User.balance || 0) + comF1;
+            f1User.notifications = f1User.notifications || [];
+            f1User.notifications.unshift({ title: 'Nhận hoa hồng F1', msg: `Nhận +${formatVND(comF1)} hoa hồng 10% từ F1 (${targetUser.phone}) nạp tiền.`, time: 'Vừa xong' });
+
+            let f2UserPhone = f1User.invite;
+            if (f2UserPhone) {
+              let f2User = users.find(u => u.phone === f2UserPhone);
+              if (f2User) {
+                const comF2 = d.amount * 0.03;
+                f2User.balance = (f2User.balance || 0) + comF2;
+                f2User.notifications = f2User.notifications || [];
+                f2User.notifications.unshift({ title: 'Nhận hoa hồng F2', msg: `Nhận +${formatVND(comF2)} hoa hồng 3% từ hệ thống tuyến dưới.`, time: 'Vừa xong' });
+
+                let f3UserPhone = f2User.invite;
+                if (f3UserPhone) {
+                  let f3User = users.find(u => u.phone === f3UserPhone);
+                  if (f3User) {
+                    const comF3 = d.amount * 0.01;
+                    f3User.balance = (f3User.balance || 0) + comF3;
+                    f3User.notifications = f3User.notifications || [];
+                    f3User.notifications.unshift({ title: 'Nhận hoa hồng F3', msg: `Nhận +${formatVND(comF3)} hoa hồng 1% từ hệ thống tuyến dưới.`, time: 'Vừa xong' });
+                  }
+                }
+              }
+            }
+          }
+        }
       }
 
       deposits.splice(idx, 1);
       localStorage.setItem('fin_pending_deposits', JSON.stringify(deposits));
       localStorage.setItem('fin_users', JSON.stringify(users));
       loadAdminData();
-      alert('Đã duyệt nạp thành công!');
+      alert('Đã duyệt nạp và tự động trả hoa hồng 3 cấp cho tuyến trên thành công!');
     }
 
     function rejectDeposit(idx) {
@@ -495,10 +561,8 @@
     }
 
     window.onload = function() {
-      loadAdminData();
-      setInterval(loadAdminData, 3000);
+      // Giữ nguyên giao diện bắt nhập mật khẩu td1234 khi vừa vào trang
     };
   </script>
 </body>
 </html>
-
