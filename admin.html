@@ -242,34 +242,71 @@
   </div>
 
   <script>
+    // Khởi tạo Firebase cho Admin
+    const firebaseConfig = {
+      databaseURL: "https://winusdbox-default-rtdb.asia-southeast1.firebasedatabase.app/"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // Biến lưu trữ dữ liệu thời gian thực đồng bộ từ Firebase
+    let liveUsers = {};
+    let liveDeposits = {};
+    let liveWithdraws = {};
+    let liveServerClosed = false;
+
     // XÁC THỰC MẬT KHẨU ADMIN (td1234)
     function verifyAdminPassword() {
       const pass = document.getElementById('adminPasswordInput').value;
       if (pass === 'td1234') {
         document.getElementById('adminAuthScreen').classList.add('hidden');
         document.getElementById('adminMainContent').classList.remove('hidden');
-        loadAdminData();
-        updateServerToggleUI();
+        initRealtimeAdminListeners();
       } else {
         alert('Mật khẩu quản trị không chính xác!');
         document.getElementById('adminPasswordInput').value = '';
       }
     }
 
+    // Lắng nghe dữ liệu thời gian thực từ Firebase
+    function initRealtimeAdminListeners() {
+      // 1. Trạng thái Server
+      db.ref('system/server_closed').on('value', snapshot => {
+        liveServerClosed = snapshot.val() || false;
+        updateServerToggleUI();
+      });
+
+      // 2. Danh sách Users
+      db.ref('users').on('value', snapshot => {
+        liveUsers = snapshot.val() || {};
+        loadAdminData();
+      });
+
+      // 3. Lệnh Nạp Tiền Chờ Duyệt
+      db.ref('pending_deposits').on('value', snapshot => {
+        liveDeposits = snapshot.val() || {};
+        loadAdminData();
+      });
+
+      // 4. Lệnh Rút Tiền Chờ Duyệt
+      db.ref('pending_withdraws').on('value', snapshot => {
+        liveWithdraws = snapshot.val() || {};
+        loadAdminData();
+      });
+    }
+
     // TÍNH NĂNG ĐÓNG / MỞ SERVER
     function toggleServerStatus() {
-      let isClosed = JSON.parse(localStorage.getItem('fin_server_closed') || 'false');
-      isClosed = !isClosed;
-      localStorage.setItem('fin_server_closed', JSON.stringify(isClosed));
+      liveServerClosed = !liveServerClosed;
+      db.ref('system/server_closed').set(liveServerClosed);
       updateServerToggleUI();
-      alert(isClosed ? 'Đã đóng server! Người chơi truy cập vào sẽ thấy thông báo bảo trì.' : 'Đã mở lại server thành công!');
+      alert(liveServerClosed ? 'Đã đóng server! Người chơi truy cập vào sẽ thấy thông báo bảo trì.' : 'Đã mở lại server thành công!');
     }
 
     function updateServerToggleUI() {
-      const isClosed = JSON.parse(localStorage.getItem('fin_server_closed') || 'false');
       const btn = document.getElementById('serverToggleBtn');
       if (!btn) return;
-      if (isClosed) {
+      if (liveServerClosed) {
         btn.className = 'px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl transition shadow animate-pulse';
         btn.innerText = '🔴 Server: Đang Đóng';
       } else {
@@ -277,13 +314,6 @@
         btn.innerText = '🟢 Server: Đang Mở';
       }
     }
-
-    // Khởi tạo Firebase cho Admin
-    const firebaseConfig = {
-      databaseURL: "https://winusdbox-default-rtdb.asia-southeast1.firebasedatabase.app/"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
 
     function switchAdminTab(tab) {
       ['deposits', 'withdraws', 'users', 'codeGen'].forEach(t => {
@@ -299,20 +329,29 @@
     }
 
     function loadAdminData() {
-      const users = JSON.parse(localStorage.getItem('fin_users') || '[]');
-      const deposits = JSON.parse(localStorage.getItem('fin_pending_deposits') || '[]');
-      const withdraws = JSON.parse(localStorage.getItem('fin_pending_withdraws') || '[]');
-      const pkgStats = JSON.parse(localStorage.getItem('fin_pkg_stats') || '{}');
+      const usersArr = Object.values(liveUsers);
+      const depositsArr = Object.values(liveDeposits);
+      const withdrawsArr = Object.values(liveWithdraws);
 
-      document.getElementById('statTotalUsers').innerText = users.length;
-      document.getElementById('statTotalDepositors').innerText = users.filter(u => u.hasDeposited).length;
-      document.getElementById('statPending').innerText = deposits.length + withdraws.length;
-      document.getElementById('badgeDep').innerText = deposits.length;
-      document.getElementById('badgeWit').innerText = withdraws.length;
+      document.getElementById('statTotalUsers').innerText = usersArr.length;
+      document.getElementById('statTotalDepositors').innerText = usersArr.filter(u => u.hasDeposited).length;
+      document.getElementById('statPending').innerText = depositsArr.length + withdrawsArr.length;
+      document.getElementById('badgeDep').innerText = depositsArr.length;
+      document.getElementById('badgeWit').innerText = withdrawsArr.length;
 
       let totalDepAmt = 0;
-      users.forEach(u => { totalDepAmt += (u.totalDeposited || 0); });
+      usersArr.forEach(u => { totalDepAmt += (u.totalDeposited || 0); });
       document.getElementById('statDeposit').innerText = formatVND(totalDepAmt);
+
+      // Thống kê gói đầu tư mẫu dựa trên dữ liệu người dùng thực tế
+      let pkgStats = {};
+      usersArr.forEach(u => {
+        if (u.activeInvestments) {
+          u.activeInvestments.forEach(inv => {
+            // Mapping tên gói hoặc thống kê qua ID nếu có
+          });
+        }
+      });
 
       const pkgNames = { 'p70': 'Gói 70K Tân Thủ', 'p100': 'Gói 100K Trải Nghiệm', 'p200': 'Gói 200K Tiết Kiệm', 'p300': 'Gói 300K Khởi Động', 'p500': 'Gói 500K Tiêu Chuẩn', 'p1000': 'Gói 1.000K VIP', 'p2000': 'Gói 2.000K Hoàng Gia' };
       document.getElementById('modalPackageStatsGrid').innerHTML = Object.keys(pkgNames).map(k => `
@@ -322,19 +361,19 @@
         </div>
       `).join('');
 
-      // Bảng nạp (Đọc từ fin_pending_deposits)
+      // Bảng nạp
       const depTbody = document.getElementById('adminDepositTable');
-      if (deposits.length === 0) {
+      if (depositsArr.length === 0) {
         depTbody.innerHTML = `<tr><td colspan="4" class="text-center py-6 text-slate-500">Chưa có lệnh nạp tiền nào chờ duyệt.</td></tr>`;
       } else {
-        depTbody.innerHTML = deposits.map((d, idx) => `
+        depTbody.innerHTML = depositsArr.map((d) => `
           <tr>
             <td class="px-3.5 py-3 font-mono">${d.id}</td>
             <td class="px-3.5 py-3 font-bold text-amber-400">${d.phone}</td>
             <td class="px-3.5 py-3 font-black text-emerald-400">${formatVND(d.amount)}</td>
             <td class="px-3.5 py-3 text-right space-x-1">
-              <button onclick="approveDeposit(${idx})" class="px-2.5 py-1 bg-emerald-500 text-slate-950 font-bold rounded-lg text-[11px]">Duyệt</button>
-              <button onclick="rejectDeposit(${idx})" class="px-2.5 py-1 bg-rose-600 text-white font-bold rounded-lg text-[11px]">Từ chối</button>
+              <button onclick="approveDeposit('${d.id}')" class="px-2.5 py-1 bg-emerald-500 text-slate-950 font-bold rounded-lg text-[11px]">Duyệt</button>
+              <button onclick="rejectDeposit('${d.id}')" class="px-2.5 py-1 bg-rose-600 text-white font-bold rounded-lg text-[11px]">Từ chối</button>
             </td>
           </tr>
         `).join('');
@@ -342,32 +381,32 @@
 
       // Bảng rút
       const witTbody = document.getElementById('adminWithdrawTable');
-      if (withdraws.length === 0) {
+      if (withdrawsArr.length === 0) {
         witTbody.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-slate-500">Chưa có lệnh rút tiền nào.</td></tr>`;
       } else {
-        witTbody.innerHTML = withdraws.map((w, idx) => `
+        witTbody.innerHTML = withdrawsArr.map((w) => `
           <tr>
             <td class="px-3.5 py-3 font-mono">${w.id}</td>
             <td class="px-3.5 py-3 font-bold text-white">${w.phone}</td>
             <td class="px-3.5 py-3 text-slate-300">${w.bank} - ${w.stk} (${w.name})</td>
             <td class="px-3.5 py-3 font-black text-rose-400">${formatVND(w.amount)}</td>
             <td class="px-3.5 py-3 text-right space-x-1">
-              <button onclick="approveWithdraw(${idx})" class="px-2.5 py-1 bg-emerald-500 text-slate-950 font-bold rounded-lg text-[11px]">Duyệt</button>
-              <button onclick="rejectWithdraw(${idx})" class="px-2.5 py-1 bg-rose-600 text-white font-bold rounded-lg text-[11px]">Từ chối</button>
+              <button onclick="approveWithdraw('${w.id}')" class="px-2.5 py-1 bg-emerald-500 text-slate-950 font-bold rounded-lg text-[11px]">Duyệt</button>
+              <button onclick="rejectWithdraw('${w.id}')" class="px-2.5 py-1 bg-rose-600 text-white font-bold rounded-lg text-[11px]">Từ chối</button>
             </td>
           </tr>
         `).join('');
       }
 
-      // Bảng thành viên (Đọc từ fin_users)
+      // Bảng thành viên
       const userTbody = document.getElementById('adminUserTable');
-      if (users.length === 0) {
+      if (usersArr.length === 0) {
         userTbody.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-slate-500">Chưa có thành viên nào.</td></tr>`;
       } else {
-        userTbody.innerHTML = users.map(u => `
+        userTbody.innerHTML = usersArr.map(u => `
           <tr>
             <td class="px-3.5 py-3 font-mono font-bold text-white">${u.phone}<br><span class="text-[10px] text-amber-400">Mã mời: ${u.invite || 'N/A'}</span></td>
-            <td class="px-3.5 py-3 font-bold text-emerald-400">${formatVND(u.balance)}</td>
+            <td class="px-3.5 py-3 font-bold text-emerald-400">${formatVND(u.balance || 0)}</td>
             <td class="px-3.5 py-3 text-slate-300">${u.bankInfo ? `${u.bankInfo.bank} -${u.bankInfo.stk}` : 'Chưa liên kết'}</td>
             <td class="px-3.5 py-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${u.isLocked ? 'bg-rose-500/20 text-rose-400' : 'bg-emerald-500/20 text-emerald-400'}">${u.isLocked ? 'Đã khóa' : 'Hoạt động'}</span></td>
             <td class="px-3.5 py-3 text-right">
@@ -414,13 +453,12 @@
       });
     }
 
-    // DUYỆT NẠP VÀ TRẢ HOA HỒNG 3 CẤP
-    function approveDeposit(idx) {
-      let deposits = JSON.parse(localStorage.getItem('fin_pending_deposits') || '[]');
-      let users = JSON.parse(localStorage.getItem('fin_users') || '[]');
-      const d = deposits[idx];
+    // DUYỆT NẠP VÀ TRẢ HOA HỒNG 3 CẤP QUA FIREBASE
+    function approveDeposit(depId) {
+      const d = liveDeposits[depId];
+      if (!d) return;
 
-      const targetUser = users.find(u => u.phone === d.phone);
+      const targetUser = liveUsers[d.phone];
       if (targetUser) {
         targetUser.balance = (targetUser.balance || 0) + d.amount;
         targetUser.totalDeposited = (targetUser.totalDeposited || 0) + d.amount;
@@ -428,109 +466,93 @@
         targetUser.notifications = targetUser.notifications || [];
         targetUser.notifications.unshift({ title: 'Nạp tiền thành công', msg: `Lệnh nạp ${formatVND(d.amount)} đã được duyệt vào ví!`, time: 'Vừa xong' });
 
+        // Trả hoa hồng 3 cấp nếu có người mời
         let currentLevelUserPhone = targetUser.invite;
-        if (currentLevelUserPhone) {
-          let f1User = users.find(u => u.phone === currentLevelUserPhone);
-          if (f1User) {
-            const comF1 = d.amount * 0.10;
-            f1User.balance = (f1User.balance || 0) + comF1;
-            f1User.notifications = f1User.notifications || [];
-            f1User.notifications.unshift({ title: 'Nhận hoa hồng F1', msg: `Nhận +${formatVND(comF1)} hoa hồng 10% từ F1 (${targetUser.phone}) nạp tiền.`, time: 'Vừa xong' });
+        if (currentLevelUserPhone && liveUsers[currentLevelUserPhone]) {
+          let f1User = liveUsers[currentLevelUserPhone];
+          const comF1 = d.amount * 0.10;
+          f1User.balance = (f1User.balance || 0) + comF1;
+          f1User.notifications = f1User.notifications || [];
+          f1User.notifications.unshift({ title: 'Nhận hoa hồng F1', msg: `Nhận +${formatVND(comF1)} hoa hồng 10% từ F1 (${targetUser.phone}) nạp tiền.`, time: 'Vừa xong' });
 
-            let f2UserPhone = f1User.invite;
-            if (f2UserPhone) {
-              let f2User = users.find(u => u.phone === f2UserPhone);
-              if (f2User) {
-                const comF2 = d.amount * 0.03;
-                f2User.balance = (f2User.balance || 0) + comF2;
-                f2User.notifications = f2User.notifications || [];
-                f2User.notifications.unshift({ title: 'Nhận hoa hồng F2', msg: `Nhận +${formatVND(comF2)} hoa hồng 3% từ hệ thống tuyến dưới.`, time: 'Vừa xong' });
+          let f2UserPhone = f1User.invite;
+          if (f2UserPhone && liveUsers[f2UserPhone]) {
+            let f2User = liveUsers[f2UserPhone];
+            const comF2 = d.amount * 0.03;
+            f2User.balance = (f2User.balance || 0) + comF2;
+            f2User.notifications = f2User.notifications || [];
+            f2User.notifications.unshift({ title: 'Nhận hoa hồng F2', msg: `Nhận +${formatVND(comF2)} hoa hồng 3% từ hệ thống tuyến dưới.`, time: 'Vừa xong' });
 
-                let f3UserPhone = f2User.invite;
-                if (f3UserPhone) {
-                  let f3User = users.find(u => u.phone === f3UserPhone);
-                  if (f3User) {
-                    const comF3 = d.amount * 0.01;
-                    f3User.balance = (f3User.balance || 0) + comF3;
-                    f3User.notifications = f3User.notifications || [];
-                    f3User.notifications.unshift({ title: 'Nhận hoa hồng F3', msg: `Nhận +${formatVND(comF3)} hoa hồng 1% từ hệ thống tuyến dưới.`, time: 'Vừa xong' });
-                  }
-                }
-              }
+            let f3UserPhone = f2User.invite;
+            if (f3UserPhone && liveUsers[f3UserPhone]) {
+              let f3User = liveUsers[f3UserPhone];
+              const comF3 = d.amount * 0.01;
+              f3User.balance = (f3User.balance || 0) + comF3;
+              f3User.notifications = f3User.notifications || [];
+              f3User.notifications.unshift({ title: 'Nhận hoa hồng F3', msg: `Nhận +${formatVND(comF3)} hoa hồng 1% từ hệ thống tuyến dưới.`, time: 'Vừa xong' });
             }
           }
         }
       }
 
-      deposits.splice(idx, 1);
-      localStorage.setItem('fin_pending_deposits', JSON.stringify(deposits));
-      localStorage.setItem('fin_users', JSON.stringify(users));
-      loadAdminData();
-      alert('Đã duyệt nạp và tự động trả hoa hồng 3 cấp cho tuyến trên thành công!');
+      // Cập nhật toàn bộ users và xóa lệnh pending trên Firebase
+      db.ref('users').set(liveUsers);
+      db.ref('pending_deposits/' + depId).remove();
+      alert('Đã duyệt nạp và tự động trả hoa hồng 3 cấp thành công!');
     }
 
-    function rejectDeposit(idx) {
-      let deposits = JSON.parse(localStorage.getItem('fin_pending_deposits') || '[]');
-      let users = JSON.parse(localStorage.getItem('fin_users') || '[]');
-      const d = deposits[idx];
+    function rejectDeposit(depId) {
+      const d = liveDeposits[depId];
+      if (!d) return;
       const reason = prompt('Nhập lý do từ chối nạp tiền:', 'Sai nội dung chuyển khoản hoặc chưa nhận được tiền.');
       if (!reason) return;
 
-      const targetUser = users.find(u => u.phone === d.phone);
-      if (targetUser) {
-        targetUser.notifications = targetUser.notifications || [];
-        targetUser.notifications.unshift({ title: 'Nạp tiền bị từ chối', msg: `Lệnh nạp ${formatVND(d.amount)} bị từ chối. Lý do: ${reason}`, time: 'Vừa xong' });
+      if (liveUsers[d.phone]) {
+        liveUsers[d.phone].notifications = liveUsers[d.phone].notifications || [];
+        liveUsers[d.phone].notifications.unshift({ title: 'Nạp tiền bị từ chối', msg: `Lệnh nạp ${formatVND(d.amount)} bị từ chối. Lý do: ${reason}`, time: 'Vừa xong' });
+        db.ref('users/' + d.phone).update({ notifications: liveUsers[d.phone].notifications });
       }
 
-      deposits.splice(idx, 1);
-      localStorage.setItem('fin_pending_deposits', JSON.stringify(deposits));
-      localStorage.setItem('fin_users', JSON.stringify(users));
-      loadAdminData();
+      db.ref('pending_deposits/' + depId).remove();
       alert('Đã từ chối và gửi thông báo lý do cho người chơi!');
     }
 
-    function approveWithdraw(idx) {
-      let withdraws = JSON.parse(localStorage.getItem('fin_pending_withdraws') || '[]');
-      let users = JSON.parse(localStorage.getItem('fin_users') || '[]');
-      const w = withdraws[idx];
+    function approveWithdraw(witId) {
+      const w = liveWithdraws[witId];
+      if (!w) return;
 
-      const targetUser = users.find(u => u.phone === w.phone);
-      if (targetUser) {
-        targetUser.notifications = targetUser.notifications || [];
-        targetUser.notifications.unshift({ title: 'Rút tiền thành công', msg: `Lệnh rút ${formatVND(w.amount)} đã giải ngân về STK ${w.stk}!`, time: 'Vừa xong' });
+      if (liveUsers[w.phone]) {
+        liveUsers[w.phone].notifications = liveUsers[w.phone].notifications || [];
+        liveUsers[w.phone].notifications.unshift({ title: 'Rút tiền thành công', msg: `Lệnh rút ${formatVND(w.amount)} đã giải ngân về STK ${w.stk}!`, time: 'Vừa xong' });
+        db.ref('users/' + w.phone).update({ notifications: liveUsers[w.phone].notifications });
       }
 
-      withdraws.splice(idx, 1);
-      localStorage.setItem('fin_pending_withdraws', JSON.stringify(withdraws));
-      localStorage.setItem('fin_users', JSON.stringify(users));
-      loadAdminData();
+      db.ref('pending_withdraws/' + witId).remove();
       alert('Đã duyệt giải ngân rút tiền!');
     }
 
-    function rejectWithdraw(idx) {
-      let withdraws = JSON.parse(localStorage.getItem('fin_pending_withdraws') || '[]');
-      let users = JSON.parse(localStorage.getItem('fin_users') || '[]');
-      const w = withdraws[idx];
+    function rejectWithdraw(witId) {
+      const w = liveWithdraws[witId];
+      if (!w) return;
       const reason = prompt('Nhập lý do từ chối rút tiền:', 'Thông tin ngân hàng không trùng khớp.');
       if (!reason) return;
 
-      const targetUser = users.find(u => u.phone === w.phone);
-      if (targetUser) {
-        targetUser.balance = (targetUser.balance || 0) + w.amount;
-        targetUser.notifications = targetUser.notifications || [];
-        targetUser.notifications.unshift({ title: 'Rút tiền bị từ chối', msg: `Lệnh rút ${formatVND(w.amount)} bị từ chối. Lý do: ${reason}. Tiền đã được hoàn về ví.`, time: 'Vừa xong' });
+      if (liveUsers[w.phone]) {
+        liveUsers[w.phone].balance = (liveUsers[w.phone].balance || 0) + w.amount;
+        liveUsers[w.phone].notifications = liveUsers[w.phone].notifications || [];
+        liveUsers[w.phone].notifications.unshift({ title: 'Rút tiền bị từ chối', msg: `Lệnh rút ${formatVND(w.amount)} bị từ chối. Lý do: ${reason}. Tiền đã được hoàn về ví.`, time: 'Vừa xong' });
+        db.ref('users/' + w.phone).update({ 
+          balance: liveUsers[w.phone].balance,
+          notifications: liveUsers[w.phone].notifications 
+        });
       }
 
-      withdraws.splice(idx, 1);
-      localStorage.setItem('fin_pending_withdraws', JSON.stringify(withdraws));
-      localStorage.setItem('fin_users', JSON.stringify(users));
-      loadAdminData();
+      db.ref('pending_withdraws/' + witId).remove();
       alert('Đã từ chối lệnh rút và hoàn tiền về ví người chơi!');
     }
 
     function openEditUser(phone) {
-      const users = JSON.parse(localStorage.getItem('fin_users') || '[]');
-      const u = users.find(x => x.phone === phone);
+      const u = liveUsers[phone];
       if (!u) return;
 
       document.getElementById('editModalTitle').innerText = `Chỉnh Sửa SĐT: ${u.phone} (Mã mời: ${u.invite || 'N/A'})`;
@@ -551,20 +573,17 @@
       const newPass = document.getElementById('editPass').value;
       const isLocked = document.getElementById('editIsLocked').checked;
 
-      let users = JSON.parse(localStorage.getItem('fin_users') || '[]');
-      const u = users.find(x => x.phone === phone);
-      if (u) {
-        u.balance = newBal;
-        u.isLocked = isLocked;
-        if (newPass.length >= 8) u.pass = newPass;
+      if (liveUsers[phone]) {
+        liveUsers[phone].balance = newBal;
+        liveUsers[phone].isLocked = isLocked;
+        if (newPass.length >= 8) liveUsers[phone].pass = newPass;
         if (newStk && newName) {
-          u.bankInfo = u.bankInfo || {};
-          u.bankInfo.stk = newStk;
-          u.bankInfo.name = newName;
+          liveUsers[phone].bankInfo = liveUsers[phone].bankInfo || {};
+          liveUsers[phone].bankInfo.stk = newStk;
+          liveUsers[phone].bankInfo.name = newName;
         }
-        localStorage.setItem('fin_users', JSON.stringify(users));
+        db.ref('users/' + phone).set(liveUsers[phone]);
         document.getElementById('editUserModal').classList.add('hidden');
-        loadAdminData();
         alert('Cập nhật thông tin thành viên thành công!');
       }
     }
@@ -573,23 +592,22 @@
       const phone = document.getElementById('editUserPhone').value;
       if (!confirm(`Bạn có chắc chắn muốn xóa tài khoản ${phone} không?`)) return;
 
-      let users = JSON.parse(localStorage.getItem('fin_users') || '[]');
-      users = users.filter(x => x.phone !== phone);
-      localStorage.setItem('fin_users', JSON.stringify(users));
+      db.ref('users/' + phone).remove();
       document.getElementById('editUserModal').classList.add('hidden');
-      loadAdminData();
       alert('Đã xóa tài khoản thành công!');
     }
 
     function resetSystemData() {
-      if (confirm('Bạn có chắc chắn muốn reset toàn bộ dữ liệu hệ thống không?')) {
-        localStorage.clear();
-        location.reload();
+      if (confirm('Bạn có chắc chắn muốn reset toàn bộ dữ liệu hệ thống trên Firebase không?')) {
+        db.ref().remove().then(() => {
+          alert('Đã reset toàn bộ dữ liệu thành công!');
+          location.reload();
+        });
       }
     }
 
     window.onload = function() {
-      // Giữ nguyên bảo mật, chờ nhập mật khẩu td1234
+      // Chờ nhập mật khẩu td1234
     };
   </script>
 </body>
