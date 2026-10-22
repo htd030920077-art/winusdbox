@@ -41,8 +41,12 @@
         <div class="w-8 h-8 rounded-xl bg-rose-600 flex items-center justify-center font-black text-white text-sm">A</div>
         <span class="font-black text-base tracking-tight text-white">FININVEST ADMIN PANEL (REAL-TIME)</span>
       </div>
-      <div class="flex items-center gap-3">
-        <span class="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-xs font-bold">🟢 Real-Time Sync</span>
+      <div class="flex items-center gap-2 sm:gap-3">
+        <!-- NÚT ĐÓNG / MỞ SERVER -->
+        <button id="serverToggleBtn" onclick="toggleServerStatus()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl transition shadow">
+          🟢 Server: Đang Mở
+        </button>
+        <span class="hidden sm:inline-block px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-xs font-bold">🟢 Real-Time</span>
         <button onclick="resetSystemData()" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl transition">Reset Dữ Liệu</button>
       </div>
     </header>
@@ -245,9 +249,32 @@
         document.getElementById('adminAuthScreen').classList.add('hidden');
         document.getElementById('adminMainContent').classList.remove('hidden');
         loadAdminData();
+        updateServerToggleUI();
       } else {
         alert('Mật khẩu quản trị không chính xác!');
         document.getElementById('adminPasswordInput').value = '';
+      }
+    }
+
+    // TÍNH NĂNG ĐÓNG / MỞ SERVER
+    function toggleServerStatus() {
+      let isClosed = JSON.parse(localStorage.getItem('fin_server_closed') || 'false');
+      isClosed = !isClosed;
+      localStorage.setItem('fin_server_closed', JSON.stringify(isClosed));
+      updateServerToggleUI();
+      alert(isClosed ? 'Đã đóng server! Người chơi truy cập vào sẽ thấy thông báo bảo trì.' : 'Đã mở lại server thành công!');
+    }
+
+    function updateServerToggleUI() {
+      const isClosed = JSON.parse(localStorage.getItem('fin_server_closed') || 'false');
+      const btn = document.getElementById('serverToggleBtn');
+      if (!btn) return;
+      if (isClosed) {
+        btn.className = 'px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl transition shadow animate-pulse';
+        btn.innerText = '🔴 Server: Đang Đóng';
+      } else {
+        btn.className = 'px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl transition shadow';
+        btn.innerText = '🟢 Server: Đang Mở';
       }
     }
 
@@ -561,7 +588,7 @@
     }
 
     window.onload = function() {
-      // Giữ nguyên giao diện bắt nhập mật khẩu td1234 khi vừa vào trang
+      // Giữ nguyên màn hình yêu cầu nhập mật khẩu td1234
     };
   </script>
 </body>
