@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>FinInvest Pro - Nền Tảng Đầu Tư Sinh Lời Mỗi Ngày</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
     * { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
@@ -833,6 +836,9 @@
       const invite = document.getElementById('regInvite').value.trim();
 
       if (!/^\d{10}$/.test(phone)) return showToast('Số điện thoại phải nhập đủ 10 chữ số!', true);
+      
+      // Lấy danh sách user mới nhất từ localStorage
+      registeredUsers = JSON.parse(localStorage.getItem('fin_users') || '[]');
       if (registeredUsers.some(u => u.phone === phone)) return showToast('Số điện thoại này đã đăng ký!', true);
       if (pass.length < 8) return showToast('Mật khẩu ít nhất 8 ký tự!', true);
       if (!invite) return showToast('Chưa nhập Mã mời!', true);
@@ -854,9 +860,19 @@
       if (!/^\d{10}$/.test(phone)) return showToast('Nhập SĐT đủ 10 số!', true);
       if (pass.length < 8) return showToast('Mật khẩu từ 8 ký tự trở lên!', true);
 
+      // Đọc danh sách tài khoản đã đăng ký từ localStorage để xác thực chính xác
+      registeredUsers = JSON.parse(localStorage.getItem('fin_users') || '[]');
       const found = registeredUsers.find(u => u.phone === phone);
-      if (found && found.pass !== pass) return showToast('Mật khẩu không chính xác!', true);
 
+      if (!found) {
+        return showToast('Số điện thoại chưa được đăng ký trong hệ thống!', true);
+      }
+      if (found.pass !== pass) {
+        return showToast('Mật khẩu không chính xác!', true);
+      }
+
+      balance = found.balance || 20000;
+      updateBalanceUI();
       syncPhoneToCodes(phone);
       document.getElementById('headerAuthBtn').innerText = phone.slice(0, 4) + '***' + phone.slice(-2);
       closeAuthModal();
