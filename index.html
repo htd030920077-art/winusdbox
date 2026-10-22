@@ -69,6 +69,65 @@
     </div>
   </div>
 
+  <!-- MODAL QUẢN TRỊ ADMIN -->
+  <div id="adminModal" class="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md hidden">
+    <div class="max-w-md w-full vault-card rounded-3xl p-5 border border-cyan-500/50 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto no-scrollbar">
+      <div class="flex justify-between items-center border-b border-white/10 pb-2.5">
+        <h4 class="text-xs font-black text-cyan-400 uppercase tracking-wider">⚙️ Bảng Điều Khiển Admin</h4>
+        <button onclick="App.closeAdminModal()" class="text-slate-400 hover:text-white font-bold text-sm">✕</button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block text-slate-300 font-bold mb-1.5">🎲 Cố định kết quả phiên tiếp theo:</label>
+          <div class="grid grid-cols-3 gap-1.5">
+            <button onclick="App.adminSetForcedResult('RANDOM')" id="adminBtn-RANDOM" class="py-2 rounded-xl bg-slate-900 border border-white/10 text-slate-300 font-bold hover:bg-slate-800 transition">Ngẫu nhiên</button>
+            <button onclick="App.adminSetForcedResult('TAI')" id="adminBtn-TAI" class="py-2 rounded-xl bg-slate-900 border border-white/10 text-emerald-400 font-bold hover:bg-slate-800 transition">Luôn TÀI</button>
+            <button onclick="App.adminSetForcedResult('XIAU')" id="adminBtn-XIAU" class="py-2 rounded-xl bg-slate-900 border border-white/10 text-cyan-400 font-bold hover:bg-slate-800 transition">Luôn XỈU</button>
+          </div>
+          <div id="uiAdminCurrentForce" class="text-[10px] text-amber-400 mono mt-1">Đang chọn: Ngẫu nhiên</div>
+        </div>
+
+        <div class="pt-2 border-t border-white/10 space-y-2">
+          <label class="block text-slate-300 font-bold">👥 Người chơi cược phiên hiện tại (<span id="uiAdminSessionIdLabel" class="text-cyan-400">#---</span>):</label>
+          
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <!-- BẢNG CỬA TÀI -->
+            <div class="p-2.5 bg-slate-950 rounded-2xl border border-emerald-500/30 space-y-1.5">
+              <div class="flex justify-between items-center text-[11px] font-black text-emerald-400 uppercase">
+                <span>Cửa TÀI</span>
+                <span id="uiAdminTaiTotalBadge">0 ₫</span>
+              </div>
+              <div class="max-h-36 overflow-y-auto no-scrollbar space-y-1" id="uiAdminTaiPlayersList">
+                <div class="text-[10px] text-slate-500 text-center py-2">Chưa có ai cược Tài</div>
+              </div>
+            </div>
+
+            <!-- BẢNG CỬA XỈU -->
+            <div class="p-2.5 bg-slate-950 rounded-2xl border border-cyan-500/30 space-y-1.5">
+              <div class="flex justify-between items-center text-[11px] font-black text-cyan-400 uppercase">
+                <span>Cửa XỈU</span>
+                <span id="uiAdminXiuTotalBadge">0 ₫</span>
+              </div>
+              <div class="max-h-36 overflow-y-auto no-scrollbar space-y-1" id="uiAdminXiuPlayersList">
+                <div class="text-[10px] text-slate-500 text-center py-2">Chưa có ai cược Xỉu</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pt-2 border-t border-white/10 space-y-1.5">
+          <label class="block text-slate-300 font-bold">🏺 Quản lý Hũ Jackpot:</label>
+          <button onclick="App.adminResetJackpot()" class="w-full py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-black rounded-xl shadow transition active:scale-95">
+            🗑️ Xóa Hũ Về 0 ₫
+          </button>
+        </div>
+      </div>
+
+      <button onclick="App.closeAdminModal()" class="w-full py-2.5 bg-slate-800 text-slate-200 font-bold rounded-xl border border-white/10">Đóng Bảng Admin</button>
+    </div>
+  </div>
+
   <!-- NAVIGATION HEADER -->
   <header class="sticky top-0 z-40 bg-[#03050c]/80 backdrop-blur-xl border-b border-white/5">
     <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
@@ -82,7 +141,11 @@
         </div>
       </div>
 
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-1.5 sm:gap-2">
+        <button onclick="App.openAdminModal()" class="px-2 py-1.5 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-bold hover:bg-cyan-500/20 transition">
+          ⚙️ Admin
+        </button>
+
         <button onclick="App.openTxStatusModal()" class="relative px-2.5 py-1.5 rounded-xl bg-slate-900 border border-slate-700/80 text-xs font-bold text-slate-300 hover:text-white transition">
           📄 Trạng Thái Lệnh
           <span id="uiTxStatusDot" class="w-2 h-2 rounded-full bg-emerald-400 absolute -top-1 -right-1 hidden animate-ping"></span>
@@ -168,7 +231,7 @@
       </div>
     </section>
 
-    <!-- 3. TAB: VÒNG QUAY MAY MẮN (YÊU CẦU TỔNG NẠP >= 200K) -->
+    <!-- 3. TAB: VÒNG QUAY TÂN THỦ (YÊU CẦU TỔNG NẠP >= 200K) -->
     <section id="view-wheel" class="space-y-4 hidden max-w-sm mx-auto">
       <div class="vault-card rounded-3xl p-5 border border-amber-500/20 text-center space-y-3 relative">
         <div class="inline-block px-3 py-0.5 rounded-full text-[10px] font-black uppercase mono bg-amber-400/10 text-amber-300 border border-amber-400/30">
@@ -207,7 +270,7 @@
       </div>
     </section>
 
-    <!-- 🎲 TAB: TÀI XỈU GLOBAL -->
+    <!-- 🎲 TAB: TÀI XỈU GLOBAL (YÊU CẦU TỔNG NẠP >= 250K ĐỂ CHƠI) -->
     <section id="view-taixiu" class="space-y-4 hidden max-w-lg mx-auto">
       <!-- Ô TÍCH HŨ JACKPOT -->
       <div class="vault-card rounded-3xl p-4 border border-amber-500/40 bg-gradient-to-r from-amber-500/10 via-slate-950 to-orange-500/10 shadow-xl text-center space-y-1 relative overflow-hidden">
@@ -221,7 +284,7 @@
           </button>
         </div>
         <div id="uiJackpotPot" class="text-2xl font-black text-amber-400 mono tracking-wider py-1 drop-shadow-[0_0_10px_rgba(251,191,36,0.4)]">
-          500.000 ₫
+          0 ₫
         </div>
         <div class="text-[9px] text-slate-400 flex flex-wrap items-center justify-center gap-x-2 pt-0.5 border-t border-white/5">
           <span>Tích 10% bên thua mỗi ván</span>
@@ -453,7 +516,7 @@
 
       <div class="flex p-1 bg-slate-950 rounded-xl border border-white/5 text-xs font-bold">
         <button id="btnTabStatusDep" onclick="App.switchTxStatusTab('dep')" class="flex-1 py-1.5 rounded-lg bg-emerald-400 text-black transition">Lệnh Nạp</button>
-        <button id="btnTabStatusWit" onclick="App.switchTxStatusTab('wit')" class="flex-1 py-1.5 rounded-lg text-slate-400 transition">Lệnh Rút</button>
+        <button id="btnTabStatusWit" onclick="App.switchTxStatusTab('wit')" class="flex-1 py-1.5 rounded-lg text-slate-400 transition">Rút Tiền</button>
       </div>
 
       <div class="flex-1 overflow-y-auto no-scrollbar space-y-2" id="uiTxStatusList"></div>
@@ -675,6 +738,8 @@
       userPhone: localStorage.getItem('auravault_user') || null,
       serverTimeOffset: 0,
       lastRenderedState: null,
+      lastClaimedSessionId: null,
+      allUsersCache: {},
       protocolNodes: [
         { id: 'node_70k', name: 'Quỹ 70K Tân Thủ', amount: 70000, income: 15714, days: 7, total: 110000, badge: 'Lãi ~22%/Ngày' },
         { id: 'node_100k', name: 'Quỹ 100K Trải Nghiệm', amount: 100000, income: 17000, days: 20, total: 340000, badge: 'Lãi ~17%/Ngày' },
@@ -716,7 +781,7 @@
         sessionId: 'TX-0000',
         state: 'betting', // 'betting' (30s) -> 'spinning' (5s poker xoay) -> 'payout' (5s trả thưởng)
         endTime: 0,
-        pot: 500000,
+        pot: 0,
         tai_total: 0,
         xiu_total: 0,
         tai_players: {},
@@ -728,6 +793,11 @@
       init: function() {
         db.ref('.info/serverTimeOffset').on('value', function(snap) {
           App.serverTimeOffset = snap.val() || 0;
+        });
+
+        db.ref('users').on('value', function(snap) {
+          App.allUsersCache = snap.val() || {};
+          App.updateAdminLivePlayersTable();
         });
 
         App.detectReferralCodeFromURL();
@@ -751,7 +821,7 @@
       },
 
       // =========================================================================
-      // HỆ THỐNG ĐẾM NGƯỢC TỪNG GIÂY (30->0) & CHUYỂN PHIÊN TÀI XỈU GLOBAL
+      // HỆ THỐNG ĐẾM NGƯỢC TỪNG GIÂY (30->0) & TRẢ THƯỞNG TỰ ĐỘNG CHO MỌI NGƯỜI
       // =========================================================================
       initTaiXiuGlobalEngine: function() {
         db.ref('taixiu_global').on('value', function(snap) {
@@ -759,18 +829,25 @@
             App.txGlobalState = snap.val();
             App.renderTaiXiuRoomUI(true);
             App.renderTxGlobalHistory();
+            App.updateAdminUIState();
+            App.updateAdminLivePlayersTable();
+
+            if (App.txGlobalState.state === 'payout') {
+              App.checkAndClaimMySessionReward(App.txGlobalState);
+            }
           } else {
             var initialRoom = {
               sessionId: 'TX-' + Math.floor(100000 + Math.random() * 900000),
               state: 'betting',
               endTime: App.getNow() + 30000,
-              pot: 500000,
+              pot: 0,
               tai_total: 0,
               xiu_total: 0,
               tai_players: {},
               xiu_players: {},
               dice: [1, 2, 3],
-              history: []
+              history: [],
+              forced_result: 'RANDOM'
             };
             db.ref('taixiu_global').set(initialRoom);
           }
@@ -806,9 +883,28 @@
         var now = App.getNow();
 
         if (current.state === 'betting') {
-          var d1 = Math.floor(Math.random() * 6) + 1;
-          var d2 = Math.floor(Math.random() * 6) + 1;
-          var d3 = Math.floor(Math.random() * 6) + 1;
+          var forced = current.forced_result || 'RANDOM';
+          var d1, d2, d3, sum;
+
+          if (forced === 'TAI') {
+            do {
+              d1 = Math.floor(Math.random() * 6) + 1;
+              d2 = Math.floor(Math.random() * 6) + 1;
+              d3 = Math.floor(Math.random() * 6) + 1;
+              sum = d1 + d2 + d3;
+            } while (sum < 11);
+          } else if (forced === 'XIAU') {
+            do {
+              d1 = Math.floor(Math.random() * 6) + 1;
+              d2 = Math.floor(Math.random() * 6) + 1;
+              d3 = Math.floor(Math.random() * 6) + 1;
+              sum = d1 + d2 + d3;
+            } while (sum > 10);
+          } else {
+            d1 = Math.floor(Math.random() * 6) + 1;
+            d2 = Math.floor(Math.random() * 6) + 1;
+            d3 = Math.floor(Math.random() * 6) + 1;
+          }
 
           db.ref('taixiu_global').update({
             state: 'spinning',
@@ -825,7 +921,7 @@
           var taiCount = current.tai_players ? Object.keys(current.tai_players).length : 0;
           var xiuCount = current.xiu_players ? Object.keys(current.xiu_players).length : 0;
 
-          var pot = Number(current.pot) || 500000;
+          var pot = Number(current.pot) || 0;
           var losingTotal = (winningSideVal === 'TAI') ? xiuTotal : taiTotal;
           pot += Math.floor(losingTotal * 0.10);
 
@@ -857,15 +953,17 @@
 
           var historyList = Array.isArray(current.history) ? current.history : [];
           var newHistory = [newHistoryItem].concat(historyList).slice(0, 30);
+          var explodedPotVal = isPotExploded ? pot : 0;
 
           db.ref('taixiu_global').update({
             state: 'payout',
             endTime: now + 5000,
-            pot: isPotExploded ? 500000 : pot,
+            pot: isPotExploded ? 0 : pot,
+            lastExplodedPot: explodedPotVal,
             history: newHistory
+          }).then(function() {
+            App.payoutAllWinnersOnServer(current.sessionId, winningSideVal, diceArr, isPotExploded, explodedPotVal, current.tai_players, current.xiu_players);
           });
-
-          App.distributeSessionRewards(winningSideVal, isPotExploded, isPotExploded ? pot : 0);
         } else if (current.state === 'payout') {
           var nextSessionId = 'TX-' + Math.floor(100000 + Math.random() * 900000);
           db.ref('taixiu_global').update({
@@ -874,94 +972,231 @@
             endTime: now + 30000,
             tai_total: 0,
             xiu_total: 0,
+            lastExplodedPot: 0,
+            forced_result: 'RANDOM',
             tai_players: null,
             xiu_players: null
           });
         }
       },
 
-      distributeSessionRewards: function(winningSide, isPotExploded, potAmount) {
-        if (!App.userPhone) return;
-        db.ref('taixiu_global').once('value', function(snap) {
-          if (!snap.exists()) return;
-          var room = snap.val();
-          var playersMap = (winningSide === 'TAI') ? room.tai_players : room.xiu_players;
+      payoutAllWinnersOnServer: function(sessionId, winningSide, diceArr, isPotExploded, potAmount, taiPlayers, xiuPlayers) {
+        var winnersMap = (winningSide === 'TAI') ? (taiPlayers || {}) : (xiuPlayers || {});
+        var losersMap = (winningSide === 'TAI') ? (xiuPlayers || {}) : (taiPlayers || {});
+        var winnerPhones = Object.keys(winnersMap);
+        var loserPhones = Object.keys(losersMap);
+        var winnerCount = winnerPhones.length;
+
+        winnerPhones.forEach(function(phoneKey) {
+          var betObj = winnersMap[phoneKey];
+          var betAmount = Number(betObj && betObj.amount) || 0;
+          if (betAmount <= 0) return;
+          App.creditUserSessionReward(sessionId, phoneKey, winningSide, diceArr, betAmount, true, isPotExploded, potAmount, winnerCount);
+        });
+
+        loserPhones.forEach(function(phoneKey) {
+          var betObj = losersMap[phoneKey];
+          var betAmount = Number(betObj && betObj.amount) || 0;
+          if (betAmount <= 0) return;
+          App.creditUserSessionReward(sessionId, phoneKey, winningSide, diceArr, betAmount, false, false, 0, 0);
+        });
+      },
+
+      checkAndClaimMySessionReward: function(room) {
+        if (!App.userPhone || !room || room.state !== 'payout') return;
+        var sessionId = room.sessionId;
+        if (!sessionId || App.lastClaimedSessionId === sessionId) return;
+
+        var cleanPhone = String(App.userPhone).replace(/[.#$[\]/]/g, '_');
+        var diceArr = room.dice || [1, 1, 1];
+        var sumVal = diceArr[0] + diceArr[1] + diceArr[2];
+        var winningSide = (sumVal >= 11) ? 'TAI' : 'XIAU';
+
+        var winnersMap = (winningSide === 'TAI') ? (room.tai_players || {}) : (room.xiu_players || {});
+        var losersMap = (winningSide === 'TAI') ? (room.xiu_players || {}) : (room.tai_players || {});
+
+        if (winnersMap[cleanPhone]) {
+          App.lastClaimedSessionId = sessionId;
+          var betAmount = Number(winnersMap[cleanPhone].amount) || 0;
+          var winnerCount = Object.keys(winnersMap).length;
+          var explodedPot = Number(room.lastExplodedPot) || 0;
+          var isPotExploded = explodedPot > 0;
+          App.creditUserSessionReward(sessionId, cleanPhone, winningSide, diceArr, betAmount, true, isPotExploded, explodedPot, winnerCount);
+        } else if (losersMap[cleanPhone]) {
+          App.lastClaimedSessionId = sessionId;
+          var loseBetAmount = Number(losersMap[cleanPhone].amount) || 0;
+          App.creditUserSessionReward(sessionId, cleanPhone, winningSide, diceArr, loseBetAmount, false, false, 0, 0);
+        }
+      },
+
+      creditUserSessionReward: function(sessionId, phoneKey, winningSide, diceArr, betAmount, isWin, isPotExploded, potAmount, winnerCount) {
+        var paidRef = db.ref('taixiu_paid/' + sessionId + '/' + phoneKey);
+        paidRef.transaction(function(alreadyPaid) {
+          if (alreadyPaid !== null) return;
+          return { paid: true, time: Date.now() };
+        }, function(err, committed) {
+          if (err || !committed) return;
+
+          var sumVal = diceArr[0] + diceArr[1] + diceArr[2];
           var nowFormatted = new Date().toLocaleTimeString('vi-VN') + ' ' + new Date().toLocaleDateString('vi-VN');
 
-          if (playersMap && playersMap[App.userPhone]) {
-            var userBetObj = playersMap[App.userPhone];
-            var betAmount = Number(userBetObj.amount) || 0;
+          if (isWin) {
             var profit = Math.floor(betAmount * 0.98);
             var totalWin = betAmount + profit;
 
-            var potShare = 0;
-            if (isPotExploded) {
-              var winnerCount = Object.keys(playersMap).length;
-              if (winnerCount > 0) {
-                potShare = Math.floor(potAmount / winnerCount);
-                totalWin += potShare;
-              }
+            if (isPotExploded && winnerCount > 0) {
+              var potShare = Math.floor(potAmount / winnerCount);
+              totalWin += potShare;
             }
 
-            db.ref('users/' + App.userPhone).once('value', function(uSnap) {
-              if (!uSnap.exists()) return;
-              var uData = uSnap.val();
-              var newBal = (Number(uData.balance) || 0) + totalWin;
+            db.ref('users/' + phoneKey).transaction(function(uData) {
+              if (!uData) return uData;
+              uData.balance = (Number(uData.balance) || 0) + totalWin;
               var txs = Array.isArray(uData.transactions) ? uData.transactions : [];
               var gameHist = Array.isArray(uData.gameHistory) ? uData.gameHistory : [];
-              var diceList = room.dice || [1, 1, 1];
-              var sumVal = diceList[0] + diceList[1] + diceList[2];
 
               txs.unshift({
-                id: 'TX-' + Math.floor(1000 + Math.random() * 9000),
+                id: sessionId,
                 type: 'profit',
                 amount: totalWin,
-                desc: 'Thắng Tài Xỉu (' + ((winningSide === 'TAI') ? 'Tài' : 'Xỉu') + ' - Tổng ' + sumVal + ')' + (isPotExploded ? ' + ĂN HŨ JACKPOT!' : ''),
+                desc: 'Thắng Tài Xỉu (' + ((winningSide === 'TAI') ? 'Tài' : 'Xỉu') + ' - Tổng ' + sumVal + ') +' + App.formatCurrency(totalWin) + (isPotExploded ? ' [NỔ HŨ]' : ''),
                 time: nowFormatted
               });
 
               gameHist.unshift({
                 time: nowFormatted,
                 choice: winningSide,
-                dice: diceList,
+                dice: diceArr,
                 sum: sumVal,
                 bet: betAmount,
                 win: true,
                 payout: totalWin
               });
 
-              db.ref('users/' + App.userPhone).update({
-                balance: newBal,
-                transactions: txs,
-                gameHistory: gameHist
-              });
-
-              App.notify('🎉 Chúc mừng bạn thắng phiên ' + room.sessionId + '! Nhận +' + App.formatCurrency(totalWin) + (isPotExploded ? ' (NỔ HŨ THƯỞNG LỚN!)' : ''));
+              uData.transactions = txs.slice(0, 50);
+              uData.gameHistory = gameHist.slice(0, 50);
+              return uData;
+            }, function(txErr, txCommitted) {
+              if (txCommitted && App.userPhone === phoneKey) {
+                App.notify('🎉 THẮNG LỚN PHIÊN ' + sessionId + '! Cộng +' + App.formatCurrency(totalWin) + ' vào số dư' + (isPotExploded ? ' (NỔ HŨ JACKPOT!)' : ''));
+              }
             });
           } else {
-            db.ref('users/' + App.userPhone).once('value', function(uSnap) {
-              if (!uSnap.exists()) return;
-              var uData = uSnap.val();
+            db.ref('users/' + phoneKey).transaction(function(uData) {
+              if (!uData) return uData;
               var gameHist = Array.isArray(uData.gameHistory) ? uData.gameHistory : [];
-              var oppositeMap = (winningSide === 'TAI') ? room.xiu_players : room.tai_players;
-              if (oppositeMap && oppositeMap[App.userPhone]) {
-                var betAmount = Number(oppositeMap[App.userPhone].amount) || 0;
-                var diceList = room.dice || [1, 1, 1];
-                var sumVal = diceList[0] + diceList[1] + diceList[2];
-                gameHist.unshift({
-                  time: nowFormatted,
-                  choice: (winningSide === 'TAI') ? 'XIAU' : 'TAI',
-                  dice: diceList,
-                  sum: sumVal,
-                  bet: betAmount,
-                  win: false,
-                  payout: 0
-                });
-                db.ref('users/' + App.userPhone).update({ gameHistory: gameHist });
+              gameHist.unshift({
+                time: nowFormatted,
+                choice: (winningSide === 'TAI') ? 'XIAU' : 'TAI',
+                dice: diceArr,
+                sum: sumVal,
+                bet: betAmount,
+                win: false,
+                payout: 0
+              });
+              uData.gameHistory = gameHist.slice(0, 50);
+              return uData;
+            }, function(txErr, txCommitted) {
+              if (txCommitted && App.userPhone === phoneKey) {
+                App.notify('Phiên ' + sessionId + ' về ' + ((winningSide === 'TAI') ? 'Tài' : 'Xỉu') + ' (' + sumVal + '). Chúc bạn may mắn phiên sau!', true);
               }
             });
           }
         });
+      },
+
+      openAdminModal: function() {
+        document.getElementById('adminModal').classList.remove('hidden');
+        App.updateAdminUIState();
+        App.updateAdminLivePlayersTable();
+      },
+
+      closeAdminModal: function() {
+        document.getElementById('adminModal').classList.add('hidden');
+      },
+
+      adminSetForcedResult: function(val) {
+        db.ref('taixiu_global/forced_result').set(val).then(function() {
+          App.notify('Đã đặt lệnh phiên tiếp theo: ' + (val === 'TAI' ? 'Luôn TÀI' : val === 'XIAU' ? 'Luôn XỈU' : 'Ngẫu nhiên'));
+          App.updateAdminUIState();
+        });
+      },
+
+      adminResetJackpot: function() {
+        if (confirm('Bạn có chắc chắn muốn đặt lại giá trị Hũ Jackpot về 0 ₫ không?')) {
+          db.ref('taixiu_global/pot').set(0).then(function() {
+            App.notify('Đã reset Hũ Jackpot về 0 ₫ thành công!');
+          });
+        }
+      },
+
+      updateAdminUIState: function() {
+        var currentForce = (App.txGlobalState && App.txGlobalState.forced_result) ? App.txGlobalState.forced_result : 'RANDOM';
+        ['RANDOM', 'TAI', 'XIAU'].forEach(function(k) {
+          var btn = document.getElementById('adminBtn-' + k);
+          if (btn) {
+            if (currentForce === k) {
+              btn.className = 'py-2 rounded-xl bg-cyan-500 text-slate-950 font-black shadow-md transition';
+            } else {
+              btn.className = 'py-2 rounded-xl bg-slate-900 border border-white/10 text-slate-300 font-bold hover:bg-slate-800 transition';
+            }
+          }
+        });
+        var label = document.getElementById('uiAdminCurrentForce');
+        if (label) {
+          label.innerText = 'Đang chọn: ' + (currentForce === 'TAI' ? 'Luôn TÀI' : currentForce === 'XIAU' ? 'Luôn XỈU' : 'Ngẫu nhiên');
+        }
+      },
+
+      updateAdminLivePlayersTable: function() {
+        var room = App.txGlobalState || {};
+        var sessionLbl = document.getElementById('uiAdminSessionIdLabel');
+        if (sessionLbl) sessionLbl.innerText = room.sessionId || '#---';
+
+        var taiBadge = document.getElementById('uiAdminTaiTotalBadge');
+        if (taiBadge) taiBadge.innerText = App.formatCurrency(room.tai_total || 0);
+
+        var xiuBadge = document.getElementById('uiAdminXiuTotalBadge');
+        if (xiuBadge) xiuBadge.innerText = App.formatCurrency(room.xiu_total || 0);
+
+        var taiListEl = document.getElementById('uiAdminTaiPlayersList');
+        var xiuListEl = document.getElementById('uiAdminXiuPlayersList');
+        if (!taiListEl || !xiuListEl) return;
+
+        var taiPlayers = room.tai_players || {};
+        var xiuPlayers = room.xiu_players || {};
+
+        var taiKeys = Object.keys(taiPlayers);
+        if (taiKeys.length === 0) {
+          taiListEl.innerHTML = '<div class="text-[10px] text-slate-500 text-center py-2">Chưa có ai cược Tài</div>';
+        } else {
+          taiListEl.innerHTML = taiKeys.map(function(k) {
+            var betAmt = Number(taiPlayers[k].amount) || 0;
+            var userObj = App.allUsersCache[k] || App.allUsersCache[k.replace(/_/g, '')] || {};
+            var userBal = Number(userObj.balance) || 0;
+            var phoneDisplay = k.replace(/_/g, '');
+            return '<div class="p-1.5 bg-slate-900 rounded-xl border border-white/5 flex justify-between items-center text-[11px] mono">' +
+              '<div><div class="text-white font-bold">📞 ' + phoneDisplay + '</div><div class="text-[9px] text-slate-400">Ví: ' + App.formatCurrency(userBal) + '</div></div>' +
+              '<div class="text-emerald-400 font-black">+' + App.formatCurrency(betAmt) + '</div>' +
+            '</div>';
+          }).join('');
+        }
+
+        var xiuKeys = Object.keys(xiuPlayers);
+        if (xiuKeys.length === 0) {
+          xiuListEl.innerHTML = '<div class="text-[10px] text-slate-500 text-center py-2">Chưa có ai cược Xỉu</div>';
+        } else {
+          xiuListEl.innerHTML = xiuKeys.map(function(k) {
+            var betAmt = Number(xiuPlayers[k].amount) || 0;
+            var userObj = App.allUsersCache[k] || App.allUsersCache[k.replace(/_/g, '')] || {};
+            var userBal = Number(userObj.balance) || 0;
+            var phoneDisplay = k.replace(/_/g, '');
+            return '<div class="p-1.5 bg-slate-900 rounded-xl border border-white/5 flex justify-between items-center text-[11px] mono">' +
+              '<div><div class="text-white font-bold">📞 ' + phoneDisplay + '</div><div class="text-[9px] text-slate-400">Ví: ' + App.formatCurrency(userBal) + '</div></div>' +
+              '<div class="text-cyan-400 font-black">+' + App.formatCurrency(betAmt) + '</div>' +
+            '</div>';
+          }).join('');
+        }
       },
 
       setTxBet: function(amount) {
@@ -1005,6 +1240,13 @@
 
       placeBet: function(choice) {
         if (!App.userPhone) { App.openAuth(); return App.notify('Vui lòng đăng nhập trước!', true); }
+
+        var currentTotalDep = Number(App.state.totalDeposited) || 0;
+        if (currentTotalDep < 250000) {
+          var missingAmt = 250000 - currentTotalDep;
+          return App.notify('Yêu cầu tổng nạp từ 250.000đ trở lên mới có thể chơi Tài Xỉu! Bạn còn thiếu ' + App.formatCurrency(missingAmt) + '.', true);
+        }
+
         if (App.txGlobalState.state !== 'betting') {
           return App.notify('Đang trong thời gian quay poker hoặc trả thưởng, không thể đặt cược!', true);
         }
@@ -1075,7 +1317,7 @@
         var elBigTimer = document.getElementById('uiTxBigTimer');
 
         if (elSession) elSession.innerText = App.txGlobalState.sessionId || 'TX-000';
-        if (elPot) elPot.innerText = App.formatCurrency(App.txGlobalState.pot || 500000);
+        if (elPot) elPot.innerText = App.formatCurrency(App.txGlobalState.pot || 0);
         if (elTaiTot) elTaiTot.innerText = App.formatCurrency(App.txGlobalState.tai_total || 0);
         if (elXiuTot) elXiuTot.innerText = App.formatCurrency(App.txGlobalState.xiu_total || 0);
 
@@ -1197,17 +1439,9 @@
         });
       },
 
-      // =========================================================================
-      // VÒNG QUAY MAY MẮN: YÊU CẦU TỔNG NẠP >= 200.000Đ MỚI ĐƯỢC QUAY
-      // =========================================================================
       spinWheel: function() {
-        if (!App.userPhone) {
-          App.openAuth();
-          return App.notify('Vui lòng đăng nhập trước!', true);
-        }
-        if (App.state.hasSpunWheel) {
-          return App.notify('Bạn đã sử dụng lượt quay may mắn này rồi!', true);
-        }
+        if (!App.userPhone) { App.openAuth(); return App.notify('Vui lòng đăng nhập trước!', true); }
+        if (App.state.hasSpunWheel) return App.notify('Bạn đã quay vòng quay tân thủ rồi!', true);
 
         var currentTotalDep = Number(App.state.totalDeposited) || 0;
         if (currentTotalDep < 200000) {
@@ -1216,7 +1450,6 @@
         }
 
         if (App.isSpinning) return;
-
         App.isSpinning = true;
 
         var rand = Math.random() * 100;
@@ -1994,361 +2227,6 @@
               '</div>' : '') +
           '</div>';
         }).join('');
-      },
-
-      listenSepayAutoWebhooks: function() {
-        db.ref('sepay_webhooks').on('child_added', function(snap) {
-          var wh = snap.val();
-          var whKey = snap.key;
-          if (!wh) return;
-
-          if (wh.transferType && wh.transferType !== 'in') {
-            db.ref('sepay_webhooks/' + whKey).remove();
-            return;
-          }
-
-          var amount = Number(wh.transferAmount || wh.amount || 0);
-          var content = String(wh.content || wh.description || '');
-          var phoneMatches = content.match(/0\d{9}/g) || [];
-
-          if (amount < 70000 || phoneMatches.length === 0) {
-            db.ref('sepay_webhooks/' + whKey).remove();
-            return;
-          }
-
-          var targetPhone = phoneMatches[0];
-          var uniqueTxId = String(wh.id || wh.referenceCode || whKey).replace(/[.#$[\]/]/g, '_');
-
-          db.ref('sepay_processed/' + uniqueTxId).transaction(function(curr) {
-            if (curr !== null) return;
-            return { phone: targetPhone, amount: amount, time: Date.now() };
-          }, function(err, committed) {
-            db.ref('sepay_webhooks/' + whKey).remove();
-            if (err || !committed) return;
-            App.executeAutoDepositCredit(targetPhone, amount, uniqueTxId, content);
-          });
-        });
-      },
-
-      executeAutoDepositCredit: function(targetPhone, amount, uniqueTxId, rawContent) {
-        db.ref('users/' + targetPhone).once('value', function(snap) {
-          if (!snap.exists()) return;
-          var user = snap.val();
-
-          var newBalance = (Number(user.balance) || 0) + amount;
-          var newTotalDep = (Number(user.totalDeposited) || 0) + amount;
-          var txs = Array.isArray(user.transactions) ? user.transactions : [];
-
-          txs.unshift({
-            id: 'AUTO-' + String(uniqueTxId).slice(-4),
-            type: 'deposit',
-            amount: amount,
-            desc: 'Nạp tự động SePay VietinBank thành công'
-          });
-
-          db.ref('users/' + targetPhone).update({
-            balance: newBalance,
-            totalDeposited: newTotalDep,
-            hasDeposited: true,
-            wheelRewardPending: 0,
-            transactions: txs
-          }).then(function() {
-            if (user.invite) {
-              var f1Phone = user.invite;
-              db.ref('users/' + f1Phone).once('value', function(f1Snap) {
-                if (f1Snap.exists()) {
-                  var f1 = f1Snap.val();
-                  var comF1 = amount * 0.10;
-                  var f1Tx = Array.isArray(f1.transactions) ? f1.transactions : [];
-                  var f1Hist = Array.isArray(f1.f1DepositsHistory) ? f1.f1DepositsHistory : [];
-
-                  f1Tx.unshift({ id: 'COM-F1', type: 'profit', amount: comF1, desc: 'Hoa hồng 10% từ F1 (' + targetPhone + ') nạp' });
-                  f1Hist.unshift({ f1Phone: targetPhone, depositAmount: amount, commission: comF1, time: new Date().toLocaleString('vi-VN') });
-
-                  db.ref('users/' + f1Phone).update({
-                    balance: (Number(f1.balance) || 0) + comF1,
-                    transactions: f1Tx,
-                    f1DepositsHistory: f1Hist,
-                    unreadCommission: { fromPhone: targetPhone, depAmount: amount, amount: comF1, time: new Date().toLocaleTimeString('vi-VN') }
-                  });
-                }
-              });
-            }
-
-            db.ref('pending_deposits').once('value', function(pSnap) {
-              var list = pSnap.val() || {};
-              Object.keys(list).forEach(function(depId) {
-                if (list[depId].phone === targetPhone) {
-                  db.ref('pending_deposits/' + depId).remove();
-                  db.ref('user_tx_status/' + targetPhone + '/deposits/' + depId).update({
-                    status: 'APPROVED',
-                    reason: 'Hệ thống SePay đã tự động cộng tiền vào ví!'
-                  });
-                }
-              });
-            });
-
-            sendTelegramAlertDirect(
-              '🤖 <b>SEPAY ĐÃ TỰ ĐỘNG DUYỆT NẠP</b>\n' +
-              '━━━━━━━━━━━━━━━━━━\n' +
-              '👤 <b>SĐT Khách:</b> ' + targetPhone + '\n' +
-              '💰 <b>Số Tiền Nhận:</b> +' + App.formatCurrency(amount) + '\n' +
-              '📝 <b>Nội Dung CK:</b> ' + rawContent + '\n' +
-              '✅ <i>Tiền đã tự động cộng vào số dư người chơi!</i>'
-            );
-
-            if (App.userPhone === targetPhone) {
-              App.closeWallet();
-              App.notify('🎉 Hệ thống đã nhận +' + App.formatCurrency(amount) + ' và tự động cộng vào ví!');
-            }
-          });
-        });
-      },
-
-      formatCountdown: function(ms) {
-        if (ms <= 0) return "00:00:00";
-        var totalSeconds = Math.floor(ms / 1000);
-        var h = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
-        var m = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
-        var s = String(totalSeconds % 60).padStart(2, '0');
-        return h + ':' + m + ':' + s;
-      },
-
-      tickCountdownTimers: function() {
-        if (!App.userPhone || !App.state.activeInvestments.length) return;
-        var now = App.getNow();
-        var shouldReRender = false;
-
-        App.state.activeInvestments.forEach(function(item) {
-          var elTimer = document.getElementById('timer-' + item.instanceId);
-          if (elTimer && item.nextClaimTime) {
-            var remain = item.nextClaimTime - now;
-            if (remain <= 0) {
-              shouldReRender = true;
-            } else {
-              elTimer.innerText = '⏳ Nhận sau ' + App.formatCountdown(remain);
-            }
-          }
-        });
-
-        if (shouldReRender) {
-          App.renderActiveList();
-        }
-      },
-
-      isWithdrawalTimeValid: function() {
-        var now = new Date(App.getNow());
-        var hour = now.getHours();
-        return hour >= 9 && hour < 22;
-      },
-
-      getWithdrawalConditions: function() {
-        var hasDeposited70k = Boolean(App.state.hasDeposited || Number(App.state.totalDeposited) >= 70000);
-        var hasBoughtPkg70k = Array.isArray(App.state.activeInvestments) &&
-          App.state.activeInvestments.some(function(pkg) { return Number(pkg.amount) >= 70000; });
-        return {
-          hasDeposited70k: hasDeposited70k,
-          hasBoughtPkg70k: hasBoughtPkg70k,
-          isEligible: hasDeposited70k && hasBoughtPkg70k
-        };
-      },
-
-      updateWithdrawalTimeUI: function() {
-        var noticeEl = document.getElementById('uiWithdrawTimeNotice');
-        var submitBtn = document.getElementById('btnSubmitWithdraw');
-        if (!noticeEl || !submitBtn) return;
-
-        var isTimeValid = App.isWithdrawalTimeValid();
-        var cond = App.getWithdrawalConditions();
-
-        if (!cond.isEligible) {
-          noticeEl.className = 'p-3 rounded-xl border border-rose-500/40 bg-rose-500/15 text-rose-200 text-[11px] space-y-1.5';
-          noticeEl.innerHTML = 
-            '<div class="font-black text-rose-400 uppercase">🔒 Yêu cầu mở khóa rút tiền lần đầu:</div>' +
-            '<div class="text-slate-300">Muốn rút tiền lần đầu phải <strong>nạp ít nhất 70.000đ</strong> và <strong>mua gói 70K</strong>:</div>' +
-            '<div class="flex items-center justify-between pt-1 border-t border-white/10 mono text-[10px]">' +
-              '<span>1. Nạp tối thiểu 70.000đ:</span>' +
-              '<span class="' + (cond.hasDeposited70k ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold') + '">' + (cond.hasDeposited70k ? '✅ Đã hoàn thành' : '❌ Chưa nạp') + '</span>' +
-            '</div>' +
-            '<div class="flex items-center justify-between mono text-[10px]">' +
-              '<span>2. Mua gói đầu tư 70K:</span>' +
-              '<span class="' + (cond.hasBoughtPkg70k ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold') + '">' + (cond.hasBoughtPkg70k ? '✅ Đã mua gói' : '❌ Chưa mua gói') + '</span>' +
-            '</div>';
-          submitBtn.disabled = true;
-          submitBtn.className = 'w-full py-2.5 bg-slate-800 text-slate-500 font-bold text-xs rounded-xl cursor-not-allowed border border-white/5';
-          submitBtn.innerText = 'Cần Nạp Ít Nhất 70K & Mua Gói 70K Để Rút';
-          return;
-        }
-
-        if (isTimeValid) {
-          noticeEl.className = 'p-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 flex items-center gap-2 text-[11px] font-bold';
-          noticeEl.innerHTML = '🟢 <span>Đã đủ điều kiện (Nạp 70K & Mua gói 70K). Cổng rút đang mở (09:00 - 22:00).</span>';
-          submitBtn.disabled = false;
-          submitBtn.className = 'w-full py-2.5 bg-rose-500 text-white font-black text-xs rounded-xl shadow-lg transition active:scale-95';
-          submitBtn.innerText = 'Tạo Lệnh Rút Tiền';
-        } else {
-          noticeEl.className = 'p-3 rounded-xl border border-rose-500/40 bg-rose-500/15 text-rose-300 flex items-center gap-2 text-[11px] font-bold';
-          noticeEl.innerHTML = '🔒 <span>Cổng rút tiền hiện đang khóa! Chỉ mở từ 09:00 sáng đến 22:00 đêm.</span>';
-          submitBtn.disabled = true;
-          submitBtn.className = 'w-full py-2.5 bg-slate-800 text-slate-500 font-bold text-xs rounded-xl cursor-not-allowed border border-white/5';
-          submitBtn.innerText = 'Cổng Rút Đang Khóa (Ngoài Giờ Hỗ Trợ)';
-        }
-      },
-
-      initFirebaseListeners: function() {
-        db.ref('system/server_closed').off();
-        db.ref('system/server_closed').on('value', function(snap) {
-          document.getElementById('maintenanceModal').classList.toggle('hidden', !(snap.val() || false));
-        });
-
-        if (!App.userPhone) return;
-
-        db.ref('users/' + App.userPhone).off();
-        db.ref('users/' + App.userPhone).on('value', function(snap) {
-          if (snap.exists()) {
-            var data = snap.val();
-            if (data.isLocked) {
-              alert('Tài khoản của bạn đã bị khóa bởi hệ thống quản trị!');
-              localStorage.removeItem('auravault_user');
-              location.reload();
-              return;
-            }
-
-            if (data.unreadCommission) {
-              var comm = data.unreadCommission;
-              document.getElementById('commissionAlertDetail').innerHTML = 
-                'Bạn vừa nhận được <strong class="text-emerald-400 mono">+' + App.formatCurrency(comm.amount) + '</strong> hoa hồng từ F1 ' +
-                '<strong class="text-white mono">' + comm.fromPhone + '</strong> nạp ' + App.formatCurrency(comm.depAmount) + '.';
-              document.getElementById('commissionAlertModal').classList.remove('hidden');
-              db.ref('users/' + App.userPhone + '/unreadCommission').remove();
-            }
-
-            var rawInvestments = Array.isArray(data.activeInvestments) ? data.activeInvestments : [];
-            var checkPkg = App.sanitizeAndSyncPackages(rawInvestments);
-
-            if (checkPkg.needSave) {
-              db.ref('users/' + App.userPhone + '/activeInvestments').set(checkPkg.list);
-            }
-
-            App.state.balance = Number(data.balance) || 0;
-            App.state.totalDeposited = Number(data.totalDeposited) || 0;
-            App.state.totalWithdrawn = Number(data.totalWithdrawn) || 0;
-            App.state.wheelRewardPending = Number(data.wheelRewardPending) || 0;
-            App.state.hasSpunWheel = Boolean(data.hasSpunWheel);
-            App.state.hasDeposited = Boolean(data.hasDeposited);
-            App.state.activeInvestments = checkPkg.list;
-            App.state.ledger = Array.isArray(data.transactions) ? data.transactions : [];
-            App.state.gameHistory = Array.isArray(data.gameHistory) ? data.gameHistory : [];
-            App.f1DepositsHistory = Array.isArray(data.f1DepositsHistory) ? data.f1DepositsHistory : [];
-            
-            App.renderUI();
-          }
-        });
-
-        db.ref('users').on('value', function(snap) {
-          if (!snap.exists()) return;
-          var allUsers = snap.val() || {};
-          App.registeredF1List = [];
-
-          Object.keys(allUsers).forEach(function(phone) {
-            if (allUsers[phone].invite === App.userPhone) {
-              App.registeredF1List.push(phone);
-            }
-          });
-
-          var countEl = document.getElementById('uiCountF1');
-          if (countEl) countEl.innerText = App.registeredF1List.length + ' Bạn Bè';
-          var countPaidEl = document.getElementById('uiCountF1Paid');
-          if (countPaidEl) countPaidEl.innerText = App.f1DepositsHistory.length + ' lượt nạp';
-        });
-
-        db.ref('user_tx_status/' + App.userPhone).off();
-        db.ref('user_tx_status/' + App.userPhone).on('value', function(snap) {
-          var val = snap.val() || {};
-          App.depositRequests = val.deposits ? Object.values(val.deposits) : [];
-          App.withdrawRequests = val.withdraws ? Object.values(val.withdraws) : [];
-          App.renderTxStatusList();
-        });
-      },
-
-      renderUI: function() {
-        var balText = App.formatCurrency(App.state.balance);
-        var elHeaderBal = document.getElementById('uiHeaderBalance');
-        var elBannerBal = document.getElementById('uiBannerBalance');
-        var elModalBal = document.getElementById('uiModalBalance');
-        
-        if (elHeaderBal) elHeaderBal.innerText = balText;
-        if (elBannerBal) elBannerBal.innerText = balText;
-        if (elModalBal) elModalBal.innerText = balText;
-
-        var badgeActive = document.getElementById('uiActiveBadge');
-        if (badgeActive) badgeActive.innerText = App.state.activeInvestments.length;
-
-        var btnAuth = document.getElementById('uiBtnAuth');
-        if (btnAuth) {
-          if (App.userPhone) {
-            btnAuth.innerText = App.userPhone.slice(0, 4) + '***' + App.userPhone.slice(-2);
-            document.getElementById('uiRefCode').innerText = App.userPhone;
-            document.getElementById('uiRefLinkInput').value = 'https://winusdbox.onrender.com/?ref=' + App.userPhone;
-          } else {
-            btnAuth.innerText = 'Đăng Nhập';
-          }
-        }
-
-        // CẬP NHẬT TRẠNG THÁI VÒNG QUAY MAY MẮN (YÊU CẦU TỔNG NẠP >= 200K)
-        var spinBtn = document.getElementById('btnSpinWheel');
-        var wheelDepAmtEl = document.getElementById('uiWheelDepositedAmt');
-        var wheelBadgeEl = document.getElementById('uiWheelStatusBadge');
-        var totalDep = Number(App.state.totalDeposited) || 0;
-
-        if (wheelDepAmtEl) wheelDepAmtEl.innerText = App.formatCurrency(totalDep);
-        if (wheelBadgeEl) {
-          if (totalDep >= 200000) {
-            wheelBadgeEl.className = 'px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold text-[10px]';
-            wheelBadgeEl.innerText = '✅ Đủ điều kiện';
-          } else {
-            wheelBadgeEl.className = 'px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 font-bold text-[10px]';
-            wheelBadgeEl.innerText = '🔒 Chưa đủ 200K';
-          }
-        }
-
-        if (spinBtn) {
-          if (App.state.hasSpunWheel) {
-            spinBtn.disabled = true;
-            spinBtn.innerText = 'ĐÃ SỬ DỤNG LƯỢT QUAY';
-            spinBtn.className = 'w-full py-3 bg-slate-800 text-slate-500 font-black text-xs rounded-xl cursor-not-allowed opacity-60';
-          } else if (totalDep < 200000) {
-            spinBtn.disabled = false;
-            spinBtn.innerText = 'CẦN TỔNG NẠP TỪ 200K ĐỂ QUAY';
-            spinBtn.className = 'w-full py-3 bg-slate-800 text-amber-400 border border-amber-500/30 font-black text-xs rounded-xl shadow active:scale-95 transition';
-          } else {
-            spinBtn.disabled = false;
-            spinBtn.innerText = 'QUAY THƯỞNG NGAY';
-            spinBtn.className = 'w-full py-3 bg-gradient-to-r from-amber-400 to-orange-400 text-black font-black text-xs rounded-xl shadow-lg active:scale-95 transition';
-          }
-        }
-
-        App.updateSepayQR();
-        App.renderNodes();
-        App.renderActiveList();
-        App.renderLedger();
-        App.updateWithdrawalTimeUI();
-      },
-
-      updateSepayQR: function() {
-        var amtInput = document.getElementById('inpDepAmount');
-        var qrImg = document.getElementById('uiSepayQR');
-        var memoEl = document.getElementById('uiDepMemo');
-        var memoInlineEl = document.getElementById('uiDepMemoInline');
-
-        var amt = amtInput ? (parseFloat(amtInput.value) || 70000) : 70000;
-        var memo = App.getAutoDepositMemo();
-
-        if (memoEl) memoEl.innerText = memo;
-        if (memoInlineEl) memoInlineEl.innerText = memo;
-        if (qrImg) {
-          qrImg.src = 'https://img.vietqr.io/image/ICB-11557000-compact.jpg?amount=' + amt + '&addInfo=' + encodeURIComponent(memo) + '&accountName=HA%20TRUNG%20DUC';
-        }
       }
     };
 
