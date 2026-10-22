@@ -688,7 +688,7 @@
 
   <script>
     var firebaseConfig = {
-      databaseURL: "https://winusdbox-default-rtdb.asia-southeast1.firebasedatabase.app/"
+      databaseURL: "https://gamemoi-4eae3-default-rtdb.asia-southeast1.firebasedatabase.app/"
     };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     var db = firebase.database();
@@ -863,7 +863,6 @@
           if (snap.exists()) {
             App.txGlobalState = snap.val();
 
-            // Auto-heal nếu endTime bị kẹt ở quá khứ hoặc = 0 hoặc sessionId bằng TX-0000
             var now = App.getNow();
             var endTime = Number(App.txGlobalState.endTime) || 0;
             if (endTime === 0 || now > endTime + 10000 || App.txGlobalState.sessionId === 'TX-0000') {
@@ -1180,7 +1179,7 @@
       },
 
       adminResetJackpot: function() {
-        if (confirm('Bạn có chắc chắn muốn đặt lại giá trị Hũ Jackpot về 0 ₫ không?')) {
+        if (confirm('️Bạn có chắc chắn muốn đặt lại giá trị Hũ Jackpot về 0 ₫ không?')) {
           db.ref('taixiu_global/pot').set(0).then(function() {
             App.notify('Đã reset Hũ Jackpot về 0 ₫ thành công!');
           });
