@@ -124,6 +124,9 @@
             <div id="uiPendingWheelBox" class="text-[11px] text-amber-400 font-bold mt-1 hidden">
               🎁 Thưởng vòng quay đang khóa: <span id="uiPendingWheelAmt" class="mono text-white">0 ₫</span> (Nạp đầu để rút)
             </div>
+            <div class="text-[10px] text-emerald-400 mono mt-1">
+              ⏰ Giờ hỗ trợ rút tiền: 09:00 - 22:00 hàng ngày
+            </div>
           </div>
           <div class="flex gap-2">
             <button onclick="App.openWallet('deposit')" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-400 text-black text-xs font-black shadow-lg shadow-emerald-400/20 transition active:scale-95">Nạp Ví</button>
@@ -378,7 +381,7 @@
     </div>
   </div>
 
-  <!-- MODAL NẠP / RÚT TIỀN (TÍCH HỢP SEPAY VIETINBANK HA TRUNG DUC - STK 11557000) -->
+  <!-- MODAL NẠP / RÚT TIỀN (CÓ KIỂM TRA KHUNG GIỜ RÚT 9H - 22H) -->
   <div id="walletModal" class="fixed inset-0 z-[75] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md hidden">
     <div class="max-w-sm w-full vault-card rounded-3xl p-5 border border-white/10 space-y-4 max-h-[90vh] overflow-y-auto no-scrollbar">
       <div class="flex justify-between items-center pb-2 border-b border-white/5">
@@ -436,15 +439,33 @@
         </button>
       </div>
 
-      <!-- VÙNG RÚT TIỀN -->
+      <!-- VÙNG RÚT TIỀN (CHỈ HOẠT ĐỘNG TỪ 09:00 ĐẾN 22:00) -->
       <div id="walletView-wit" class="space-y-2.5 text-xs hidden">
-        <select id="inpWitBank" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3 py-2 text-white">
-          <option>VietinBank</option><option>MB Bank</option><option>Vietcombank</option><option>Techcombank</option><option>BIDV</option><option>Agribank</option><option>Cake by VPBank</option>
-        </select>
-        <input type="text" id="inpWitSTK" placeholder="Số tài khoản ngân hàng..." class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3 py-2 text-white mono focus:border-rose-400 focus:outline-none">
-        <input type="text" id="inpWitName" placeholder="Tên chủ tài khoản..." class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3 py-2 text-white uppercase font-bold focus:border-rose-400 focus:outline-none">
-        <input type="number" id="inpWitAmount" min="30000" value="30000" placeholder="Số tiền rút (Tối thiểu 30k)..." class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3 py-2 text-white mono font-bold focus:border-rose-400 focus:outline-none">
-        <button onclick="App.promptWithdrawConfirmation()" class="w-full py-2.5 bg-rose-500 text-white font-black text-xs rounded-xl shadow-lg transition active:scale-95">
+        <!-- BANNER THÔNG BÁO KHUNG GIỜ RÚT TIỀN -->
+        <div id="uiWithdrawTimeNotice" class="p-2.5 rounded-xl border flex items-center gap-2 text-[11px] font-bold">
+          <!-- Sẽ tự động render trạng thái mở/đóng cổng rút -->
+        </div>
+
+        <div>
+          <label class="block text-slate-400 mb-1 font-semibold">Ngân hàng thụ hưởng</label>
+          <select id="inpWitBank" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3 py-2 text-white">
+            <option>VietinBank</option><option>MB Bank</option><option>Vietcombank</option><option>Techcombank</option><option>BIDV</option><option>Agribank</option><option>Cake by VPBank</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1 font-semibold">Số tài khoản ngân hàng nhận</label>
+          <input type="text" id="inpWitSTK" placeholder="Số tài khoản ngân hàng..." class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3 py-2 text-white mono focus:border-rose-400 focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1 font-semibold">Họ tên chủ tài khoản (In hoa không dấu)</label>
+          <input type="text" id="inpWitName" placeholder="Tên chủ tài khoản..." class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3 py-2 text-white uppercase font-bold focus:border-rose-400 focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1 font-semibold">Số tiền muốn rút (Tối thiểu 30.000 VNĐ)</label>
+          <input type="number" id="inpWitAmount" min="30000" value="30000" placeholder="Số tiền rút (Tối thiểu 30k)..." class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3 py-2 text-white mono font-bold focus:border-rose-400 focus:outline-none">
+        </div>
+
+        <button id="btnSubmitWithdraw" onclick="App.promptWithdrawConfirmation()" class="w-full py-2.5 bg-rose-500 text-white font-black text-xs rounded-xl shadow-lg transition active:scale-95">
           Tạo Lệnh Rút Tiền
         </button>
       </div>
@@ -477,6 +498,29 @@
       { val: 100000, text: '100.000đ', prob: 2, color: '#ef4444' }
     ];
 
+    // CẤU HÌNH BOT TELEGRAM
+    const TELEGRAM_CONFIG = {
+      botToken: "8966775596:AAEJlRuJE9R_59FbvwoBmAcXHc9b4iOFzQA",
+      chatId: "7865394196"
+    };
+
+    async function sendTelegramAlert(messageHtml) {
+      try {
+        const endpoint = `https://api.telegram.org/bot${TELEGRAM_CONFIG.botToken}/sendMessage`;
+        await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            chat_id: TELEGRAM_CONFIG.chatId,
+            text: messageHtml,
+            parse_mode: "HTML"
+          })
+        });
+      } catch (err) {
+        console.warn("Lỗi gửi cảnh báo Telegram:", err);
+      }
+    }
+
     const App = {
       userPhone: localStorage.getItem('auravault_user') || null,
       state: {
@@ -502,6 +546,35 @@
         this.detectReferralCodeFromURL();
         this.drawWheelCanvas();
         this.initFirebaseListeners();
+      },
+
+      // KIỂM TRA KHUNG GIỜ RÚT TIỀN (9H SÁNG ĐẾN 10H ĐÊM: 09:00 - 21:59:59)
+      isWithdrawalTimeValid() {
+        const now = new Date();
+        const hour = now.getHours();
+        // Hợp lệ từ 9h sáng (9) đến trước 22h đêm (< 22)
+        return hour >= 9 && hour < 22;
+      },
+
+      updateWithdrawalTimeUI() {
+        const noticeEl = document.getElementById('uiWithdrawTimeNotice');
+        const submitBtn = document.getElementById('btnSubmitWithdraw');
+        if (!noticeEl || !submitBtn) return;
+
+        const isValid = this.isWithdrawalTimeValid();
+        if (isValid) {
+          noticeEl.className = 'p-2.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 flex items-center gap-2 text-[11px] font-bold';
+          noticeEl.innerHTML = '🟢 <span>Cổng rút tiền đang mở (Hỗ trợ từ 09:00 đến 22:00 hàng ngày)</span>';
+          submitBtn.disabled = false;
+          submitBtn.className = 'w-full py-2.5 bg-rose-500 text-white font-black text-xs rounded-xl shadow-lg transition active:scale-95';
+          submitBtn.innerText = 'Tạo Lệnh Rút Tiền';
+        } else {
+          noticeEl.className = 'p-2.5 rounded-xl border border-rose-500/40 bg-rose-500/15 text-rose-300 flex items-center gap-2 text-[11px] font-bold';
+          noticeEl.innerHTML = '🔒 <span>Cổng rút tiền hiện đang khóa! Chỉ mở từ 09:00 sáng đến 22:00 đêm.</span>';
+          submitBtn.disabled = true;
+          submitBtn.className = 'w-full py-2.5 bg-slate-800 text-slate-500 font-bold text-xs rounded-xl cursor-not-allowed border border-white/5';
+          submitBtn.innerText = 'Cổng Rút Đang Khóa (Ngoài Giờ Hỗ Trợ)';
+        }
       },
 
       detectReferralCodeFromURL() {
@@ -578,8 +651,8 @@
 
       renderUI() {
         document.getElementById('uiHeaderBalance').innerText = this.formatCurrency(this.state.balance);
-        document.getElementById('uiBannerBalance').innerText = this.formatCurrency(this.state.balance);
-        document.getElementById('uiModalBalance').innerText = this.formatCurrency(this.state.balance);
+        document.getElementById('bannerBalance').innerText = this.formatCurrency(this.state.balance);
+        document.getElementById('modalCurrentBalance').innerText = this.formatCurrency(this.state.balance);
         document.getElementById('uiActiveBadge').innerText = this.state.activeInvestments.length;
         document.getElementById('uiCountF1').innerText = `${this.f1DepositsHistory.length} Lượt Nạp`;
 
@@ -619,7 +692,6 @@
         this.renderLedger();
       },
 
-      // Cập nhật mã QR VietinBank SePay theo số tiền nạp thực tế
       updateSepayQR() {
         const amtInput = document.getElementById('inpDepAmount');
         const qrImg = document.getElementById('uiSepayQR');
@@ -841,8 +913,15 @@
         document.getElementById('confirmActionModal').classList.remove('hidden');
       },
 
+      // BẮT BUỘC KIỂM TRA KHUNG GIỜ KHI TẠO LỆNH RÚT TIỀN
       promptWithdrawConfirmation() {
         if (!this.userPhone) return this.openAuth();
+
+        // 1. Kiểm tra giờ rút tiền (09:00 - 22:00)
+        if (!this.isWithdrawalTimeValid()) {
+          return this.notify('Hệ thống chỉ hỗ trợ rút tiền từ 09:00 sáng đến 22:00 đêm. Vui lòng quay lại sau!', true);
+        }
+
         const amt = parseFloat(document.getElementById('inpWitAmount').value);
         const bank = document.getElementById('inpWitBank').value;
         const stk = document.getElementById('inpWitSTK').value.trim();
@@ -893,6 +972,12 @@
           });
           this.notify(`Đã kích hoạt dồn thêm ${node.name}!`);
         } else if (this.currentActionPending.type === 'WITHDRAW') {
+          // Kiểm tra lại lần cuối khung giờ
+          if (!this.isWithdrawalTimeValid()) {
+            this.currentActionPending = null;
+            return this.notify('Hệ thống chỉ hỗ trợ rút tiền từ 09:00 sáng đến 22:00 đêm. Lệnh rút bị hủy!', true);
+          }
+
           const { amt, bank, stk, name } = this.currentActionPending.data;
           const witId = 'WIT-' + Math.floor(1000 + Math.random() * 9000);
           
@@ -908,6 +993,21 @@
             };
             db.ref('pending_withdraws/' + witId).set(witData);
             db.ref(`user_tx_status/${this.userPhone}/withdraws/${witId}`).set(witData);
+            
+            // Cảnh báo Telegram
+            sendTelegramAlert(`
+⚠️ <b>CÓ LỆNH RÚT TIỀN MỚI</b>
+━━━━━━━━━━━━━━━━━━
+👤 <b>SĐT Người Rút:</b> <code>${this.userPhone}</code>
+💰 <b>Số Tiền:</b> <b>${this.formatCurrency(amt)}</b>
+🏦 <b>Ngân Hàng:</b> ${bank}
+💳 <b>Số Tài Khoản:</b> <code>${stk}</code>
+📛 <b>Chủ Tài Khoản:</b> ${name}
+🆔 <b>Mã Lệnh:</b> <code>${witId}</code>
+⏰ <b>Thời Gian:</b> ${new Date().toLocaleTimeString()}
+👉 <i>Vui lòng vào trang Admin để duyệt giải ngân!</i>
+            `);
+
             this.closeWallet();
             this.notify(`Lệnh rút ${this.formatCurrency(amt)} đã gửi lên hàng chờ duyệt!`);
           });
@@ -926,13 +1026,24 @@
         if (!reason) return alert('Vui lòng nhập lý do từ chối!');
 
         const logId = 'REJ-' + Math.floor(1000 + Math.random() * 9000);
+        const actionName = this.currentActionPending ? this.currentActionPending.type : 'UNKNOWN';
+
         db.ref('cancelled_logs/' + logId).set({
           id: logId,
           phone: this.userPhone,
-          action: this.currentActionPending ? this.currentActionPending.type : 'UNKNOWN',
+          action: actionName,
           reason: reason,
           time: new Date().toLocaleTimeString()
         });
+
+        sendTelegramAlert(`
+❌ <b>NGƯỜI CHƠI TỪ CHỐI THAO TÁC</b>
+━━━━━━━━━━━━━━━━━━
+👤 <b>SĐT:</b> <code>${this.userPhone}</code>
+⚙️ <b>Hành Động:</b> ${actionName}
+💬 <b>Lý Do Người Chơi Nhập:</b> <i>"${reason}"</i>
+⏰ <b>Thời Gian:</b> ${new Date().toLocaleTimeString()}
+        `);
 
         document.getElementById('rejectReasonModal').classList.add('hidden');
         this.notify('Đã gửi phản hồi từ chối lên hệ thống Admin.');
@@ -1112,6 +1223,18 @@
 
         db.ref('pending_deposits/' + depId).set(depData).then(() => {
           db.ref(`user_tx_status/${this.userPhone}/deposits/${depId}`).set(depData);
+
+          sendTelegramAlert(`
+🔔 <b>CÓ LỆNH NẠP TIỀN MỚI</b>
+━━━━━━━━━━━━━━━━━━
+👤 <b>SĐT Người Nạp:</b> <code>${this.userPhone}</code>
+💰 <b>Số Tiền:</b> <b>${this.formatCurrency(amt)}</b>
+🆔 <b>Mã Giao Dịch:</b> <code>${depId}</code>
+🏦 <b>Ngân Hàng Nhận:</b> VietinBank (HA TRUNG DUC)
+⏰ <b>Thời Gian:</b> ${new Date().toLocaleTimeString()}
+👉 <i>Vui lòng vào trang Admin để duyệt!</i>
+          `);
+
           this.closeWallet();
           this.notify(`Đã gửi lệnh nạp ${this.formatCurrency(amt)}. Chờ Admin duyệt!`);
         });
@@ -1190,6 +1313,11 @@
         document.getElementById('walletView-wit').classList.toggle('hidden', tab !== 'wit');
         document.getElementById('walletTab-dep').className = tab === 'dep' ? 'flex-1 py-1.5 rounded-lg bg-emerald-400 text-black' : 'flex-1 py-1.5 rounded-lg text-slate-400';
         document.getElementById('walletTab-wit').className = tab === 'wit' ? 'flex-1 py-1.5 rounded-lg bg-rose-500 text-white' : 'flex-1 py-1.5 rounded-lg text-slate-400';
+        
+        // Cập nhật trạng thái khung giờ khi mở tab rút
+        if (tab === 'wit') {
+          this.updateWithdrawalTimeUI();
+        }
       },
 
       copySTK() {
