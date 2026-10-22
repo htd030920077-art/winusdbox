@@ -236,13 +236,12 @@
   </div>
 
   <script>
-    const firebaseConfig = {
-      databaseURL: "https://winusdbox-default-rtdb.asia-southeast1.firebasedatabase.app/"
-    };
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-
-    const TELEGRAM_CONFIG = {
+var firebaseConfig = {
+  databaseURL: "https://winusdbox-default-rtdb.asia-southeast1.firebasedatabase.app/"
+};
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+var db = firebase.database();
+ const TELEGRAM_CONFIG = {
       botToken: "8966775596:AAEJlRuJE9R_59FbvwoBmAcXHc9b4iOFzQA",
       chatId: "7865394196"
     };
