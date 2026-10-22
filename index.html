@@ -3,1466 +3,1215 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>FinInvest Pro - Nền Tảng Đầu Tư Sinh Lời Mỗi Ngày</title>
+  <title>AuraVault - Giao Thức Đầu Tư Sinh Lời Số</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Firebase SDK -->
+  <!-- Firebase App & Database SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-    * { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
-    html, body { background-color: #070b14; color: #f1f5f9; overflow-x: hidden; width: 100%; margin: 0; padding: 0; }
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;800&display=swap');
+    * { font-family: 'Space Grotesk', sans-serif; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    body { background-color: #03050c; color: #f1f5f9; overflow-x: hidden; }
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .vault-card {
+      background: linear-gradient(145deg, rgba(15, 23, 42, 0.75), rgba(8, 12, 22, 0.9));
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+    }
+    .neon-glow {
+      box-shadow: 0 0 25px -5px rgba(16, 185, 129, 0.25);
+    }
   </style>
 </head>
-<body class="selection:bg-emerald-500 selection:text-slate-950 pb-28 relative">
-
-  <!-- MÀN HÌNH BẢO TRÌ KHI ADMIN ĐÓNG SERVER -->
-  <div id="serverClosedScreen" class="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-950 hidden">
-    <div class="w-full max-w-sm bg-slate-900 border border-rose-500/50 rounded-3xl p-6 text-center space-y-4 shadow-2xl">
-      <div class="w-12 h-12 rounded-2xl bg-rose-600/20 text-rose-500 flex items-center justify-center mx-auto text-xl font-black">🛠️</div>
-      <div>
-        <h2 class="text-base font-black text-white">Hệ Thống Đang Bảo Trì</h2>
-        <p class="text-xs text-slate-400 mt-1">Server hiện đang tạm đóng để nâng cấp tính năng. Vui lòng quay lại sau!</p>
-      </div>
-      <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 text-[11px] text-amber-400 font-bold">
-        Mọi giao dịch và tài khoản của bạn được bảo mật an toàn tuyệt đối.
-      </div>
-    </div>
-  </div>
+<body class="selection:bg-emerald-400 selection:text-black min-h-screen pb-24">
 
   <!-- TOAST THÔNG BÁO -->
-  <div id="toast" class="fixed top-3 left-3 right-3 z-[100] flex items-center gap-2 px-3.5 py-3 rounded-2xl shadow-2xl backdrop-blur-xl border transition-all duration-300 transform -translate-y-28 opacity-0 pointer-events-none">
-    <div id="toast-icon" class="shrink-0"></div>
-    <span id="toast-msg" class="text-xs font-bold leading-tight"></span>
+  <div id="toastNotification" class="fixed top-4 left-4 right-4 z-[100] max-w-sm mx-auto flex items-center gap-2.5 px-4 py-3 rounded-2xl border transition-all duration-300 transform -translate-y-28 opacity-0 pointer-events-none">
+    <span id="toastIcon" class="text-base">⚡</span>
+    <span id="toastText" class="text-xs font-semibold"></span>
   </div>
 
-  <!-- LIVE PAYOUT TICKER -->
-  <div id="liveTicker" class="fixed bottom-16 left-3 z-30 transition-all duration-500 pointer-events-none">
-    <div class="bg-slate-900/95 border border-emerald-500/40 backdrop-blur-md px-3 py-1.5 rounded-2xl shadow-2xl flex items-center gap-2 text-[11px] max-w-[250px]">
-      <div class="w-2 h-2 rounded-full bg-emerald-400 animate-ping shrink-0"></div>
-      <div class="truncate text-slate-200">
-        <span id="tickerName" class="font-extrabold text-white">Nguyễn H***</span> 
-        <span id="tickerAction" class="text-slate-400">vừa rút</span> 
-        <span id="tickerAmount" class="font-bold text-emerald-400">350.000 đ</span>
+  <!-- POPUP THÔNG BÁO HOA HỒNG F1 NẠP TIỀN TỨC THÌ -->
+  <div id="commissionAlertModal" class="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md hidden">
+    <div class="max-w-xs w-full vault-card rounded-3xl p-5 border border-emerald-400/50 text-center space-y-3.5 shadow-2xl neon-glow">
+      <div class="w-12 h-12 rounded-2xl bg-emerald-400/20 text-emerald-400 border border-emerald-400/40 flex items-center justify-center mx-auto text-2xl font-black animate-bounce">
+        💰
       </div>
+      <div>
+        <h4 class="text-sm font-black text-white uppercase tracking-wider">NHẬN HOA HỒNG F1!</h4>
+        <p id="commissionAlertDetail" class="text-xs text-slate-300 mt-1 leading-relaxed"></p>
+      </div>
+      <div class="p-3 bg-slate-950/80 rounded-xl border border-white/5 text-[11px] text-emerald-400 mono font-bold">
+        Tiền đã được cộng thẳng vào số dư để rút về ngân hàng.
+      </div>
+      <button onclick="document.getElementById('commissionAlertModal').classList.add('hidden')" class="w-full py-2.5 bg-emerald-400 text-black font-black text-xs rounded-xl shadow active:scale-95 transition">
+        Xác Nhận Đã Nhận
+      </button>
     </div>
   </div>
 
-  <!-- HEADER -->
-  <header class="sticky top-0 z-40 bg-[#070b14]/95 backdrop-blur-xl border-b border-slate-800 w-full">
-    <div class="max-w-7xl mx-auto px-2.5 py-2 flex items-center justify-between gap-1.5">
-      <div class="flex items-center gap-1.5 cursor-pointer shrink-0" onclick="switchTab('packages')">
-        <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-500 to-cyan-500 flex items-center justify-center shadow-md shrink-0">
-          <svg class="w-4 h-4 text-slate-950" fill="currentColor" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+  <!-- BẢO TRÌ HỆ THỐNG -->
+  <div id="maintenanceModal" class="fixed inset-0 z-[90] flex items-center justify-center p-4 bg-black/95 backdrop-blur-md hidden">
+    <div class="max-w-xs w-full vault-card rounded-3xl p-6 text-center space-y-3 border border-rose-500/40">
+      <div class="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-400 flex items-center justify-center mx-auto text-xl font-bold animate-pulse">🔒</div>
+      <h3 class="text-sm font-bold text-white tracking-wide uppercase">Giao Thức Tạm Đóng</h3>
+      <p class="text-xs text-slate-400 leading-relaxed">Hệ thống đang đồng bộ dữ liệu. Mọi số dư tài khoản được bảo toàn tuyệt đối.</p>
+    </div>
+  </div>
+
+  <!-- NAVIGATION HEADER -->
+  <header class="sticky top-0 z-40 bg-[#03050c]/80 backdrop-blur-xl border-b border-white/5">
+    <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-2.5 cursor-pointer" onclick="App.navigate('nodes')">
+        <div class="w-9 h-9 rounded-2xl bg-gradient-to-tr from-emerald-400 to-cyan-400 flex items-center justify-center text-slate-950 font-black text-sm shadow-lg shadow-emerald-500/20">
+          ▲
         </div>
-        <div class="leading-none">
-          <span class="font-black text-sm tracking-tight text-white block">FININVEST</span>
-          <span class="text-[9px] font-bold text-emerald-400">Đầu Tư Sinh Lời</span>
+        <div>
+          <span class="font-extrabold text-sm tracking-wider text-white block leading-none">AURA<span class="text-emerald-400">VAULT</span></span>
+          <span class="text-[8px] mono text-slate-400 tracking-widest uppercase">Smart Crypto Fund</span>
         </div>
       </div>
 
-      <div class="flex items-center gap-1.5 shrink-0">
-        <!-- NÚT CHUÔNG THÔNG BÁO REAL-TIME -->
-        <button onclick="openNotificationsModal()" class="relative p-2 bg-slate-900 border border-slate-800 rounded-xl text-slate-300 hover:text-white transition">
-          🔔
-          <span id="notifBadge" class="absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-white font-black text-[9px] rounded-full flex items-center justify-center hidden">0</span>
+      <div class="flex items-center gap-2">
+        <button onclick="App.openTxStatusModal()" class="relative px-2.5 py-1.5 rounded-xl bg-slate-900 border border-slate-700/80 text-xs font-bold text-slate-300 hover:text-white transition">
+          📄 Trạng Thái Lệnh
+          <span id="uiTxStatusDot" class="w-2 h-2 rounded-full bg-emerald-400 absolute -top-1 -right-1 hidden animate-ping"></span>
         </button>
 
-        <div onclick="openWalletModal('deposit')" class="cursor-pointer bg-slate-900 border border-emerald-500/40 px-2 py-1 rounded-xl flex items-center gap-1.5 active:scale-95 transition">
-          <div class="flex flex-col text-left">
-            <span class="text-[8px] text-slate-400 uppercase font-bold leading-none">Số Dư Ví</span>
-            <span id="headerBalance" class="text-xs font-black text-emerald-400 leading-tight">20.000 ₫</span>
+        <button onclick="App.openGiftModal()" class="px-2.5 py-1.5 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-300 text-xs font-bold hover:bg-purple-500/20 transition">
+          🎁 Code
+        </button>
+
+        <div onclick="App.openWallet('deposit')" class="cursor-pointer vault-card px-3 py-1.5 rounded-2xl flex items-center gap-2 border border-emerald-500/30 hover:border-emerald-400 transition">
+          <div class="text-left">
+            <div class="text-[8px] mono text-slate-400 uppercase font-bold leading-none">Số Dư Rút</div>
+            <div id="uiHeaderBalance" class="text-xs font-bold text-emerald-400 mono mt-0.5">0 ₫</div>
           </div>
-          <span class="bg-emerald-500 text-slate-950 px-1.5 py-1 rounded-lg text-[10px] font-black">Nạp/Rút</span>
+          <span class="w-6 h-6 rounded-xl bg-emerald-400/10 text-emerald-400 text-xs font-black flex items-center justify-center">+</span>
         </div>
 
-        <button type="button" onclick="openAuthModal('login')" id="headerAuthBtn" class="px-2.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-emerald-500/40 text-[11px] font-black text-emerald-400 active:scale-95 transition shrink-0">
-          Tài Khoản
+        <button id="uiBtnAuth" onclick="App.openAuth()" class="px-3 py-2 rounded-2xl bg-slate-900 border border-slate-700/80 text-xs font-bold text-slate-300 hover:text-white transition">
+          Đăng Nhập
         </button>
       </div>
     </div>
   </header>
 
-  <!-- NAVIGATION TABS -->
-  <div class="w-full overflow-x-auto no-scrollbar flex gap-1.5 px-2.5 py-2 bg-slate-950/90 border-b border-slate-800 text-xs">
-    <button onclick="switchTab('packages')" id="btnTab-packages" class="tab-btn px-3 py-1.5 rounded-xl font-bold whitespace-nowrap bg-emerald-500 text-slate-950 transition">Gói Đầu Tư</button>
-    <button onclick="switchTab('activePackages')" id="btnTab-activePackages" class="tab-btn px-3.5 py-1.5 rounded-xl font-bold whitespace-nowrap bg-slate-900 text-slate-400 border border-slate-800 transition">Đang Chạy (<span id="activeCountBadge">0</span>)</button>
-    <button onclick="switchTab('luckyWheel')" id="btnTab-luckyWheel" class="tab-btn px-3.5 py-1.5 rounded-xl font-bold whitespace-nowrap bg-slate-900 text-slate-400 border border-slate-800 transition">Vòng Quay</button>
-    <button onclick="switchTab('tasks')" id="btnTab-tasks" class="tab-btn px-3.5 py-1.5 rounded-xl font-bold whitespace-nowrap bg-slate-900 text-slate-400 border border-slate-800 transition">Điểm Danh & VIP</button>
-    <button onclick="switchTab('affiliate')" id="btnTab-affiliate" class="tab-btn px-3.5 py-1.5 rounded-xl font-bold whitespace-nowrap bg-slate-900 text-slate-400 border border-slate-800 transition">Hoa Hồng 3 Cấp</button>
-    <button onclick="switchTab('calculator')" id="btnTab-calculator" class="tab-btn px-3.5 py-1.5 rounded-xl font-bold whitespace-nowrap bg-slate-900 text-slate-400 border border-slate-800 transition">Tính Lãi</button>
-    <button onclick="switchTab('leaderboard')" id="btnTab-leaderboard" class="tab-btn px-3.5 py-1.5 rounded-xl font-bold whitespace-nowrap bg-slate-900 text-slate-400 border border-slate-800 transition">BXH Top</button>
-    <button onclick="switchTab('history')" id="btnTab-history" class="tab-btn px-3.5 py-1.5 rounded-xl font-bold whitespace-nowrap bg-slate-900 text-slate-400 border border-slate-800 transition">Lịch Sử</button>
+  <!-- THANH CHUYỂN TAB -->
+  <div class="max-w-4xl mx-auto px-4 pt-3 pb-1 flex gap-2 overflow-x-auto no-scrollbar">
+    <button onclick="App.navigate('nodes')" id="tabBtn-nodes" class="px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-emerald-400 text-black shadow-md shadow-emerald-400/20 transition">Gói Đầu Tư</button>
+    <button onclick="App.navigate('active')" id="tabBtn-active" class="px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-slate-900 text-slate-400 border border-white/5 transition">Đang Chạy (<span id="uiActiveBadge">0</span>)</button>
+    <button onclick="App.navigate('wheel')" id="tabBtn-wheel" class="px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-slate-900 text-slate-400 border border-white/5 transition">🎡 Vòng Quay</button>
+    <button onclick="App.navigate('referral')" id="tabBtn-referral" class="px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-slate-900 text-slate-400 border border-white/5 transition">Hoa Hồng 3 Cấp</button>
+    <button onclick="App.navigate('ledger')" id="tabBtn-ledger" class="px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-slate-900 text-slate-400 border border-white/5 transition">Nhật Ký GD</button>
   </div>
 
   <!-- NỘI DUNG CHÍNH -->
-  <main class="w-full max-w-5xl mx-auto px-3 pt-3 space-y-5">
+  <main class="max-w-4xl mx-auto px-4 pt-4 space-y-4">
 
-    <!-- 1. TAB: GÓI ĐẦU TƯ -->
-    <section id="tab-packages" class="space-y-4">
-      <div class="bg-gradient-to-r from-slate-900 via-slate-900/90 to-slate-950 border border-emerald-500/30 rounded-2xl p-4 shadow-xl space-y-3">
-        <div>
-          <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 mb-1">
-            🎁 TẶNG 20K TÂN THỦ &bull; NẠP TỪ 70K &bull; RÚT TỪ 30K
-          </span>
-          <h2 class="text-lg font-black text-white">
-            Ví Khả Dụng: <span id="bannerBalance" class="text-emerald-400">20.000 ₫</span>
-          </h2>
-          <p class="text-xs text-slate-400 mt-0.5">Gói 70k (10%/24h), các gói từ 100k đến 2000k lợi nhuận cao mỗi 24h. Mua dồn nhiều gói thoải mái!</p>
-        </div>
-        <div class="grid grid-cols-2 gap-2">
-          <button onclick="openWalletModal('deposit')" class="py-2.5 bg-emerald-500 text-slate-950 font-black text-xs rounded-xl shadow">
-            + Nạp Ví (Từ 70k)
-          </button>
-          <button onclick="openWalletModal('withdraw')" class="py-2.5 bg-slate-800 text-slate-200 font-bold text-xs rounded-xl border border-slate-700">
-            Rút Tiền (Từ 30k)
-          </button>
+    <!-- 1. TAB: CÁC GÓI ĐẦU TƯ -->
+    <section id="view-nodes" class="space-y-4">
+      <div class="vault-card rounded-3xl p-5 border border-emerald-500/20 neon-glow relative overflow-hidden">
+        <div class="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-400/10 text-emerald-400 border border-emerald-400/30 mb-1.5 mono">
+              TÂN THỦ +20K &bull; NẠP MIN 70K &bull; RÚT MIN 30K
+            </span>
+            <div class="text-xs text-slate-400 font-medium">Số Dư Khả Dụng (Đầu Tư / Rút)</div>
+            <div id="uiBannerBalance" class="text-2xl font-black text-white mono mt-0.5">0 ₫</div>
+            <div id="uiPendingWheelBox" class="text-[11px] text-amber-400 font-bold mt-1 hidden">
+              🎁 Thưởng vòng quay đang khóa: <span id="uiPendingWheelAmt" class="mono text-white">0 ₫</span> (Nạp đầu để rút)
+            </div>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="App.openWallet('deposit')" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-400 text-black text-xs font-black shadow-lg shadow-emerald-400/20 transition active:scale-95">Nạp Ví</button>
+            <button onclick="App.openWallet('withdraw')" class="px-4 py-2.5 rounded-xl bg-slate-800 text-slate-200 text-xs font-bold border border-white/10 transition active:scale-95">Rút Tiền</button>
+          </div>
         </div>
       </div>
 
       <div>
-        <h3 class="text-sm font-black text-white mb-2.5 flex items-center gap-1.5">
-          🔥 Danh Mục Gói Đầu Tư Mới
-        </h3>
-        <div id="packagesGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3"></div>
+        <div class="flex justify-between items-center mb-2.5">
+          <div class="text-xs font-bold uppercase tracking-wider text-slate-400">Danh Mục Quỹ Sinh Lời (Mua Dồn Thoải Mái)</div>
+          <span class="text-[10px] text-emerald-400 mono font-bold">Lãi Mỗi 24H</span>
+        </div>
+        <div id="uiNodesGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
       </div>
     </section>
 
     <!-- 2. TAB: GÓI ĐANG CHẠY -->
-    <section id="tab-activePackages" class="space-y-4 hidden">
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl">
-        <div class="space-y-3 mb-4">
+    <section id="view-active" class="space-y-3 hidden">
+      <div class="vault-card rounded-3xl p-5 border border-white/5 space-y-3">
+        <div class="flex items-center justify-between pb-3 border-b border-white/5">
           <div>
-            <h3 class="text-base font-bold text-white">Gói Đầu Tư Đang Chạy (<span id="activeTotalCount">0</span>)</h3>
-            <p class="text-xs text-slate-400">Mua dồn nhiều gói cùng lúc, mỗi gói sinh lời độc lập.</p>
+            <h3 class="text-sm font-bold text-white">Gói Đang Sinh Lãi Độc Lập</h3>
+            <p class="text-[11px] text-slate-400">Mua dồn nhiều gói cùng lúc, mỗi gói sinh lời độc lập.</p>
           </div>
-          <div class="grid grid-cols-3 gap-1.5">
-            <button onclick="simulateNextDayProfit()" class="py-2 bg-purple-600/20 text-purple-300 border border-purple-500/40 font-bold text-[11px] rounded-xl">+1 Ngày Lãi</button>
-            <button onclick="harvestAll()" class="py-2 bg-amber-500 text-slate-950 font-black text-[11px] rounded-xl">Thu Hoạch Hết</button>
-            <button onclick="switchTab('packages')" class="py-2 bg-slate-800 text-emerald-400 border border-slate-700 font-bold text-[11px] rounded-xl">+ Mua Thêm</button>
+          <div class="flex gap-2">
+            <button onclick="App.simulateTimeForward()" class="px-3 py-1.5 bg-purple-500/10 border border-purple-500/30 text-purple-300 font-bold text-xs rounded-xl hover:bg-purple-500/20 transition">+1 Ngày Lãi</button>
+            <button onclick="App.harvestAll()" class="px-3.5 py-1.5 bg-amber-400 text-black font-black text-xs rounded-xl shadow-md transition active:scale-95">Thu Hoạch Hết</button>
           </div>
         </div>
-        <div id="activeList" class="space-y-2.5"></div>
+        <div id="uiActiveList" class="space-y-2"></div>
       </div>
     </section>
 
-    <!-- 3. TAB: VÒNG QUAY MAY MẮN -->
-    <section id="tab-luckyWheel" class="space-y-4 hidden max-w-md mx-auto">
-      <div class="text-center space-y-1">
-        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-purple-500/20 text-purple-300 border border-purple-500/30 uppercase">VÒNG QUAY TÂN THỦ</span>
-        <h2 class="text-lg font-black text-white">Quay Thưởng Tiền Mặt (1 Lần Duy Nhất)</h2>
-        <p class="text-xs text-slate-400" id="wheelSubtitle">Dành riêng cho tài khoản mới nạp tiền lần đầu.</p>
-      </div>
+    <!-- 3. TAB: VÒNG QUAY TÂN THỦ -->
+    <section id="view-wheel" class="space-y-4 hidden max-w-sm mx-auto">
+      <div class="vault-card rounded-3xl p-5 border border-amber-500/20 text-center space-y-3 relative">
+        <div class="inline-block px-3 py-0.5 rounded-full text-[10px] font-black uppercase mono bg-amber-400/10 text-amber-300 border border-amber-400/30">
+          VÒNG QUAY MAY MẮN TÂN THỦ
+        </div>
+        <h3 class="text-sm font-bold text-white">Quay Thưởng Tiền Mặt 1 Lần</h3>
+        <p class="text-[11px] text-slate-400 leading-relaxed">
+          Được quay trước nhận tiền ngay. Số tiền trúng thưởng được rút về khi thực hiện nạp tiền lần đầu thành công (không cộng dồn để mua gói).
+        </p>
 
-      <div id="wheelLockedNotice" class="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-2">
-        <span class="text-xs text-amber-200">🔒 Yêu cầu <strong>tạo tài khoản mới và nạp ví từ 70.000đ</strong> để mở khóa vòng quay (1 lần duy nhất).</span>
-        <button onclick="openWalletModal('deposit')" class="px-2.5 py-1 bg-amber-400 text-slate-950 font-black text-[11px] rounded-lg shrink-0">Nạp Ngay</button>
-      </div>
-
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-2xl flex flex-col items-center relative">
-        <div class="w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[20px] border-t-amber-400 z-20 mb-[-10px]"></div>
-        <div class="relative w-60 h-60">
-          <canvas id="wheelCanvas" width="260" height="260" class="w-full h-full rounded-full border-4 border-amber-400"></canvas>
+        <div class="relative w-64 h-64 mx-auto my-2">
+          <div class="absolute -top-2 left-1/2 -translate-x-1/2 z-20 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[18px] border-t-amber-400"></div>
+          <canvas id="wheelCanvas" width="260" height="260" class="w-full h-full rounded-full border-4 border-amber-400/40 shadow-2xl shadow-amber-500/20"></canvas>
           <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div class="w-10 h-10 rounded-full bg-slate-950 border-2 border-amber-400 flex items-center justify-center text-sm shadow-lg">🎁</div>
+            <div class="w-10 h-10 rounded-full bg-slate-950 border-2 border-amber-400 flex items-center justify-center text-sm">🎁</div>
           </div>
         </div>
 
-        <div class="w-full mt-4 pt-3 border-t border-slate-800">
-          <div class="grid grid-cols-5 gap-1 text-center">
-            <div class="py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-[10px] font-black text-emerald-400">10.000đ</div>
-            <div class="py-1 rounded-lg bg-cyan-500/10 border border-cyan-500/30 text-[10px] font-black text-cyan-400">20.000đ</div>
-            <div class="py-1 rounded-lg bg-indigo-500/10 border border-indigo-500/30 text-[10px] font-black text-indigo-400">30.000đ</div>
-            <div class="py-1 rounded-lg bg-amber-500/10 border border-amber-500/30 text-[10px] font-black text-amber-400">50.000đ</div>
-            <div class="py-1 rounded-lg bg-rose-500/10 border border-rose-500/30 text-[10px] font-black text-rose-400">100.000đ</div>
-          </div>
+        <div class="grid grid-cols-5 gap-1 text-[9px] mono text-slate-300 font-bold">
+          <div class="p-1 rounded bg-slate-950 border border-white/5">10k (70%)</div>
+          <div class="p-1 rounded bg-slate-950 border border-white/5">20k (15%)</div>
+          <div class="p-1 rounded bg-slate-950 border border-white/5">30k (9%)</div>
+          <div class="p-1 rounded bg-slate-950 border border-white/5">50k (4%)</div>
+          <div class="p-1 rounded bg-slate-950 border border-white/5">100k (2%)</div>
         </div>
 
-        <button id="btnSpin" onclick="spinWheel()" class="w-full mt-3 py-3 bg-gradient-to-r from-amber-400 to-orange-500 text-slate-950 font-black text-xs rounded-xl shadow-lg">
-          Quay Ngay (1 Lượt Duy Nhất)
+        <button id="btnSpinWheel" onclick="App.spinWheel()" class="w-full py-3 bg-gradient-to-r from-amber-400 to-orange-400 text-black font-black text-xs rounded-xl shadow-lg active:scale-95 transition">
+          QUAY THƯỞNG NGAY
         </button>
       </div>
     </section>
 
-    <!-- 4. TAB: ĐIỂM DANH & NHIỆM VỤ VIP -->
-    <section id="tab-tasks" class="space-y-4 hidden max-w-xl mx-auto">
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-3">
-        <div class="flex items-center justify-between gap-2">
-          <div>
-            <h3 class="text-sm font-black text-white">Điểm Danh 7 Ngày</h3>
-            <p class="text-[11px] text-slate-400">Yêu cầu nạp từ 70.000đ để điểm danh nhận tiền</p>
-          </div>
-          <button id="btnCheckIn" onclick="checkInDaily()" class="px-3 py-1.5 bg-emerald-500 text-slate-950 font-black text-xs rounded-xl shrink-0">Điểm Danh</button>
-        </div>
-        <div class="grid grid-cols-7 gap-1 text-center" id="checkInGrid"></div>
-      </div>
-
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-3">
-        <div class="flex items-center justify-between">
-          <div>
-            <h3 class="text-sm font-black text-white">Nhiệm Vụ VIP Nạp Tiền</h3>
-            <p class="text-[11px] text-slate-400">Tích lũy nạp nhận thưởng trực tiếp</p>
-          </div>
-          <span class="text-[11px] font-bold text-amber-400 bg-amber-500/10 px-2 py-1 rounded-lg border border-amber-500/20">Đã nạp: <span id="vipTotalDeposited">0 ₫</span></span>
-        </div>
-
-        <div class="space-y-2.5">
-          <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-1.5">
-            <div class="flex items-center justify-between">
-              <div>
-                <div class="text-xs font-bold text-white"><span class="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 text-[9px] font-black mr-1">VIP 1</span>Nạp tích lũy 500.000 đ</div>
-                <div class="text-[11px] text-emerald-400 font-bold">Tặng ngay +40.000 đ</div>
-              </div>
-              <button onclick="claimVipQuest('vip_500k', 500000, 40000)" id="btnVip-500k" class="px-2.5 py-1.5 bg-slate-800 text-slate-400 text-xs font-bold rounded-lg">Chưa Đạt</button>
-            </div>
-            <div class="w-full h-1.5 bg-slate-900 rounded-full overflow-hidden"><div id="barVip-500k" class="h-full bg-emerald-400" style="width: 0%"></div></div>
-          </div>
-
-          <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-1.5">
-            <div class="flex items-center justify-between">
-              <div>
-                <div class="text-xs font-bold text-white"><span class="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 text-[9px] font-black mr-1">VIP 2</span>Nạp tích lũy 1.000.000 đ</div>
-                <div class="text-[11px] text-emerald-400 font-bold">Tặng ngay +80.000 đ</div>
-              </div>
-              <button onclick="claimVipQuest('vip_1m', 1000000, 80000)" id="btnVip-1m" class="px-2.5 py-1.5 bg-slate-800 text-slate-400 text-xs font-bold rounded-lg">Chưa Đạt</button>
-            </div>
-            <div class="w-full h-1.5 bg-slate-900 rounded-full overflow-hidden"><div id="barVip-1m" class="h-full bg-emerald-400" style="width: 0%"></div></div>
-          </div>
-
-          <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-1.5">
-            <div class="flex items-center justify-between">
-              <div>
-                <div class="text-xs font-bold text-white"><span class="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 text-[9px] font-black mr-1">VIP 3</span>Nạp tích lũy 2.000.000 đ</div>
-                <div class="text-[11px] text-emerald-400 font-bold">Tặng ngay +200.000 đ</div>
-              </div>
-              <button onclick="claimVipQuest('vip_2m', 2000000, 200000)" id="btnVip-2m" class="px-2.5 py-1.5 bg-slate-800 text-slate-400 text-xs font-bold rounded-lg">Chưa Đạt</button>
-            </div>
-            <div class="w-full h-1.5 bg-slate-900 rounded-full overflow-hidden"><div id="barVip-2m" class="h-full bg-emerald-400" style="width: 0%"></div></div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 5. TAB: HOA HỒNG 3 CẤP -->
-    <section id="tab-affiliate" class="space-y-4 hidden max-w-3xl mx-auto">
-      <div class="bg-slate-900 border border-purple-500/30 rounded-2xl p-4 shadow-xl space-y-3.5">
-        <div class="flex items-center justify-between gap-2">
-          <div>
-            <h2 class="text-base font-black text-white">Hoa Hồng: F1 (10%) &bull; F2 (3%) &bull; F3 (1%)</h2>
-            <p class="text-[11px] text-slate-400">Ấn vào từng cấp để mở bảng SĐT, tiền nạp và hoa hồng.</p>
-          </div>
-          <button onclick="openAffiliateModal('ALL')" class="px-3 py-1.5 bg-purple-600 text-white font-bold text-xs rounded-xl shrink-0">Xem Bảng</button>
-        </div>
-
-        <div class="grid grid-cols-3 gap-2">
-          <div onclick="openAffiliateModal('F1')" class="cursor-pointer bg-slate-950 border border-emerald-500/40 p-3 rounded-xl text-center">
-            <span class="text-[10px] font-black text-emerald-400">F1 (10%)</span>
-            <div class="text-sm font-black text-white mt-1">5 Người</div>
-            <div class="text-[11px] text-emerald-400 font-bold">+450.000đ</div>
-          </div>
-          <div onclick="openAffiliateModal('F2')" class="cursor-pointer bg-slate-950 border border-cyan-500/40 p-3 rounded-xl text-center">
-            <span class="text-[10px] font-black text-cyan-400">F2 (3%)</span>
-            <div class="text-sm font-black text-white mt-1">4 Người</div>
-            <div class="text-[11px] text-cyan-400 font-bold">+114.000đ</div>
-          </div>
-          <div onclick="openAffiliateModal('F3')" class="cursor-pointer bg-slate-950 border border-purple-500/40 p-3 rounded-xl text-center">
-            <span class="text-[10px] font-black text-purple-300">F3 (1%)</span>
-            <div class="text-sm font-black text-white mt-1">3 Người</div>
-            <div class="text-[11px] text-purple-300 font-bold">+36.000đ</div>
-          </div>
-        </div>
-
-        <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
-          <div class="flex items-center justify-between text-xs">
-            <span class="text-slate-400">Mã mời của bạn (SĐT đăng ký):</span>
-            <div class="flex items-center gap-1.5">
-              <span id="myRefCodeText" class="font-mono font-black text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/30">0365355946</span>
-              <button onclick="copyInviteCodeOnly()" class="px-2 py-0.5 bg-slate-800 text-emerald-400 font-bold text-[10px] rounded border border-slate-700">Copy Mã</button>
-            </div>
-          </div>
-          <div class="flex gap-2 pt-1">
-            <input type="text" id="refLinkInput" readonly value="https://fininvest.io/ref/0365355946" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-xs text-slate-300 font-mono">
-            <button onclick="copyRefLink()" class="px-3 py-2 bg-purple-600 text-white font-bold text-xs rounded-xl shrink-0">Copy Link</button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 6. TAB: TÍNH LÃI -->
-    <section id="tab-calculator" class="space-y-4 hidden max-w-xl mx-auto">
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-4">
-        <h3 class="text-sm font-black text-white">Bảng Tính Lợi Nhuận Đầu Tư</h3>
-        <div id="calcPkgGrid" class="grid grid-cols-2 sm:grid-cols-4 gap-2"></div>
+    <!-- 4. TAB: HOA HỒNG TUYẾN DƯỚI (CLICK F1 MỞ BẢNG CHI TIẾT) -->
+    <section id="view-referral" class="space-y-3 hidden">
+      <div class="vault-card rounded-3xl p-5 border border-white/5 space-y-4">
         <div>
-          <div class="flex justify-between text-xs font-bold mb-1">
-            <span class="text-slate-400">Số Ngày Đầu Tư:</span>
-            <span id="calcDaysLabel" class="text-emerald-400 font-black">5 Ngày</span>
-          </div>
-          <input type="range" id="calcDaysSlider" min="1" max="30" value="5" oninput="updateCalculator()" class="w-full accent-emerald-500 cursor-pointer">
+          <h3 class="text-sm font-bold text-white">Chính Sách Hoa Hồng 3 Cấp</h3>
+          <p class="text-[11px] text-slate-400">Ấn trực tiếp vào ô <strong class="text-emerald-400">Tuyến F1</strong> để xem bảng chi tiết thời gian, số tiền nạp và hoa hồng đã nhận.</p>
         </div>
+
         <div class="grid grid-cols-3 gap-2 text-center">
-          <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800"><div class="text-[10px] text-slate-400">Lãi 24h</div><div id="calcDailyOut" class="text-xs font-black text-emerald-400 mt-0.5">+0 ₫</div></div>
-          <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800"><div class="text-[10px] text-slate-400">Tổng Lãi</div><div id="calcTotalProfitOut" class="text-xs font-black text-amber-400 mt-0.5">+0 ₫</div></div>
-          <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800"><div class="text-[10px] text-slate-400">Tổng Nhận</div><div id="calcTotalReturnOut" class="text-xs font-black text-white mt-0.5">0 ₫</div></div>
+          <div onclick="App.openF1ListModal()" class="cursor-pointer p-3 bg-slate-950/70 hover:bg-slate-900 rounded-2xl border border-emerald-500/40 transition active:scale-95 relative group">
+            <div class="text-[10px] font-bold text-emerald-400 uppercase mono">Tuyến F1 (10%) 👆</div>
+            <div id="uiCountF1" class="text-lg font-black text-white mono mt-0.5">0 Lượt Nạp</div>
+            <div class="text-[9px] text-emerald-300">Nhấn xem chi tiết</div>
+            <span class="absolute top-1.5 right-1.5 text-[8px] bg-emerald-400 text-black font-extrabold px-1 rounded">Mở</span>
+          </div>
+          <div class="p-3 bg-slate-950/70 rounded-2xl border border-cyan-500/20">
+            <div class="text-[10px] font-bold text-cyan-400 uppercase mono">Tuyến F2</div>
+            <div class="text-lg font-black text-white mono mt-0.5">3%</div>
+            <div class="text-[9px] text-slate-400">Gián tiếp</div>
+          </div>
+          <div class="p-3 bg-slate-950/70 rounded-2xl border border-purple-500/20">
+            <div class="text-[10px] font-bold text-purple-400 uppercase mono">Tuyến F3</div>
+            <div class="text-lg font-black text-white mono mt-0.5">1%</div>
+            <div class="text-[9px] text-slate-400">Tầng sâu</div>
+          </div>
+        </div>
+
+        <div class="p-3 bg-slate-950/80 rounded-2xl border border-white/5 space-y-2 text-xs">
+          <div class="flex items-center justify-between">
+            <span class="text-slate-400">Mã Mời Của Bạn (SĐT):</span>
+            <div class="flex items-center gap-2">
+              <span id="uiRefCode" class="font-mono font-bold text-emerald-400 bg-emerald-400/10 px-2.5 py-0.5 rounded border border-emerald-400/30">---</span>
+              <button onclick="App.copyRefCode()" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-[10px] font-bold transition">Copy Mã</button>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 pt-1 border-t border-white/5">
+            <input type="text" id="uiRefLinkInput" readonly class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-slate-300 mono">
+            <button onclick="App.copyRefLink()" class="px-3 py-1.5 bg-emerald-400 text-black font-bold text-xs rounded-xl shrink-0">Copy Link</button>
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- 7. TAB: BXH TOP -->
-    <section id="tab-leaderboard" class="space-y-4 hidden max-w-xl mx-auto">
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-3">
-        <h3 class="text-sm font-black text-white">Bảng Xếp Hạng Lợi Nhuận Cao Nhất</h3>
-        <div id="leaderboardList" class="divide-y divide-slate-800/70"></div>
-      </div>
-    </section>
-
-    <!-- 8. TAB: LỊCH SỬ GIAO DỊCH -->
-    <section id="tab-history" class="space-y-3 hidden max-w-3xl mx-auto">
-      <div class="flex items-center justify-between gap-2">
-        <h3 class="text-sm font-bold text-white">Lịch Sử Giao Dịch</h3>
-        <div class="flex gap-1 bg-slate-900 p-1 rounded-xl border border-slate-800 text-[10px]">
-          <button onclick="filterHistory('all')" id="histFilter-all" class="px-2 py-1 rounded-lg font-bold bg-emerald-500 text-slate-950">Tất Cả</button>
-          <button onclick="filterHistory('deposit')" id="histFilter-deposit" class="px-2 py-1 rounded-lg font-bold text-slate-400">Nạp</button>
-          <button onclick="filterHistory('withdraw')" id="histFilter-withdraw" class="px-2 py-1 rounded-lg font-bold text-slate-400">Rút</button>
-          <button onclick="filterHistory('profit')" id="histFilter-profit" class="px-2 py-1 rounded-lg font-bold text-slate-400">Lãi</button>
-        </div>
-      </div>
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+    <!-- 5. TAB: NHẬT KÝ GIAO DỊCH -->
+    <section id="view-ledger" class="space-y-3 hidden">
+      <div class="vault-card rounded-3xl overflow-hidden border border-white/5">
+        <div class="p-3.5 border-b border-white/5 font-bold text-xs text-slate-300">Nhật Ký Biến Động Số Dư</div>
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs text-slate-300">
-            <thead class="bg-slate-950 text-[10px] uppercase font-bold text-slate-400 border-b border-slate-800">
-              <tr><th class="px-3 py-2">Mã GD</th><th class="px-3 py-2">Loại</th><th class="px-3 py-2">Số Tiền</th><th class="px-3 py-2">Nội Dung</th></tr>
+            <thead class="bg-slate-950/90 text-[10px] uppercase font-bold text-slate-400 border-b border-white/5 mono">
+              <tr>
+                <th class="px-3.5 py-2.5">Mã GD</th>
+                <th class="px-3.5 py-2.5">Phân Loại</th>
+                <th class="px-3.5 py-2.5">Giá Trị</th>
+                <th class="px-3.5 py-2.5">Nội Dung</th>
+              </tr>
             </thead>
-            <tbody id="txTableBody" class="divide-y divide-slate-800/60"></tbody>
+            <tbody id="uiLedgerBody" class="divide-y divide-white/5"></tbody>
           </table>
         </div>
       </div>
     </section>
-
   </main>
 
-  <!-- CSKH 24/7 -->
-  <div class="fixed bottom-3 right-3 z-40">
-    <button id="chatToggleBtn" onclick="toggleChat()" class="flex items-center gap-1.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 px-3.5 py-2 rounded-full font-black text-xs shadow-2xl">
-      💬 CSKH 24/7
-    </button>
-    <div id="chatBox" class="hidden w-72 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl flex flex-col h-72 overflow-hidden mt-2">
-      <div class="bg-slate-950 px-3 py-2 border-b border-slate-800 flex items-center justify-between">
-        <span class="text-xs font-bold text-white">Hỗ Trợ Trực Tuyến 24/7</span>
-        <button onclick="toggleChat()" class="text-slate-400 hover:text-white text-xs font-bold">✕</button>
-      </div>
-      <div id="chatMessages" class="flex-1 p-2.5 overflow-y-auto space-y-2 text-xs">
-        <div class="bg-slate-800 text-slate-200 p-2 rounded-xl max-w-[85%]">
-          Xin chào! Khi nạp tiền vui lòng chuyển khoản trước tới STK 0365355946 (VU HOANG HIEP), sau đó mới bấm xác nhận nhé!
+  <!-- MODAL DANH SÁCH F1 NẠP TIỀN & HOA HỒNG CHI TIẾT -->
+  <div id="f1ListModal" class="fixed inset-0 z-[85] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md hidden">
+    <div class="max-w-md w-full vault-card rounded-3xl p-5 border border-emerald-500/30 space-y-3 max-h-[85vh] flex flex-col">
+      <div class="flex justify-between items-center border-b border-white/10 pb-2.5">
+        <div>
+          <h4 class="text-xs font-bold uppercase tracking-wider text-white">Danh Sách F1 Nạp Tiền</h4>
+          <p class="text-[10px] text-slate-400">Hoa hồng 10% nhận ngay khi F1 nạp tiền.</p>
         </div>
+        <button onclick="App.closeF1ListModal()" class="text-slate-400 hover:text-white font-bold text-sm">✕</button>
       </div>
-      <div class="p-2 bg-slate-950 border-t border-slate-800 flex gap-1">
-        <input type="text" id="chatInput" placeholder="Nhập tin nhắn..." onkeydown="if(event.key==='Enter') sendChat()" class="flex-1 bg-slate-900 border border-slate-800 rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none">
-        <button onclick="sendChat()" class="px-2.5 py-1.5 bg-emerald-500 text-slate-950 font-bold text-xs rounded-lg">Gửi</button>
+
+      <div class="flex-1 overflow-y-auto no-scrollbar border border-white/5 rounded-2xl bg-slate-950/60">
+        <table class="w-full text-left text-xs text-slate-300">
+          <thead class="bg-slate-950 text-[10px] uppercase font-bold text-slate-400 sticky top-0 border-b border-white/5 mono">
+            <tr>
+              <th class="px-3 py-2">SĐT F1</th>
+              <th class="px-3 py-2">Số Tiền Nạp</th>
+              <th class="px-3 py-2">Hoa Hồng (10%)</th>
+              <th class="px-3 py-2">Thời Gian</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyF1List" class="divide-y divide-white/5"></tbody>
+        </table>
+      </div>
+
+      <div class="p-3 bg-slate-950 rounded-xl border border-white/5 flex justify-between items-center text-xs">
+        <span class="text-slate-400 font-medium">Tổng hoa hồng F1 đã nhận:</span>
+        <span id="uiTotalF1Commission" class="font-bold text-emerald-400 mono text-sm">+0 ₫</span>
       </div>
     </div>
   </div>
 
-  <!-- MODAL ĐĂNG KÝ & ĐĂNG NHẬP -->
-  <div id="authModal" class="fixed inset-0 z-[80] flex items-center justify-center p-3 bg-slate-950/90 backdrop-blur-md hidden">
-    <div class="w-full max-w-sm bg-slate-900 border border-emerald-500/40 rounded-3xl p-5 shadow-2xl space-y-4 mx-auto">
-      <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
-        <h3 class="text-base font-black text-white">Tài Khoản Đầu Tư</h3>
-        <button type="button" onclick="closeAuthModal()" class="w-7 h-7 rounded-full bg-slate-800 text-slate-300 font-bold flex items-center justify-center">✕</button>
+  <!-- MODAL POPUP RIÊNG: THEO DÕI TRẠNG THÁI VÀ LÝ DO NẠP / RÚT -->
+  <div id="txStatusModal" class="fixed inset-0 z-[85] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md hidden">
+    <div class="max-w-md w-full vault-card rounded-3xl p-5 border border-white/10 space-y-3 max-h-[85vh] flex flex-col">
+      <div class="flex justify-between items-center border-b border-white/10 pb-2.5">
+        <div>
+          <h4 class="text-xs font-bold uppercase tracking-wider text-white">Trạng Thái Lệnh Nạp / Rút</h4>
+          <p class="text-[10px] text-slate-400">Cập nhật thời gian thực trạng thái và lý do từ Admin.</p>
+        </div>
+        <button onclick="App.closeTxStatusModal()" class="text-slate-400 hover:text-white font-bold text-sm">✕</button>
       </div>
 
-      <div class="flex p-1 bg-slate-950 rounded-2xl border border-slate-800 text-xs">
-        <button type="button" id="tabAuth-login" onclick="switchAuthTab('login')" class="flex-1 py-2 rounded-xl font-bold bg-emerald-500 text-slate-950 transition">Đăng Nhập</button>
-        <button type="button" id="tabAuth-register" onclick="switchAuthTab('register')" class="flex-1 py-2 rounded-xl font-bold text-slate-400 transition">Đăng Ký Mới</button>
+      <div class="flex p-1 bg-slate-950 rounded-xl border border-white/5 text-xs font-bold">
+        <button id="btnTabStatusDep" onclick="App.switchTxStatusTab('dep')" class="flex-1 py-1.5 rounded-lg bg-emerald-400 text-black transition">Lệnh Nạp</button>
+        <button id="btnTabStatusWit" onclick="App.switchTxStatusTab('wit')" class="flex-1 py-1.5 rounded-lg text-slate-400 transition">Lệnh Rút</button>
       </div>
 
-      <div id="formLogin" class="space-y-3">
-        <div>
-          <label class="block text-[11px] text-slate-400 mb-1">Số điện thoại (10 số)</label>
-          <input type="tel" id="loginPhone" maxlength="10" placeholder="Nhập SĐT 10 số..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white font-mono focus:border-emerald-500 focus:outline-none">
-        </div>
-        <div>
-          <label class="block text-[11px] text-slate-400 mb-1">Mật khẩu</label>
-          <input type="password" id="loginPass" placeholder="Nhập mật khẩu..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white focus:border-emerald-500 focus:outline-none">
-        </div>
-        <button type="button" onclick="submitLogin()" class="w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs rounded-2xl shadow-lg transition">
-          Đăng Nhập Ngay
-        </button>
-      </div>
+      <div class="flex-1 overflow-y-auto no-scrollbar space-y-2" id="uiTxStatusList"></div>
+    </div>
+  </div>
 
-      <div id="formRegister" class="space-y-3 hidden">
-        <div>
-          <label class="block text-[11px] text-slate-400 mb-1">Số điện thoại (Đủ 10 số - Mỗi SĐT 1 TK)</label>
-          <input type="tel" id="regPhone" maxlength="10" placeholder="Ví dụ: 0988776655" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white font-mono focus:border-amber-400 focus:outline-none">
-        </div>
-        <div>
-          <label class="block text-[11px] text-slate-400 mb-1">Mật khẩu (Ít nhất 8 ký tự)</label>
-          <input type="password" id="regPass" placeholder="Nhập tối thiểu 8 ký tự..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white focus:border-amber-400 focus:outline-none">
-        </div>
-        <div>
-          <label class="block text-[11px] text-amber-400 font-bold mb-1">Mã mời giới thiệu (SĐT người mời - Bắt buộc *)</label>
-          <input type="text" id="regInvite" placeholder="Nhập mã mời (VD: 0365355946)..." class="w-full bg-slate-950 border border-amber-500/50 rounded-xl px-3 py-2.5 text-xs text-white font-mono focus:border-amber-400 focus:outline-none">
-        </div>
-        <button type="button" onclick="submitRegister()" class="w-full py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-2xl shadow-lg transition">
-          Tạo Tài Khoản Ngay (+20.000đ)
-        </button>
+  <!-- MODAL XÁC NHẬN THAO TÁC / TỪ CHỐI -->
+  <div id="confirmActionModal" class="fixed inset-0 z-[85] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md hidden">
+    <div class="max-w-xs w-full vault-card rounded-3xl p-5 border border-white/10 space-y-4 text-center">
+      <div class="w-10 h-10 rounded-2xl bg-amber-500/10 text-amber-400 flex items-center justify-center mx-auto text-lg font-bold">⚠️</div>
+      <div>
+        <h4 id="confirmActionTitle" class="text-sm font-bold text-white uppercase">Xác Nhận Thao Tác</h4>
+        <p id="confirmActionDesc" class="text-xs text-slate-400 mt-1"></p>
+      </div>
+      <div class="flex gap-2">
+        <button id="btnConfirmActionYes" class="flex-1 py-2.5 bg-emerald-400 text-black font-black text-xs rounded-xl shadow active:scale-95 transition">Xác Nhận</button>
+        <button id="btnConfirmActionNo" class="flex-1 py-2.5 bg-slate-800 text-rose-400 font-bold text-xs rounded-xl border border-rose-500/20 active:scale-95 transition">Từ Chối</button>
       </div>
     </div>
   </div>
 
-  <!-- MODAL VÍ (NẠP / RÚT / NHẬP CODE GỘP CHUNG) -->
-  <div id="walletModal" class="fixed inset-0 z-[75] flex items-center justify-center p-3 bg-slate-950/90 backdrop-blur-md hidden">
-    <div class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-4 shadow-2xl space-y-3.5 max-h-[90vh] overflow-y-auto no-scrollbar mx-auto">
-      <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-        <div>
-          <h3 class="text-sm font-extrabold text-white">Trung Tâm Giao Dịch Ví</h3>
-          <p class="text-[11px] text-slate-400">Số dư khả dụng: <span id="modalCurrentBalance" class="text-emerald-400 font-bold">20.000 ₫</span></p>
-        </div>
-        <button onclick="closeWalletModal()" class="w-7 h-7 rounded-full bg-slate-800 text-slate-300 font-bold">✕</button>
+  <!-- MODAL NHẬP LÝ DO TỪ CHỐI -->
+  <div id="rejectReasonModal" class="fixed inset-0 z-[86] flex items-center justify-center p-4 bg-black/95 backdrop-blur-md hidden">
+    <div class="max-w-xs w-full vault-card rounded-3xl p-5 border border-rose-500/30 space-y-3">
+      <h4 class="text-xs font-bold text-white uppercase tracking-wider">Lý Do Bạn Từ Chối Thao Tác</h4>
+      <textarea id="inpRejectReason" rows="3" placeholder="Nhập lý do tại sao bạn từ chối (bắt buộc)..." class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:border-rose-400 focus:outline-none"></textarea>
+      <div class="flex gap-2">
+        <button onclick="App.submitRejectReason()" class="flex-1 py-2 bg-rose-600 text-white font-bold text-xs rounded-xl">Gửi Lên Admin</button>
+        <button onclick="document.getElementById('rejectReasonModal').classList.add('hidden')" class="px-3 py-2 bg-slate-800 text-slate-400 font-bold text-xs rounded-xl">Đóng</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL NHẬP GIFTCODE -->
+  <div id="giftModal" class="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md hidden">
+    <div class="max-w-xs w-full vault-card rounded-3xl p-5 border border-purple-500/30 space-y-3">
+      <div class="flex justify-between items-center border-b border-white/5 pb-2">
+        <h4 class="text-xs font-bold text-white uppercase">🎁 Nhận Thưởng Giftcode</h4>
+        <button onclick="App.closeGiftModal()" class="text-slate-400 hover:text-white">✕</button>
+      </div>
+      <p class="text-[11px] text-slate-400">Mỗi mã code bạn chỉ được sử dụng đúng 1 lần duy nhất.</p>
+      <input type="text" id="inpGiftCode" placeholder="Nhập mã code quà tặng..." class="w-full bg-slate-950 border border-purple-500/40 rounded-xl px-3 py-2 text-xs text-white uppercase mono font-bold focus:outline-none">
+      <button onclick="App.claimGiftCode()" class="w-full py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-black text-xs rounded-xl shadow">Xác Nhận Nhận Thưởng</button>
+    </div>
+  </div>
+
+  <!-- MODAL ĐĂNG NHẬP / ĐĂNG KÝ -->
+  <div id="authModal" class="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md hidden">
+    <div class="max-w-xs w-full vault-card rounded-3xl p-5 border border-white/10 space-y-4">
+      <div class="flex justify-between items-center pb-2 border-b border-white/5">
+        <h4 class="text-xs font-bold uppercase tracking-wider text-white">Xác Thực Tài Khoản</h4>
+        <button onclick="App.closeAuth()" class="text-slate-400 hover:text-white font-bold">✕</button>
       </div>
 
-      <div class="flex p-1 bg-slate-950 rounded-2xl border border-slate-800 text-xs font-bold gap-1">
-        <button onclick="setWalletModalTab('deposit')" id="walletTabBtn-deposit" class="flex-1 py-2 rounded-xl bg-emerald-500 text-slate-950 transition">Nạp Tiền</button>
-        <button onclick="setWalletModalTab('withdraw')" id="walletTabBtn-withdraw" class="flex-1 py-2 rounded-xl text-slate-400 transition">Rút Tiền</button>
-        <button onclick="setWalletModalTab('code')" id="walletTabBtn-code" class="flex-1 py-2 rounded-xl text-slate-400 transition">Nhập Code</button>
+      <div class="flex p-1 bg-slate-950 rounded-xl border border-white/5 text-xs font-bold">
+        <button id="authTab-login" onclick="App.switchAuth('login')" class="flex-1 py-1.5 rounded-lg bg-emerald-400 text-black transition">Đăng Nhập</button>
+        <button id="authTab-reg" onclick="App.switchAuth('reg')" class="flex-1 py-1.5 rounded-lg text-slate-400 transition">Đăng Ký</button>
       </div>
 
-      <!-- NẠP TIỀN (MB BANK - VU HOANG HIEP - 0365355946 - CÓ HIỂN THỊ QR) -->
-      <div id="walletDepositArea" class="space-y-3">
-        <!-- Hiển thị ảnh QR từ file qr.jpg -->
-        <div class="flex flex-col items-center justify-center p-3 bg-slate-950 rounded-2xl border border-slate-800">
-          <span class="text-[11px] font-bold text-slate-400 mb-2">Quét mã QR MB Bank để nạp tiền</span>
-          <img src="qr.jpg" alt="QR Code MB Bank" class="w-44 h-44 object-contain rounded-xl border border-emerald-500/40 bg-white p-1" onerror="this.onerror=null; this.parentElement.innerHTML='<span class=\'text-[10px] text-amber-400 italic text-center\'>Chưa tìm thấy file ảnh qr.jpg trong thư mục GitHub. Hãy tải ảnh QR lên đặt tên là qr.jpg</span>';">
-        </div>
+      <div id="authForm-login" class="space-y-2.5 text-xs">
+        <input type="tel" id="inpLoginPhone" maxlength="10" placeholder="Số điện thoại (10 số)..." class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3 py-2 text-white mono focus:border-emerald-400 focus:outline-none">
+        <input type="password" id="inpLoginPass" placeholder="Mật khẩu..." class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3 py-2 text-white focus:border-emerald-400 focus:outline-none">
+        <button onclick="App.handleLogin()" class="w-full py-2.5 bg-emerald-400 text-black font-black rounded-xl shadow-lg transition active:scale-95">Đăng Nhập</button>
+      </div>
 
+      <div id="authForm-reg" class="space-y-2.5 text-xs hidden">
+        <input type="tel" id="inpRegPhone" maxlength="10" placeholder="Số điện thoại đăng ký..." class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3 py-2 text-white mono focus:border-cyan-400 focus:outline-none">
+        <input type="password" id="inpRegPass" placeholder="Mật khẩu (>= 8 ký tự)..." class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3 py-2 text-white focus:border-cyan-400 focus:outline-none">
         <div>
-          <div class="flex justify-between text-[11px] text-slate-400 mb-1">
-            <span>Chọn nhanh mức nạp hoặc tự nhập:</span>
-            <span class="text-emerald-400 font-bold">Tối thiểu: 70.000đ</span>
-          </div>
-          <div class="grid grid-cols-4 gap-1.5 text-xs font-bold">
-            <button onclick="setDepositAmount(70000)" class="py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-200">70k</button>
-            <button onclick="setDepositAmount(100000)" class="py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-200">100k</button>
-            <button onclick="setDepositAmount(200000)" class="py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-200">200k</button>
-            <button onclick="setDepositAmount(500000)" class="py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-200">500k</button>
-            <button onclick="setDepositAmount(1000000)" class="py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-200">1.000k</button>
-            <button onclick="setDepositAmount(2000000)" class="py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-200">2.000k</button>
-            <button onclick="setDepositAmount(5000000)" class="py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-200">5.000k</button>
-            <button onclick="setDepositAmount(10000000)" class="py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-200">10.000k</button>
-          </div>
+          <input type="text" id="inpRegInvite" placeholder="Mã người mời (Không bắt buộc)..." class="w-full bg-slate-950 border border-cyan-500/40 rounded-xl px-3 py-2 text-white mono focus:border-cyan-400 focus:outline-none">
+          <span class="text-[9px] text-slate-500 italic mt-0.5 block">* Tự động lấy theo link giới thiệu nếu có.</span>
         </div>
+        <button onclick="App.handleRegister()" class="w-full py-2.5 bg-cyan-400 text-black font-black rounded-xl shadow-lg transition active:scale-95">Tạo Tài Khoản (+20k)</button>
+      </div>
+    </div>
+  </div>
 
+  <!-- MODAL NẠP / RÚT TIỀN (TÍCH HỢP SEPAY VIETINBANK HA TRUNG DUC - STK 11557000) -->
+  <div id="walletModal" class="fixed inset-0 z-[75] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md hidden">
+    <div class="max-w-sm w-full vault-card rounded-3xl p-5 border border-white/10 space-y-4 max-h-[90vh] overflow-y-auto no-scrollbar">
+      <div class="flex justify-between items-center pb-2 border-b border-white/5">
         <div>
-          <label class="block text-[11px] text-slate-400 mb-1">Nhập số tiền muốn nạp bất kỳ (VNĐ)</label>
-          <input type="number" id="inputDepositAmount" min="70000" step="1000" value="70000" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-sm font-black text-white focus:border-emerald-500 focus:outline-none">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-white">Quản Lý Ví</h4>
+          <span class="text-[10px] text-slate-400">Khả dụng: <strong id="uiModalBalance" class="text-emerald-400 mono">0 ₫</strong></span>
+        </div>
+        <button onclick="App.closeWallet()" class="text-slate-400 hover:text-white font-bold">✕</button>
+      </div>
+
+      <div class="flex p-1 bg-slate-950 rounded-xl border border-white/5 text-xs font-bold">
+        <button id="walletTab-dep" onclick="App.switchWalletTab('dep')" class="flex-1 py-1.5 rounded-lg bg-emerald-400 text-black transition">Nạp Tiền (VietinBank)</button>
+        <button id="walletTab-wit" onclick="App.switchWalletTab('wit')" class="flex-1 py-1.5 rounded-lg text-slate-400 transition">Rút Tiền</button>
+      </div>
+
+      <!-- VÙNG NẠP TIỀN VIETINBANK SEPAY -->
+      <div id="walletView-dep" class="space-y-3 text-xs">
+        <div>
+          <label class="block text-slate-400 mb-1 font-semibold">Nhập số tiền muốn nạp (VNĐ)</label>
+          <input type="number" id="inpDepAmount" oninput="App.updateSepayQR()" min="70000" step="1000" value="70000" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3 py-2 text-white mono font-bold focus:border-emerald-400 focus:outline-none">
         </div>
 
-        <div class="p-3.5 bg-slate-950 rounded-2xl border border-emerald-500/30 text-xs space-y-2">
+        <!-- MÃ QR ĐỘNG SEPAY VIETINBANK -->
+        <div class="flex flex-col items-center justify-center p-3 bg-slate-950/90 rounded-2xl border border-emerald-500/30">
+          <span class="text-[10px] font-bold text-slate-400 mb-1.5">Quét mã QR VietinBank thanh toán nhanh</span>
+          <img id="uiSepayQR" src="https://img.vietqr.io/image/ICB-11557000-compact2.jpg?amount=70000&addInfo=NAPTIEN&accountName=HA%20TRUNG%20DUC" alt="QR VietinBank SePay" class="w-44 h-44 object-contain rounded-xl bg-white p-1 shadow-lg">
+        </div>
+
+        <!-- THÔNG TIN CHUYỂN KHOẢN VIETINBANK -->
+        <div class="p-3 bg-slate-950/90 rounded-2xl border border-white/5 space-y-2">
           <div class="flex justify-between items-center">
-            <span class="text-slate-400">Ngân hàng / Số tài khoản:</span>
+            <span class="text-slate-400">Ngân hàng:</span>
+            <span class="font-bold text-white">VietinBank (ICB)</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-slate-400">Số tài khoản:</span>
             <div class="flex items-center gap-1.5">
-              <span class="font-bold text-cyan-400">MB Bank</span>
-              <span id="bankAccountNum" class="font-mono font-black text-sm text-emerald-400">0365355946</span>
-              <button type="button" onclick="copyTextValue('0365355946', 'Đã sao chép STK 0365355946!')" class="px-2 py-0.5 bg-slate-800 text-[10px] font-bold text-slate-200 rounded border border-slate-700">Copy</button>
+              <span class="font-mono font-black text-sm text-emerald-400">11557000</span>
+              <button onclick="App.copySTK()" class="px-2 py-0.5 bg-slate-800 text-[10px] font-bold text-slate-300 rounded">Copy</button>
             </div>
           </div>
           <div class="flex justify-between items-center">
             <span class="text-slate-400">Chủ tài khoản:</span>
-            <span class="font-black text-white tracking-wide">VU HOANG HIEP</span>
+            <span class="font-bold text-white uppercase tracking-wider">HA TRUNG DUC</span>
           </div>
-          <div class="flex justify-between items-center pt-1 border-t border-slate-800/80">
-            <span class="text-slate-400">Mã chuyển tiền (Nội dung CK):</span>
-            <div class="flex items-center gap-1.5">
-              <span id="depositMemo" class="font-mono font-black text-amber-400 bg-amber-500/15 px-2 py-0.5 rounded border border-amber-500/30">0365355946</span>
-              <button type="button" onclick="copyDepositMemo()" class="px-2 py-0.5 bg-slate-800 text-[10px] font-bold text-amber-300 rounded border border-slate-700">Copy Mã</button>
-            </div>
+          <div class="flex justify-between items-center pt-1.5 border-t border-white/5">
+            <span class="text-slate-400">Nội dung CK:</span>
+            <span id="uiDepMemo" class="mono font-bold text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded">---</span>
           </div>
-          <p class="text-[10px] text-slate-400 italic text-center pt-1">
-            * Lưu ý: Nội dung chuyển khoản chính là <strong>Số điện thoại đăng ký</strong> của bạn.
-          </p>
+          <p class="text-[9px] text-slate-500 italic text-center">* Quét QR hoặc chuyển tiền trước tới STK trên rồi bấm xác nhận.</p>
         </div>
 
-        <div class="p-2.5 rounded-xl bg-amber-500/15 border border-amber-500/50 flex items-start gap-2 text-amber-300 text-[11px] font-bold">
-          <span class="text-base leading-none">⚠️</span>
-          <span>Vui lòng chuyển khoản đúng số tiền và nội dung (SĐT của bạn) trước rồi mới ấn xác nhận!</span>
-        </div>
-
-        <button id="btnConfirmDeposit" onclick="confirmDeposit()" class="w-full py-3 bg-emerald-500 text-slate-950 font-black text-xs rounded-2xl shadow-lg transition">
-          Xác Nhận Đã Chuyển Tiền Vào Ví
+        <button onclick="App.handleDeposit()" class="w-full py-2.5 bg-emerald-400 text-black font-black text-xs rounded-xl shadow-lg transition active:scale-95">
+          Xác Nhận Đã Chuyển Tiền
         </button>
       </div>
 
-      <!-- RÚT TIỀN -->
-      <div id="walletWithdrawArea" class="space-y-2.5 hidden">
-        <div class="p-2 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between text-xs">
-          <span class="text-slate-400">Số dư có thể rút:</span>
-          <span id="withdrawAvailableText" class="font-black text-emerald-400">20.000 ₫</span>
-        </div>
-
-        <div id="bankLockedBadge" class="hidden p-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-[11px] text-amber-300 font-semibold">
-          🔒 Tài khoản ngân hàng đã được lưu cố định sau lần rút đầu tiên và không thể thay đổi.
-        </div>
-
-        <div>
-          <label class="block text-[11px] text-slate-400 mb-1">Ngân hàng thụ hưởng</label>
-          <select id="selectBank" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white disabled:opacity-60">
-            <option>MB Bank (Quân Đội)</option>
-            <option>CAKE by VPBank</option>
-            <option>Vietcombank</option>
-            <option>Techcombank</option>
-            <option>VPBank</option>
-            <option>BIDV</option>
-            <option>Agribank</option>
-          </select>
-        </div>
-
-        <div>
-          <label class="block text-[11px] text-slate-400 mb-1">Số tài khoản nhận</label>
-          <input type="text" id="inputWithdrawSTK" placeholder="Nhập số tài khoản..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-mono disabled:opacity-60">
-        </div>
-
-        <div>
-          <label class="block text-[11px] text-slate-400 mb-1">Họ và tên chủ tài khoản (In hoa không dấu)</label>
-          <input type="text" id="inputWithdrawName" placeholder="Ví dụ: NGUYEN VAN A" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white uppercase font-bold disabled:opacity-60">
-        </div>
-
-        <div>
-          <div class="flex justify-between text-[11px] text-slate-400 mb-1">
-            <span>Số tiền muốn rút (VNĐ)</span>
-            <span class="text-emerald-400 font-bold">Tối thiểu: 30.000đ</span>
-          </div>
-          <input type="number" id="inputWithdrawAmount" oninput="validateWithdrawRealtime()" min="30000" value="30000" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm font-bold text-white">
-          <div id="withdrawInlineAlert" class="hidden mt-1.5 p-2 rounded-xl bg-rose-500/15 border border-rose-500/50 text-rose-300 text-[11px]">
-            <div class="font-black text-rose-400">Không thể rút tiền: Số dư không đủ!</div>
-            <div id="withdrawInlineDetail" class="text-[10px] text-rose-200"></div>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-6 gap-1 text-[10px] font-bold">
-          <button type="button" onclick="setWithdrawAmount(30000)" class="py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-300">30k</button>
-          <button type="button" onclick="setWithdrawAmount(50000)" class="py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-300">50k</button>
-          <button type="button" onclick="setWithdrawAmount(100000)" class="py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-300">100k</button>
-          <button type="button" onclick="setWithdrawAmount(200000)" class="py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-300">200k</button>
-          <button type="button" onclick="setWithdrawAmount(500000)" class="py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-300">500k</button>
-          <button type="button" onclick="setWithdrawAmount('ALL')" class="py-1.5 rounded-lg bg-slate-800 text-emerald-400">Hết</button>
-        </div>
-
-        <button onclick="confirmWithdraw()" class="w-full py-3 bg-rose-500 text-white font-black text-xs rounded-2xl shadow-lg">
-          Xác Nhận Rút Tiền Về Ngân Hàng
+      <!-- VÙNG RÚT TIỀN -->
+      <div id="walletView-wit" class="space-y-2.5 text-xs hidden">
+        <select id="inpWitBank" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3 py-2 text-white">
+          <option>VietinBank</option><option>MB Bank</option><option>Vietcombank</option><option>Techcombank</option><option>BIDV</option><option>Agribank</option><option>Cake by VPBank</option>
+        </select>
+        <input type="text" id="inpWitSTK" placeholder="Số tài khoản ngân hàng..." class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3 py-2 text-white mono focus:border-rose-400 focus:outline-none">
+        <input type="text" id="inpWitName" placeholder="Tên chủ tài khoản..." class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3 py-2 text-white uppercase font-bold focus:border-rose-400 focus:outline-none">
+        <input type="number" id="inpWitAmount" min="30000" value="30000" placeholder="Số tiền rút (Tối thiểu 30k)..." class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3 py-2 text-white mono font-bold focus:border-rose-400 focus:outline-none">
+        <button onclick="App.promptWithdrawConfirmation()" class="w-full py-2.5 bg-rose-500 text-white font-black text-xs rounded-xl shadow-lg transition active:scale-95">
+          Tạo Lệnh Rút Tiền
         </button>
       </div>
-
-      <!-- NHẬP CODE -->
-      <div id="walletCodeArea" class="space-y-3 hidden">
-        <div>
-          <label class="block text-[11px] text-slate-400 mb-1">Mã code lì xì / Quà tặng</label>
-          <input type="text" id="inputGiftCode" placeholder="Nhập mã code..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white uppercase font-mono font-bold">
-        </div>
-        <button onclick="claimGiftCode()" class="w-full py-3 bg-purple-600 hover:bg-purple-500 text-white font-black text-xs rounded-2xl shadow-lg transition">
-          🎁 Xác Nhận Nhận Thưởng Code
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL CẢNH BÁO SỐ DƯ KHI RÚT -->
-  <div id="insufficientWithdrawModal" class="fixed inset-0 z-[90] flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-md hidden">
-    <div class="w-full max-w-sm bg-slate-900 border-2 border-rose-500/60 rounded-3xl p-5 text-center space-y-3.5 shadow-2xl mx-auto">
-      <h3 class="text-base font-black text-white">KHÔNG THỂ RÚT TIỀN - SỐ DƯ KHÔNG ĐỦ!</h3>
-      <p class="text-xs text-slate-400">Số dư khả dụng trong ví của bạn không đủ để thực hiện lệnh rút tiền này.</p>
-      <div class="p-3 rounded-2xl bg-slate-950 border border-slate-800 space-y-1.5 text-xs text-left">
-        <div class="flex justify-between"><span class="text-slate-400">Số tiền yêu cầu rút:</span><span id="errWithdrawReq" class="font-bold text-white">50.000 ₫</span></div>
-        <div class="flex justify-between"><span class="text-slate-400">Số dư ví hiện tại:</span><span id="errWithdrawBal" class="font-bold text-emerald-400">20.000 ₫</span></div>
-        <div class="flex justify-between pt-1 border-t border-slate-800"><span class="text-rose-300 font-semibold">Số tiền còn thiếu:</span><span id="errWithdrawShortfall" class="font-black text-rose-400">30.000 ₫</span></div>
-      </div>
-      <div class="flex flex-col gap-2">
-        <button onclick="switchFromErrorToDeposit()" class="w-full py-2.5 bg-emerald-500 text-slate-950 font-black text-xs rounded-xl">+ Nạp Thêm Tiền Ngay</button>
-        <button onclick="closeInsufficientModal()" class="w-full py-2 bg-slate-800 text-slate-300 font-bold text-xs rounded-xl">Đóng Lại</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL HOA HỒNG -->
-  <div id="affiliateModal" class="fixed inset-0 z-[75] flex items-center justify-center p-3 bg-slate-950/90 backdrop-blur-md hidden">
-    <div class="w-full max-w-lg bg-slate-900 border border-slate-800 rounded-3xl p-4 shadow-2xl space-y-3 max-h-[88vh] flex flex-col mx-auto">
-      <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-        <div>
-          <h3 class="text-sm font-black text-white">Chi Tiết Thành Viên & Hoa Hồng</h3>
-          <p class="text-[11px] text-slate-400">F1: 10% &bull; F2: 3% &bull; F3: 1%</p>
-        </div>
-        <div class="flex items-center gap-1.5">
-          <button onclick="toggleMaskPhone()" id="btnTogglePhone" class="px-2 py-1 rounded-lg bg-slate-800 text-[10px] font-bold text-emerald-400">Hiện SĐT</button>
-          <button onclick="closeAffiliateModal()" class="w-7 h-7 rounded-full bg-slate-800 text-slate-300 font-bold">✕</button>
-        </div>
-      </div>
-      <div class="flex gap-1 p-1 bg-slate-950 rounded-xl border border-slate-800 text-xs">
-        <button onclick="filterAffiliate('ALL')" class="flex-1 py-1 rounded-lg font-bold bg-purple-600 text-white">Tất Cả</button>
-        <button onclick="filterAffiliate('F1')" class="flex-1 py-1 rounded-lg font-bold text-slate-400">F1 (10%)</button>
-        <button onclick="filterAffiliate('F2')" class="flex-1 py-1 rounded-lg font-bold text-slate-400">F2 (3%)</button>
-        <button onclick="filterAffiliate('F3')" class="flex-1 py-1 rounded-lg font-bold text-slate-400">F3 (1%)</button>
-      </div>
-      <div class="flex-1 overflow-y-auto no-scrollbar rounded-xl border border-slate-800 bg-slate-950/60">
-        <table class="w-full text-left text-[11px] text-slate-300">
-          <thead class="bg-slate-950 text-[10px] uppercase font-bold text-slate-400 sticky top-0 border-b border-slate-800">
-            <tr><th class="px-2.5 py-2">Tên / SĐT</th><th class="px-2.5 py-2">Cấp</th><th class="px-2.5 py-2">Đã Nạp</th><th class="px-2.5 py-2">Hoa Hồng</th></tr>
-          </thead>
-          <tbody id="affiliateTableBody" class="divide-y divide-slate-800/60"></tbody>
-        </table>
-      </div>
-      <div class="p-2 bg-slate-950 rounded-xl border border-slate-800 flex justify-between items-center text-xs">
-        <span class="text-slate-400">Tổng hoa hồng nhận:</span>
-        <span id="affTotalCommission" class="font-black text-emerald-400">+600.000 ₫</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL THÔNG BÁO CÁ NHÂN -->
-  <div id="notificationsModal" class="fixed inset-0 z-[85] flex items-center justify-center p-3 bg-slate-950/90 backdrop-blur-md hidden">
-    <div class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-4 shadow-2xl space-y-3">
-      <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-        <h3 class="text-sm font-black text-white">🔔 Hộp Thư Thông Báo</h3>
-        <button onclick="closeNotificationsModal()" class="text-slate-400 font-bold">✕</button>
-      </div>
-      <div id="notificationsList" class="space-y-2 max-h-80 overflow-y-auto text-xs">
-        <div class="text-center text-slate-500 py-4">Chưa có thông báo nào.</div>
-      </div>
-      <button onclick="closeNotificationsModal()" class="w-full py-2 bg-slate-800 text-white font-bold text-xs rounded-xl">Đóng Lại</button>
     </div>
   </div>
 
   <script>
-    const PACKAGES = [
-      { id: 'p70', name: 'Gói 70K Tân Thủ', amount: 70000, income: 15714, days: 7, total: 110000, badge: '110k / 7 ngày', color: 'from-lime-500 to-emerald-700' },
-      { id: 'p100', name: 'Gói 100K Trải Nghiệm', amount: 100000, income: 17000, days: 20, total: 340000, badge: '340k / 20 ngày', color: 'from-emerald-500 to-teal-700' },
-      { id: 'p200', name: 'Gói 200K Tiết Kiệm', amount: 200000, income: 23888, days: 18, total: 430000, badge: '430k / 18 ngày', color: 'from-cyan-500 to-blue-700' },
-      { id: 'p300', name: 'Gói 300K Khởi Động', amount: 300000, income: 41666, days: 18, total: 750000, badge: '750k / 18 ngày', color: 'from-sky-500 to-blue-700' },
-      { id: 'p500', name: 'Gói 500K Tiêu Chuẩn', amount: 500000, income: 66666, days: 18, total: 1200000, badge: '1.2tr / 18 ngày', color: 'from-amber-500 to-orange-700' },
-      { id: 'p1000', name: 'Gói 1.000K VIP', amount: 1000000, income: 127777, days: 18, total: 2300000, badge: '2.3tr / 18 ngày', color: 'from-rose-500 to-pink-700' },
-      { id: 'p2000', name: 'Gói 2.000K Hoàng Gia', amount: 2000000, income: 230000, days: 20, total: 4600000, badge: '4.6tr / 20 ngày', color: 'from-yellow-400 to-amber-600' }
+    const firebaseConfig = {
+      databaseURL: "https://winusdbox-default-rtdb.asia-southeast1.firebasedatabase.app/"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // CÁC GÓI ĐẦU TƯ
+    const PROTOCOL_NODES = [
+      { id: 'node_70k', name: 'Quỹ 70K Tân Thủ', amount: 70000, income: 15714, days: 7, total: 110000, badge: 'Lãi ~22%/Ngày' },
+      { id: 'node_100k', name: 'Quỹ 100K Trải Nghiệm', amount: 100000, income: 17000, days: 20, total: 340000, badge: 'Lãi ~17%/Ngày' },
+      { id: 'node_200k', name: 'Quỹ 200K Tiết Kiệm', amount: 200000, income: 23888, days: 18, total: 430000, badge: 'Lãi ~12%/Ngày' },
+      { id: 'node_300k', name: 'Quỹ 300K Khởi Động', amount: 300000, income: 40000, days: 18, total: 720000, badge: 'Lãi ~13.3%/Ngày' },
+      { id: 'node_500k', name: 'Quỹ 500K Tiêu Chuẩn', amount: 500000, income: 66666, days: 18, total: 1200000, badge: 'Lãi ~13.3%/Ngày' },
+      { id: 'node_1m', name: 'Quỹ 1.000K VIP', amount: 1000000, income: 133333, days: 18, total: 2400000, badge: 'Lãi ~13.3%/Ngày' },
+      { id: 'node_2m', name: 'Quỹ 2.000K Hoàng Gia', amount: 2000000, income: 266666, days: 18, total: 4800000, badge: 'Lãi ~13.3%/Ngày' }
     ];
 
-    const WHEEL_SLICES = [
-      { text: '10.000 đ', val: 10000, color: '#10b981', weight: 60 },
-      { text: '20.000 đ', val: 20000, color: '#06b6d4', weight: 25 },
-      { text: '30.000 đ', val: 30000, color: '#6366f1', weight: 5 },
-      { text: '50.000 đ', val: 50000, color: '#f59e0b', weight: 7 },
-      { text: '100.000 đ', val: 100000, color: '#ef4444', weight: 3 }
+    const WHEEL_PRIZES = [
+      { val: 10000, text: '10.000đ', prob: 70, color: '#10b981' },
+      { val: 20000, text: '20.000đ', prob: 15, color: '#06b6d4' },
+      { val: 30000, text: '30.000đ', prob: 9,  color: '#6366f1' },
+      { val: 50000, text: '50.000đ', prob: 4,  color: '#f59e0b' },
+      { val: 100000, text: '100.000đ', prob: 2, color: '#ef4444' }
     ];
 
-    const AFFILIATES_DATA = [
-      { id: 'U1', tier: 'F1', name: 'Lê Tuấn Kiệt', phoneMask: '0987***214', phoneFull: '0987451214', dep: 2000000, rate: 10, com: 200000 },
-      { id: 'U2', tier: 'F1', name: 'Trần Văn Đức', phoneMask: '0912***558', phoneFull: '0912834558', dep: 1000000, rate: 10, com: 100000 },
-      { id: 'U3', tier: 'F1', name: 'Hoàng Kim Yến', phoneMask: '0978***881', phoneFull: '0978612881', dep: 700000, rate: 10, com: 70000 },
-      { id: 'U4', tier: 'F1', name: 'Phạm Gia Huy', phoneMask: '0356***332', phoneFull: '0356901332', dep: 500000, rate: 10, com: 50000 },
-      { id: 'U5', tier: 'F1', name: 'Vũ Thùy Linh', phoneMask: '0865***419', phoneFull: '0865223419', dep: 300000, rate: 10, com: 30000 },
-      { id: 'U6', tier: 'F2', name: 'Đặng Ngọc Sơn', phoneMask: '0933***910', phoneFull: '0933748910', dep: 1500000, rate: 3, com: 45000 },
-      { id: 'U7', tier: 'F2', name: 'Bùi Thanh Hằng', phoneMask: '0945***672', phoneFull: '0945112672', dep: 1000000, rate: 3, com: 30000 },
-      { id: 'U8', tier: 'F2', name: 'Lê Quốc Bảo', phoneMask: '0372***119', phoneFull: '0372894119', dep: 800000, rate: 3, com: 24000 },
-      { id: 'U9', tier: 'F2', name: 'Dương Khánh An', phoneMask: '0898***440', phoneFull: '0898331440', dep: 500000, rate: 3, com: 15000 },
-      { id: 'U10', tier: 'F3', name: 'Đỗ Hữu Thắng', phoneMask: '0961***723', phoneFull: '0961509723', dep: 2000000, rate: 1, com: 20000 },
-      { id: 'U11', tier: 'F3', name: 'Trịnh Mai Phương', phoneMask: '0904***318', phoneFull: '0904667318', dep: 1000000, rate: 1, com: 10000 },
-      { id: 'U12', tier: 'F3', name: 'Phan Đình Đạt', phoneMask: '0389***892', phoneFull: '0389120892', dep: 600000, rate: 1, com: 6000 }
-    ];
+    const App = {
+      userPhone: localStorage.getItem('auravault_user') || null,
+      state: {
+        balance: 0,
+        totalDeposited: 0,
+        totalWithdrawn: 0,
+        wheelRewardPending: 0,
+        hasSpunWheel: false,
+        hasDeposited: false,
+        activeInvestments: [],
+        ledger: []
+      },
+      currentActionPending: null,
+      wheelAngle: 0,
+      isSpinning: false,
+      f1DepositsHistory: [],
+      txStatusTab: 'dep',
+      depositRequests: [],
+      withdrawRequests: [],
 
-    const TOP_INVESTORS = [
-      { rank: 1, name: 'Lê Hoàng Phong', phone: '098***192', profit: 8640000 },
-      { rank: 2, name: 'Nguyễn Thị Bích', phone: '091***483', profit: 5420000 },
-      { rank: 3, name: 'Trần Văn Mạnh', phone: '097***890', profit: 3950000 },
-      { rank: 4, name: 'Phan Minh Tuấn', phone: '034***612', profit: 2780000 },
-      { rank: 5, name: 'Đoàn Thúy Vy', phone: '086***955', profit: 1960000 }
-    ];
+      init() {
+        this.renderNodes();
+        this.detectReferralCodeFromURL();
+        this.drawWheelCanvas();
+        this.initFirebaseListeners();
+      },
 
-    let balance = 20000;
-    let hasDeposited = false;
-    let totalDeposited = 0;
-    let spinCount = 1;
-    let hasSpunOnce = false;
-    let isSpinning = false;
-    let activeInvestments = [];
-    let checkInDay = 0;
-    let isCheckedIn = false;
-    let claimedQuests = [];
-    let currentAffiliateFilter = 'ALL';
-    let showFullPhone = false;
-    let currentHistoryFilter = 'all';
-    let selectedCalcPkg = PACKAGES[1];
-    let registeredUsers = [];
-    let currentUser = '0365355946';
-    let savedBankInfo = null;
-    let isDepositCountingDown = false;
-    let notifications = [];
-
-    let transactions = [
-      { id: 'TX-20K', type: 'profit', amount: 20000, desc: 'Thưởng Đăng Ký Tân Thủ (+20.000đ)' }
-    ];
-
-    const formatVND = (num) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(num);
-
-    function syncPhoneToCodes(phoneStr) {
-      if (!phoneStr) return;
-      currentUser = phoneStr;
-      const memoEl = document.getElementById('depositMemo');
-      const refCodeEl = document.getElementById('myRefCodeText');
-      const refLinkEl = document.getElementById('refLinkInput');
-      if (memoEl) memoEl.innerText = currentUser;
-      if (refCodeEl) refCodeEl.innerText = currentUser;
-      if (refLinkEl) refLinkEl.value = `https://fininvest.io/ref/${currentUser}`;
-    }
-
-    function updateBalanceUI() {
-      document.getElementById('headerBalance').innerText = formatVND(balance);
-      document.getElementById('bannerBalance').innerText = formatVND(balance);
-      document.getElementById('modalCurrentBalance').innerText = formatVND(balance);
-      const wAvail = document.getElementById('withdrawAvailableText');
-      if (wAvail) wAvail.innerText = formatVND(balance);
-      validateWithdrawRealtime();
-    }
-
-    function showToast(msg, isError = false) {
-      const toast = document.getElementById('toast');
-      const toastMsg = document.getElementById('toast-msg');
-      toastMsg.innerText = msg;
-      toast.className = isError
-        ? 'fixed top-3 left-3 right-3 z-[100] flex items-center gap-2 px-3.5 py-3 rounded-2xl shadow-2xl backdrop-blur-xl border bg-rose-950/95 border-rose-500 text-rose-200 transition-all duration-300'
-        : 'fixed top-3 left-3 right-3 z-[100] flex items-center gap-2 px-3.5 py-3 rounded-2xl shadow-2xl backdrop-blur-xl border bg-emerald-950/95 border-emerald-500 text-emerald-200 transition-all duration-300';
-      setTimeout(() => toast.classList.remove('-translate-y-28', 'opacity-0', 'pointer-events-none'), 30);
-      setTimeout(() => toast.classList.add('-translate-y-28', 'opacity-0', 'pointer-events-none'), 3200);
-    }
-
-    function syncUserDataFromStorage() {
-      const users = JSON.parse(localStorage.getItem('fin_users') || '[]');
-      const me = users.find(u => u.phone === currentUser);
-      if (me) {
-        if (me.balance !== balance) {
-          balance = me.balance || 0;
-          updateBalanceUI();
+      detectReferralCodeFromURL() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const refParam = urlParams.get('ref');
+        if (refParam) {
+          const inp = document.getElementById('inpRegInvite');
+          if (inp) inp.value = refParam.trim();
         }
-        if (me.notifications && me.notifications.length !== notifications.length) {
-          notifications = me.notifications;
-          updateNotificationsBadge();
-          if (notifications.length > 0) {
-            showToast(notifications[0].msg);
+      },
+
+      formatCurrency(num) {
+        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(num || 0);
+      },
+
+      notify(msg, isError = false) {
+        const box = document.getElementById('toastNotification');
+        document.getElementById('toastText').innerText = msg;
+        document.getElementById('toastIcon').innerText = isError ? '⚠️' : '⚡';
+        box.className = isError
+          ? 'fixed top-4 left-4 right-4 z-[100] max-w-sm mx-auto flex items-center gap-2.5 px-4 py-3 rounded-2xl border bg-rose-950/90 border-rose-500 text-rose-200 shadow-2xl backdrop-blur-xl transition-all duration-300'
+          : 'fixed top-4 left-4 right-4 z-[100] max-w-sm mx-auto flex items-center gap-2.5 px-4 py-3 rounded-2xl border bg-slate-900/90 border-emerald-400 text-emerald-200 shadow-2xl backdrop-blur-xl transition-all duration-300';
+        box.classList.remove('-translate-y-28', 'opacity-0', 'pointer-events-none');
+        setTimeout(() => box.classList.add('-translate-y-28', 'opacity-0', 'pointer-events-none'), 3200);
+      },
+
+      initFirebaseListeners() {
+        db.ref('system/server_closed').on('value', snap => {
+          document.getElementById('maintenanceModal').classList.toggle('hidden', !(snap.val() || false));
+        });
+
+        if (!this.userPhone) return;
+
+        db.ref('users/' + this.userPhone).on('value', snap => {
+          if (snap.exists()) {
+            const data = snap.val();
+            if (data.isLocked) {
+              alert('Tài khoản của bạn đã bị khóa bởi hệ thống quản trị!');
+              localStorage.removeItem('auravault_user');
+              location.reload();
+              return;
+            }
+
+            if (data.unreadCommission) {
+              const comm = data.unreadCommission;
+              document.getElementById('commissionAlertDetail').innerHTML = `
+                Bạn vừa nhận được <strong class="text-emerald-400 mono">+${this.formatCurrency(comm.amount)}</strong> hoa hồng từ F1 
+                <strong class="text-white mono">${comm.fromPhone}</strong> nạp ${this.formatCurrency(comm.depAmount)}.
+              `;
+              document.getElementById('commissionAlertModal').classList.remove('hidden');
+              db.ref(`users/${this.userPhone}/unreadCommission`).remove();
+            }
+
+            this.state.balance = data.balance || 0;
+            this.state.totalDeposited = data.totalDeposited || 0;
+            this.state.totalWithdrawn = data.totalWithdrawn || 0;
+            this.state.wheelRewardPending = data.wheelRewardPending || 0;
+            this.state.hasSpunWheel = data.hasSpunWheel || false;
+            this.state.hasDeposited = data.hasDeposited || false;
+            this.state.activeInvestments = data.activeInvestments || [];
+            this.state.ledger = data.transactions || [];
+            this.f1DepositsHistory = data.f1DepositsHistory || [];
+            this.renderUI();
           }
-        }
-      }
-    }
+        });
 
-    // Kiểm tra trạng thái Đóng/Mở Server liên tục
-    function checkServerStatus() {
-      const isClosed = JSON.parse(localStorage.getItem('fin_server_closed') || 'false');
-      const screen = document.getElementById('serverClosedScreen');
-      if (screen) {
-        if (isClosed) {
-          screen.classList.remove('hidden');
+        db.ref('user_tx_status/' + this.userPhone).on('value', snap => {
+          const val = snap.val() || {};
+          this.depositRequests = val.deposits ? Object.values(val.deposits) : [];
+          this.withdrawRequests = val.withdraws ? Object.values(val.withdraws) : [];
+          this.renderTxStatusList();
+        });
+      },
+
+      renderUI() {
+        document.getElementById('uiHeaderBalance').innerText = this.formatCurrency(this.state.balance);
+        document.getElementById('uiBannerBalance').innerText = this.formatCurrency(this.state.balance);
+        document.getElementById('uiModalBalance').innerText = this.formatCurrency(this.state.balance);
+        document.getElementById('uiActiveBadge').innerText = this.state.activeInvestments.length;
+        document.getElementById('uiCountF1').innerText = `${this.f1DepositsHistory.length} Lượt Nạp`;
+
+        const pendingBox = document.getElementById('uiPendingWheelBox');
+        if (this.state.wheelRewardPending > 0) {
+          pendingBox.classList.remove('hidden');
+          document.getElementById('uiPendingWheelAmt').innerText = this.formatCurrency(this.state.wheelRewardPending);
         } else {
-          screen.classList.add('hidden');
+          pendingBox.classList.add('hidden');
         }
-      }
-    }
 
-    function updateNotificationsBadge() {
-      const badge = document.getElementById('notifBadge');
-      if (!badge) return;
-      if (notifications.length > 0) {
-        badge.classList.remove('hidden');
-        badge.innerText = notifications.length;
-      } else {
-        badge.classList.add('hidden');
-      }
-    }
+        if (this.userPhone) {
+          document.getElementById('uiBtnAuth').innerText = this.userPhone.slice(0, 4) + '***' + this.userPhone.slice(-2);
+          document.getElementById('uiDepMemo').innerText = this.userPhone;
+          document.getElementById('uiRefCode').innerText = this.userPhone;
+          
+          const currentOrigin = (window.location.origin && window.location.origin !== "null") 
+            ? window.location.origin 
+            : "https://htd030920077-art.github.io";
+          const currentPath = window.location.pathname.includes('winusdbox') 
+            ? window.location.pathname 
+            : "/winusdbox/";
+          document.getElementById('uiRefLinkInput').value = `${currentOrigin}${currentPath}?ref=${this.userPhone}`;
+        } else {
+          document.getElementById('uiBtnAuth').innerText = 'Đăng Nhập';
+        }
 
-    function openNotificationsModal() {
-      document.getElementById('notificationsModal').classList.remove('hidden');
-      const list = document.getElementById('notificationsList');
-      if (notifications.length === 0) {
-        list.innerHTML = `<div class="text-center text-slate-500 py-4">Chưa có thông báo nào.</div>`;
-      } else {
-        list.innerHTML = notifications.map(n => `
-          <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
-            <div class="flex justify-between font-bold text-white"><span>${n.title}</span><span class="text-[10px] text-slate-400">${n.time}</span></div>
-            <div class="text-slate-300">${n.msg}</div>
+        const spinBtn = document.getElementById('btnSpinWheel');
+        if (this.state.hasSpunWheel) {
+          spinBtn.disabled = true;
+          spinBtn.innerText = 'ĐÃ SỬ DỤNG LƯỢT QUAY';
+          spinBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        }
+
+        this.updateSepayQR();
+        this.renderActiveList();
+        this.renderLedger();
+      },
+
+      // Cập nhật mã QR VietinBank SePay theo số tiền nạp thực tế
+      updateSepayQR() {
+        const amtInput = document.getElementById('inpDepAmount');
+        const qrImg = document.getElementById('uiSepayQR');
+        if (!amtInput || !qrImg) return;
+        const amt = parseFloat(amtInput.value) || 70000;
+        const memo = this.userPhone || 'NAPTIEN';
+        qrImg.src = `https://img.vietqr.io/image/ICB-11557000-compact2.jpg?amount=${amt}&addInfo=${encodeURIComponent(memo)}&accountName=HA%20TRUNG%20DUC`;
+      },
+
+      renderNodes() {
+        document.getElementById('uiNodesGrid').innerHTML = PROTOCOL_NODES.map(node => `
+          <div class="vault-card rounded-3xl p-4 flex flex-col justify-between hover:border-emerald-500/40 transition">
+            <div>
+              <div class="flex justify-between items-center mb-1">
+                <span class="text-[9px] font-bold text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded-full mono">${node.badge}</span>
+                <span class="text-[10px] text-slate-500 mono">${node.days}N</span>
+              </div>
+              <h4 class="text-sm font-bold text-white mt-1">${node.name}</h4>
+              <div class="text-lg font-black text-white mono my-2">${this.formatCurrency(node.amount)}</div>
+              <div class="p-2.5 rounded-xl bg-slate-950/80 text-[11px] space-y-1 border border-white/5 mono">
+                <div class="flex justify-between text-slate-400"><span>Lãi 24h:</span><span class="text-emerald-400 font-bold">+${this.formatCurrency(node.income)}</span></div>
+                <div class="flex justify-between text-slate-400"><span>Tổng nhận:</span><span class="text-cyan-400 font-bold">${this.formatCurrency(node.total)}</span></div>
+              </div>
+            </div>
+            <button onclick="App.promptStakeConfirmation('${node.id}')" class="mt-3.5 w-full py-2 bg-emerald-400 text-black font-black text-xs rounded-xl shadow active:scale-95 transition">
+              Kích Hoạt Gói
+            </button>
           </div>
         `).join('');
-      }
-    }
+      },
 
-    function closeNotificationsModal() {
-      document.getElementById('notificationsModal').classList.add('hidden');
-    }
+      openF1ListModal() {
+        if (!this.userPhone) return this.openAuth();
+        const tbody = document.getElementById('tbodyF1List');
+        let totalCom = 0;
 
-    function copyTextValue(text, successMsg) {
-      if (navigator.clipboard) navigator.clipboard.writeText(text);
-      showToast(successMsg || `Đã sao chép: ${text}`);
-    }
-
-    function copyDepositMemo() {
-      copyTextValue(currentUser, `Đã sao chép mã chuyển tiền (SĐT): ${currentUser}`);
-    }
-
-    function copyInviteCodeOnly() {
-      copyTextValue(currentUser, `Đã sao chép mã mời (SĐT): ${currentUser}`);
-    }
-
-    function openAuthModal(tab = 'login') {
-      document.getElementById('authModal').classList.remove('hidden');
-      switchAuthTab(tab);
-    }
-    function closeAuthModal() {
-      document.getElementById('authModal').classList.add('hidden');
-    }
-    function switchAuthTab(tab) {
-      const fLogin = document.getElementById('formLogin');
-      const fReg = document.getElementById('formRegister');
-      const bLogin = document.getElementById('tabAuth-login');
-      const bReg = document.getElementById('tabAuth-register');
-      if (tab === 'login') {
-        fLogin.classList.remove('hidden');
-        fReg.classList.add('hidden');
-        bLogin.className = 'flex-1 py-2 rounded-xl font-bold bg-emerald-500 text-slate-950 transition';
-        bReg.className = 'flex-1 py-2 rounded-xl font-bold text-slate-400 transition';
-      } else {
-        fLogin.classList.add('hidden');
-        fReg.classList.remove('hidden');
-        bLogin.className = 'flex-1 py-2 rounded-xl font-bold text-slate-400 transition';
-        bReg.className = 'flex-1 py-2 rounded-xl font-bold bg-amber-500 text-slate-950 transition';
-      }
-    }
-
-    function submitRegister() {
-      const phone = document.getElementById('regPhone').value.trim();
-      const pass = document.getElementById('regPass').value;
-      const invite = document.getElementById('regInvite').value.trim();
-
-      if (!/^\d{10}$/.test(phone)) return showToast('Số điện thoại phải nhập đủ 10 chữ số!', true);
-      
-      // Lấy danh sách user mới nhất từ localStorage
-      registeredUsers = JSON.parse(localStorage.getItem('fin_users') || '[]');
-      if (registeredUsers.some(u => u.phone === phone)) return showToast('Số điện thoại này đã đăng ký!', true);
-      if (pass.length < 8) return showToast('Mật khẩu ít nhất 8 ký tự!', true);
-      if (!invite) return showToast('Chưa nhập Mã mời!', true);
-
-      registeredUsers.push({ phone, pass, invite, balance: 20000, notifications: [] });
-      localStorage.setItem('fin_users', JSON.stringify(registeredUsers));
-
-      document.getElementById('loginPhone').value = phone;
-      document.getElementById('loginPass').value = pass;
-      syncPhoneToCodes(phone);
-      switchAuthTab('login');
-      showToast('Tạo TK thành công! SĐT & mật khẩu đã điền sẵn ở phần đăng nhập.');
-    }
-
-    function submitLogin() {
-      const phone = document.getElementById('loginPhone').value.trim();
-      const pass = document.getElementById('loginPass').value;
-
-      if (!/^\d{10}$/.test(phone)) return showToast('Nhập SĐT đủ 10 số!', true);
-      if (pass.length < 8) return showToast('Mật khẩu từ 8 ký tự trở lên!', true);
-
-      // Đọc danh sách tài khoản đã đăng ký từ localStorage để xác thực chính xác
-      registeredUsers = JSON.parse(localStorage.getItem('fin_users') || '[]');
-      const found = registeredUsers.find(u => u.phone === phone);
-
-      if (!found) {
-        return showToast('Số điện thoại chưa được đăng ký trong hệ thống!', true);
-      }
-      if (found.pass !== pass) {
-        return showToast('Mật khẩu không chính xác!', true);
-      }
-
-      balance = found.balance || 20000;
-      updateBalanceUI();
-      syncPhoneToCodes(phone);
-      document.getElementById('headerAuthBtn').innerText = phone.slice(0, 4) + '***' + phone.slice(-2);
-      closeAuthModal();
-      showToast(`Đăng nhập thành công SĐT ${phone}!`);
-    }
-
-    function switchTab(tabId) {
-      ['packages', 'activePackages', 'luckyWheel', 'tasks', 'affiliate', 'calculator', 'leaderboard', 'history'].forEach(id => {
-        const sec = document.getElementById(`tab-${id}`);
-        const btn = document.getElementById(`btnTab-${id}`);
-        if (!sec || !btn) return;
-        if (id === tabId) {
-          sec.classList.remove('hidden');
-          btn.className = 'tab-btn px-3 py-1.5 rounded-xl font-bold whitespace-nowrap bg-emerald-500 text-slate-950 transition';
+        if (!this.f1DepositsHistory || this.f1DepositsHistory.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="4" class="text-center py-5 text-slate-500">Chưa có thành viên F1 nào nạp tiền.</td></tr>`;
         } else {
-          sec.classList.add('hidden');
-          btn.className = 'tab-btn px-3.5 py-1.5 rounded-xl font-bold whitespace-nowrap bg-slate-900 text-slate-400 border border-slate-800 transition';
+          tbody.innerHTML = this.f1DepositsHistory.map(item => {
+            totalCom += item.commission;
+            return `
+              <tr>
+                <td class="px-3 py-2.5 font-bold text-white mono">${item.f1Phone}</td>
+                <td class="px-3 py-2.5 mono text-slate-300">${this.formatCurrency(item.depositAmount)}</td>
+                <td class="px-3 py-2.5 font-bold text-emerald-400 mono">+${this.formatCurrency(item.commission)}</td>
+                <td class="px-3 py-2.5 text-slate-400 text-[11px]">${item.time}</td>
+              </tr>
+            `;
+          }).join('');
         }
-      });
-      if (tabId === 'luckyWheel') drawWheel();
-    }
 
-    function renderPackages() {
-      document.getElementById('packagesGrid').innerHTML = PACKAGES.map(pkg => `
-        <div class="rounded-2xl bg-slate-900 border border-slate-800 p-4 flex flex-col justify-between">
-          <div>
-            <div class="flex items-center justify-between mb-1.5">
-              <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">${pkg.badge}</span>
-              <span class="text-[10px] text-slate-400">Chu kỳ ${pkg.days} ngày</span>
+        document.getElementById('uiTotalF1Commission').innerText = `+${this.formatCurrency(totalCom)}`;
+        document.getElementById('f1ListModal').classList.remove('hidden');
+      },
+
+      closeF1ListModal() {
+        document.getElementById('f1ListModal').classList.add('hidden');
+      },
+
+      openTxStatusModal() {
+        if (!this.userPhone) return this.openAuth();
+        document.getElementById('txStatusModal').classList.remove('hidden');
+        this.renderTxStatusList();
+      },
+
+      closeTxStatusModal() {
+        document.getElementById('txStatusModal').classList.add('hidden');
+      },
+
+      switchTxStatusTab(tab) {
+        this.txStatusTab = tab;
+        document.getElementById('btnTabStatusDep').className = tab === 'dep' ? 'flex-1 py-1.5 rounded-lg bg-emerald-400 text-black transition' : 'flex-1 py-1.5 rounded-lg text-slate-400 transition';
+        document.getElementById('btnTabStatusWit').className = tab === 'wit' ? 'flex-1 py-1.5 rounded-lg bg-rose-500 text-white transition' : 'flex-1 py-1.5 rounded-lg text-slate-400 transition';
+        this.renderTxStatusList();
+      },
+
+      renderTxStatusList() {
+        const box = document.getElementById('uiTxStatusList');
+        const list = this.txStatusTab === 'dep' ? this.depositRequests : this.withdrawRequests;
+
+        if (!list || list.length === 0) {
+          box.innerHTML = `<div class="text-center py-6 text-slate-500 text-xs">Chưa có giao dịch ${this.txStatusTab === 'dep' ? 'nạp' : 'rút'} nào được ghi nhận.</div>`;
+          return;
+        }
+
+        box.innerHTML = list.map(tx => {
+          let statusColor = 'text-amber-400 bg-amber-400/10 border-amber-400/30';
+          let statusText = 'Đang Chờ Duyệt';
+          if (tx.status === 'APPROVED') {
+            statusColor = 'text-emerald-400 bg-emerald-400/10 border-emerald-400/30';
+            statusText = 'Đã Duyệt Thành Công';
+          } else if (tx.status === 'REJECTED') {
+            statusColor = 'text-rose-400 bg-rose-400/10 border-rose-400/30';
+            statusText = 'Bị Từ Chối';
+          }
+
+          return `
+            <div class="p-3 bg-slate-950/80 rounded-2xl border border-white/5 space-y-1.5 text-xs">
+              <div class="flex justify-between items-center">
+                <span class="mono text-slate-400 text-[10px]">${tx.id}</span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${statusColor}">${statusText}</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-400">Số tiền:</span>
+                <span class="font-bold text-white mono text-sm">${this.formatCurrency(tx.amount)}</span>
+              </div>
+              <div class="flex justify-between items-center text-[11px] text-slate-500">
+                <span>Thời gian:</span>
+                <span>${tx.time || 'Vừa xong'}</span>
+              </div>
+              ${tx.reason ? `
+                <div class="p-2 bg-rose-950/40 border border-rose-500/30 rounded-xl text-[11px] text-rose-300">
+                  <strong>Lý do từ Admin:</strong> ${tx.reason}
+                </div>
+              ` : ''}
             </div>
-            <h4 class="text-sm font-extrabold text-white">${pkg.name}</h4>
-            <div class="text-xl font-black text-white my-1.5">${formatVND(pkg.amount)}</div>
-            <div class="p-2.5 rounded-xl bg-slate-950 text-xs space-y-1 border border-slate-800">
-              <div class="flex justify-between"><span class="text-slate-400">Lãi mỗi 24h:</span><span class="text-emerald-400 font-bold">+${formatVND(pkg.income)}</span></div>
-              <div class="flex justify-between"><span class="text-slate-400">Tổng nhận:</span><span class="text-amber-400 font-bold">+${formatVND(pkg.total)}</span></div>
+          `;
+        }).join('');
+      },
+
+      drawWheelCanvas(angle = 0) {
+        const cvs = document.getElementById('wheelCanvas');
+        if (!cvs) return;
+        const ctx = cvs.getContext('2d');
+        const cx = cvs.width / 2, cy = cvs.height / 2, r = cx - 6;
+        const slice = (2 * Math.PI) / WHEEL_PRIZES.length;
+
+        ctx.clearRect(0, 0, cvs.width, cvs.height);
+        WHEEL_PRIZES.forEach((p, i) => {
+          const start = angle + i * slice;
+          ctx.beginPath();
+          ctx.moveTo(cx, cy);
+          ctx.arc(cx, cy, r, start, start + slice);
+          ctx.closePath();
+          ctx.fillStyle = p.color;
+          ctx.fill();
+          ctx.lineWidth = 2;
+          ctx.strokeStyle = '#03050c';
+          ctx.stroke();
+
+          ctx.save();
+          ctx.translate(cx, cy);
+          ctx.rotate(start + slice / 2);
+          ctx.textAlign = 'right';
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 12px Space Grotesk';
+          ctx.fillText(p.text, r - 16, 4);
+          ctx.restore();
+        });
+      },
+
+      spinWheel() {
+        if (!this.userPhone) { this.openAuth(); return this.notify('Vui lòng đăng nhập trước!', true); }
+        if (this.state.hasSpunWheel) return this.notify('Bạn đã quay vòng quay tân thủ rồi!', true);
+        if (this.isSpinning) return;
+
+        this.isSpinning = true;
+
+        const rand = Math.random() * 100;
+        let cum = 0, selIdx = 0;
+        for (let i = 0; i < WHEEL_PRIZES.length; i++) {
+          cum += WHEEL_PRIZES[i].prob;
+          if (rand < cum) { selIdx = i; break; }
+        }
+
+        const slice = (2 * Math.PI) / WHEEL_PRIZES.length;
+        const targetStop = ((3 * Math.PI / 2) - (selIdx * slice + slice / 2) + 2 * Math.PI) % (2 * Math.PI);
+        const diff = (targetStop - (this.wheelAngle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+        const startAngle = this.wheelAngle;
+        const totalRot = 6 * 2 * Math.PI + diff;
+        const startTime = performance.now();
+
+        const animate = (time) => {
+          const progress = Math.min((time - startTime) / 3600, 1);
+          this.wheelAngle = startAngle + (1 - Math.pow(1 - progress, 3)) * totalRot;
+          this.drawWheelCanvas(this.wheelAngle);
+
+          if (progress < 1) {
+            requestAnimationFrame(animate);
+          } else {
+            this.isSpinning = false;
+            const rewardPrize = WHEEL_PRIZES[selIdx];
+
+            this.state.hasSpunWheel = true;
+            this.state.wheelRewardPending = rewardPrize.val;
+            
+            this.state.ledger.unshift({
+              id: 'WHEEL-' + Math.floor(1000 + Math.random() * 9000),
+              type: 'profit',
+              amount: rewardPrize.val,
+              desc: `Vòng quay tân thủ: +${rewardPrize.text} (Mở khóa rút khi nạp đầu)`
+            });
+
+            db.ref('users/' + this.userPhone).update({
+              hasSpunWheel: true,
+              wheelRewardPending: this.state.wheelRewardPending,
+              transactions: this.state.ledger
+            });
+
+            this.renderUI();
+            alert(`🎉 Chúc mừng bạn đã quay trúng ${rewardPrize.text}! Hãy thực hiện nạp tiền lần đầu (tối thiểu 70k) để mở khóa rút toàn bộ số tiền này về ngân hàng.`);
+          }
+        };
+        requestAnimationFrame(animate);
+      },
+
+      promptStakeConfirmation(nodeId) {
+        if (!this.userPhone) { this.openAuth(); return this.notify('Vui lòng đăng nhập trước!', true); }
+        const node = PROTOCOL_NODES.find(n => n.id === nodeId);
+        if (this.state.balance < node.amount) return this.notify('Số dư khả dụng không đủ, hãy nạp thêm!', true);
+
+        this.currentActionPending = { type: 'STAKE', data: node };
+        document.getElementById('confirmActionTitle').innerText = 'Xác Nhận Mua Gói Đầu Tư';
+        document.getElementById('confirmActionDesc').innerText = `Kích hoạt ${node.name} với số tiền ${this.formatCurrency(node.amount)}? (Cho phép mua dồn nhiều gói)`;
+        
+        document.getElementById('btnConfirmActionYes').onclick = () => this.executeAction();
+        document.getElementById('btnConfirmActionNo').onclick = () => this.openRejectModal();
+        document.getElementById('confirmActionModal').classList.remove('hidden');
+      },
+
+      promptWithdrawConfirmation() {
+        if (!this.userPhone) return this.openAuth();
+        const amt = parseFloat(document.getElementById('inpWitAmount').value);
+        const bank = document.getElementById('inpWitBank').value;
+        const stk = document.getElementById('inpWitSTK').value.trim();
+        const name = document.getElementById('inpWitName').value.trim().toUpperCase();
+
+        if (!stk || !name) return this.notify('Vui lòng điền đủ STK và Họ Tên!', true);
+        if (amt < 30000) return this.notify('Rút tối thiểu từ 30.000 VNĐ!', true);
+        if (amt > this.state.balance) return this.notify('Số dư khả dụng không đủ để rút!', true);
+
+        this.currentActionPending = { type: 'WITHDRAW', data: { amt, bank, stk, name } };
+        document.getElementById('confirmActionTitle').innerText = 'Xác Nhận Rút Tiền Về Ngân Hàng';
+        document.getElementById('confirmActionDesc').innerText = `Rút ${this.formatCurrency(amt)} về STK ${stk} (${bank} - ${name})?`;
+
+        document.getElementById('btnConfirmActionYes').onclick = () => this.executeAction();
+        document.getElementById('btnConfirmActionNo').onclick = () => this.openRejectModal();
+        document.getElementById('confirmActionModal').classList.remove('hidden');
+      },
+
+      executeAction() {
+        document.getElementById('confirmActionModal').classList.add('hidden');
+        if (!this.currentActionPending) return;
+
+        if (this.currentActionPending.type === 'STAKE') {
+          const node = this.currentActionPending.data;
+          this.state.balance -= node.amount;
+          
+          this.state.activeInvestments.unshift({
+            instanceId: 'ACT-' + Math.floor(1000 + Math.random() * 9000),
+            name: node.name,
+            amount: node.amount,
+            income: node.income,
+            days: node.days,
+            daysPassed: 0,
+            pending: node.income
+          });
+
+          this.state.ledger.unshift({
+            id: 'TX-' + Math.floor(1000 + Math.random() * 9000),
+            type: 'invest',
+            amount: node.amount,
+            desc: `Đầu tư ${node.name}`
+          });
+
+          db.ref('users/' + this.userPhone).update({
+            balance: this.state.balance,
+            activeInvestments: this.state.activeInvestments,
+            transactions: this.state.ledger
+          });
+          this.notify(`Đã kích hoạt dồn thêm ${node.name}!`);
+        } else if (this.currentActionPending.type === 'WITHDRAW') {
+          const { amt, bank, stk, name } = this.currentActionPending.data;
+          const witId = 'WIT-' + Math.floor(1000 + Math.random() * 9000);
+          
+          this.state.balance -= amt;
+          this.state.totalWithdrawn = (this.state.totalWithdrawn || 0) + amt;
+
+          db.ref('users/' + this.userPhone).update({
+            balance: this.state.balance,
+            totalWithdrawn: this.state.totalWithdrawn
+          }).then(() => {
+            const witData = {
+              id: witId, phone: this.userPhone, bank, stk, name, amount: amt, status: 'PENDING', time: new Date().toLocaleTimeString()
+            };
+            db.ref('pending_withdraws/' + witId).set(witData);
+            db.ref(`user_tx_status/${this.userPhone}/withdraws/${witId}`).set(witData);
+            this.closeWallet();
+            this.notify(`Lệnh rút ${this.formatCurrency(amt)} đã gửi lên hàng chờ duyệt!`);
+          });
+        }
+        this.currentActionPending = null;
+      },
+
+      openRejectModal() {
+        document.getElementById('confirmActionModal').classList.add('hidden');
+        document.getElementById('inpRejectReason').value = '';
+        document.getElementById('rejectReasonModal').classList.remove('hidden');
+      },
+
+      submitRejectReason() {
+        const reason = document.getElementById('inpRejectReason').value.trim();
+        if (!reason) return alert('Vui lòng nhập lý do từ chối!');
+
+        const logId = 'REJ-' + Math.floor(1000 + Math.random() * 9000);
+        db.ref('cancelled_logs/' + logId).set({
+          id: logId,
+          phone: this.userPhone,
+          action: this.currentActionPending ? this.currentActionPending.type : 'UNKNOWN',
+          reason: reason,
+          time: new Date().toLocaleTimeString()
+        });
+
+        document.getElementById('rejectReasonModal').classList.add('hidden');
+        this.notify('Đã gửi phản hồi từ chối lên hệ thống Admin.');
+        this.currentActionPending = null;
+      },
+
+      renderActiveList() {
+        const box = document.getElementById('uiActiveList');
+        if (this.state.activeInvestments.length === 0) {
+          box.innerHTML = `<div class="text-center py-5 text-slate-500 text-xs">Chưa có quỹ nào đang hoạt động.</div>`;
+          return;
+        }
+        box.innerHTML = this.state.activeInvestments.map(item => `
+          <div class="p-3 bg-slate-950/80 rounded-2xl border border-white/5 flex items-center justify-between text-xs">
+            <div>
+              <div class="font-bold text-white">${item.name} (${item.daysPassed}/${item.days} ngày)</div>
+              <div class="text-slate-400 text-[11px] mt-0.5">Lãi chờ nhận: <strong class="text-emerald-400 mono">+${this.formatCurrency(item.pending)}</strong></div>
             </div>
+            <button onclick="App.harvestSingle('${item.instanceId}')" class="px-3 py-1.5 bg-amber-400 text-black font-bold rounded-xl active:scale-95 transition">Thu Hoạch</button>
           </div>
-          <button onclick="buyPackage('${pkg.id}')" class="mt-3 w-full py-2.5 bg-gradient-to-r ${pkg.color} text-white font-black text-xs rounded-xl shadow">
-            Kích Hoạt Ngay
-          </button>
-        </div>
-      `).join('');
-    }
+        `).join('');
+      },
 
-    function buyPackage(pkgId) {
-      const pkg = PACKAGES.find(p => p.id === pkgId);
-      if (!pkg) return;
-      if (balance < pkg.amount) {
-        showToast(`Ví không đủ ${formatVND(pkg.amount)}. Nạp thêm!`, true);
-        openWalletModal('deposit');
-        setDepositAmount(pkg.amount);
-        return;
-      }
-      balance -= pkg.amount;
-      updateBalanceUI();
-      activeInvestments.unshift({
-        instId: `ACT-${Math.floor(1000 + Math.random() * 9000)}`,
-        name: pkg.name,
-        amount: pkg.amount,
-        income: pkg.income,
-        days: pkg.days,
-        daysPassed: 0,
-        pending: pkg.income
-      });
-      transactions.unshift({ id: `TX-${Math.floor(1000 + Math.random() * 9000)}`, type: 'invest', amount: pkg.amount, desc: `Mua ${pkg.name}` });
-      renderActivePackages();
-      renderTransactions();
-      showToast(`Kích hoạt thành công ${pkg.name}!`);
-    }
+      harvestSingle(instId) {
+        const target = this.state.activeInvestments.find(i => i.instanceId === instId);
+        if (!target || target.pending <= 0) return this.notify('Chưa có lợi nhuận để nhận!', true);
 
-    function renderActivePackages() {
-      document.getElementById('activeCountBadge').innerText = activeInvestments.length;
-      document.getElementById('activeTotalCount').innerText = activeInvestments.length;
-      const list = document.getElementById('activeList');
-      if (activeInvestments.length === 0) {
-        list.innerHTML = `<div class="text-center py-6 text-slate-500 text-xs">Chưa có gói nào đang chạy.</div>`;
-        return;
-      }
-      list.innerHTML = activeInvestments.map(item => `
-        <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between gap-2">
-          <div>
-            <div class="font-bold text-white text-xs">${item.name} (${item.daysPassed}/${item.days} ngày)</div>
-            <div class="text-[11px] text-slate-400 mt-0.5">Lãi chờ: <strong class="text-amber-400">+${formatVND(item.pending)}</strong></div>
-          </div>
-          <button onclick="harvestSingle('${item.instId}')" class="px-3 py-1.5 bg-amber-500 text-slate-950 font-black text-xs rounded-lg shrink-0">Thu Hoạch</button>
-        </div>
-      `).join('');
-    }
+        const amt = target.pending;
+        this.state.balance += amt;
+        target.pending = 0;
+        this.state.ledger.unshift({
+          id: 'TX-' + Math.floor(1000 + Math.random() * 9000),
+          type: 'profit',
+          amount: amt,
+          desc: `Thu hoạch ${target.name}`
+        });
 
-    function harvestSingle(instId) {
-      const item = activeInvestments.find(i => i.instId === instId);
-      if (!item || item.pending <= 0) return showToast('Chưa có lãi mới!', true);
-      const reward = item.pending;
-      balance += reward;
-      item.pending = 0;
-      transactions.unshift({ id: `TX-${Math.floor(1000 + Math.random() * 9000)}`, type: 'profit', amount: reward, desc: `Thu hoạch ${item.name}` });
-      updateBalanceUI();
-      renderActivePackages();
-      renderTransactions();
-      showToast(`Đã nhận +${formatVND(reward)} về ví!`);
-    }
+        db.ref('users/' + this.userPhone).update({
+          balance: this.state.balance,
+          activeInvestments: this.state.activeInvestments,
+          transactions: this.state.ledger
+        });
+        this.notify(`Đã nhận +${this.formatCurrency(amt)} vào ví!`);
+      },
 
-    function harvestAll() {
-      let total = 0;
-      activeInvestments.forEach(item => { total += item.pending; item.pending = 0; });
-      if (total <= 0) return showToast('Không có lãi chờ nhận!', true);
-      balance += total;
-      transactions.unshift({ id: `TX-${Math.floor(1000 + Math.random() * 9000)}`, type: 'profit', amount: total, desc: 'Thu hoạch tất cả gói' });
-      updateBalanceUI();
-      renderActivePackages();
-      renderTransactions();
-      showToast(`Đã thu hoạch tất cả +${formatVND(total)}!`);
-    }
+      harvestAll() {
+        let total = 0;
+        this.state.activeInvestments.forEach(item => { total += item.pending; item.pending = 0; });
+        if (total <= 0) return this.notify('Không có lợi nhuận để thu hoạch!', true);
 
-    function simulateNextDayProfit() {
-      if (activeInvestments.length === 0) return showToast('Hãy mua gói trước!', true);
-      activeInvestments.forEach(item => {
-        if (item.daysPassed < item.days) {
+        this.state.balance += total;
+        this.state.ledger.unshift({
+          id: 'TX-' + Math.floor(1000 + Math.random() * 9000),
+          type: 'profit',
+          amount: total,
+          desc: 'Thu hoạch tất cả các quỹ'
+        });
+
+        db.ref('users/' + this.userPhone).update({
+          balance: this.state.balance,
+          activeInvestments: this.state.activeInvestments,
+          transactions: this.state.ledger
+        });
+        this.notify(`Đã thu hoạch tất cả +${this.formatCurrency(total)}!`);
+      },
+
+      simulateTimeForward() {
+        if (this.state.activeInvestments.length === 0) return this.notify('Chưa có gói nào để tính lãi!', true);
+        this.state.activeInvestments.forEach(item => {
           item.daysPassed++;
           item.pending += item.income;
+        });
+        db.ref('users/' + this.userPhone).update({ activeInvestments: this.state.activeInvestments });
+        this.notify('Đã cộng dồn +1 ngày lợi nhuận!');
+      },
+
+      renderLedger() {
+        document.getElementById('uiLedgerBody').innerHTML = this.state.ledger.map(tx => `
+          <tr>
+            <td class="px-3.5 py-2.5 mono text-[10px] text-slate-400">${tx.id}</td>
+            <td class="px-3.5 py-2.5 font-bold uppercase text-[10px] text-slate-300">${tx.type}</td>
+            <td class="px-3.5 py-2.5 font-bold text-emerald-400 mono">${this.formatCurrency(tx.amount)}</td>
+            <td class="px-3.5 py-2.5 text-slate-300 text-xs">${tx.desc}</td>
+          </tr>
+        `).join('');
+      },
+
+      async handleRegister() {
+        const phone = document.getElementById('inpRegPhone').value.trim();
+        const pass = document.getElementById('inpRegPass').value;
+        const invite = document.getElementById('inpRegInvite').value.trim();
+
+        if (!/^\d{10}$/.test(phone)) return this.notify('SĐT phải đủ 10 số!', true);
+        if (pass.length < 8) return this.notify('Mật khẩu tối thiểu 8 ký tự!', true);
+
+        let userIp = 'unknown_ip';
+        try {
+          const res = await fetch('https://api.ipify.org?format=json');
+          const data = await res.json();
+          userIp = data.ip.replace(/[.#$[\]]/g, '_');
+        } catch (e) {
+          console.warn('Cannot fetch IP:', e);
         }
-      });
-      renderActivePackages();
-      showToast('Đã cộng +1 ngày lãi (24h)!');
-    }
 
-    let currentWheelAngle = 0;
-    function drawWheel(angleOffset = currentWheelAngle) {
-      const canvas = document.getElementById('wheelCanvas');
-      if (!canvas) return;
-      const ctx = canvas.getContext('2d');
-      const cx = canvas.width / 2, cy = canvas.height / 2, radius = cx - 4;
-      const sliceRad = (2 * Math.PI) / WHEEL_SLICES.length;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      WHEEL_SLICES.forEach((slice, i) => {
-        const startAngle = angleOffset + i * sliceRad;
-        ctx.beginPath();
-        ctx.moveTo(cx, cy);
-        ctx.arc(cx, cy, radius, startAngle, startAngle + sliceRad);
-        ctx.closePath();
-        ctx.fillStyle = slice.color;
-        ctx.fill();
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = '#070b14';
-        ctx.stroke();
-        ctx.save();
-        ctx.translate(cx, cy);
-        ctx.rotate(startAngle + sliceRad / 2);
-        ctx.textAlign = 'right';
-        ctx.fillStyle = '#ffffff';
-        ctx.font = '900 13px Inter, sans-serif';
-        ctx.fillText(slice.text, radius - 16, 4);
-        ctx.restore();
-      });
-    }
+        db.ref('users/' + phone).once('value', snap => {
+          if (snap.exists()) return this.notify('SĐT này đã được đăng ký!', true);
 
-    function spinWheel() {
-      if (!hasDeposited) {
-        showToast('Chỉ tài khoản mới nạp tiền từ 70k mới được sử dụng vòng quay!', true);
-        openWalletModal('deposit');
-        return;
-      }
-      if (hasSpunOnce) {
-        showToast('Bạn đã sử dụng lượt quay may mắn duy nhất của tài khoản mới!', true);
-        return;
-      }
-      if (isSpinning) return;
+          db.ref('ip_logs/' + userIp).once('value', ipSnap => {
+            const count = ipSnap.val() || 0;
+            const willLock = count >= 2;
 
-      isSpinning = true;
-      hasSpunOnce = true;
-      spinCount = 0;
-      document.getElementById('wheelSubtitle').innerText = 'Bạn đã hoàn thành lượt quay duy nhất.';
-      const btnSpin = document.getElementById('btnSpin');
-      if (btnSpin) { btnSpin.innerText = 'Đã Sử Dụng Lượt Quay Duy Nhất'; btnSpin.disabled = true; btnSpin.classList.add('opacity-50', 'cursor-not-allowed'); }
+            const newAcc = {
+              phone, pass, invite: invite || '',
+              userIp,
+              isLocked: willLock,
+              balance: 20000,
+              totalDeposited: 0,
+              totalWithdrawn: 0,
+              wheelRewardPending: 0,
+              hasSpunWheel: false,
+              hasDeposited: false,
+              activeInvestments: [],
+              f1DepositsHistory: [],
+              transactions: [{ id: 'TX-20K', type: 'profit', amount: 20000, desc: 'Thưởng Đăng Ký Tân Thủ' }]
+            };
 
-      const rand = Math.random() * 100;
-      let cum = 0, prizeIndex = 0;
-      for (let i = 0; i < WHEEL_SLICES.length; i++) {
-        cum += WHEEL_SLICES[i].weight;
-        if (rand < cum) { prizeIndex = i; break; }
-      }
+            db.ref('users/' + phone).set(newAcc).then(() => {
+              db.ref('ip_logs/' + userIp).set(count + 1);
 
-      const sliceRad = (2 * Math.PI) / WHEEL_SLICES.length;
-      const desiredMod = ((3 * Math.PI / 2) - (prizeIndex * sliceRad + sliceRad / 2) + 2 * Math.PI) % (2 * Math.PI);
-      const diffAngle = (desiredMod - (currentWheelAngle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
-      const startAngle = currentWheelAngle;
-      const totalSpinAngle = 6 * 2 * Math.PI + diffAngle;
-      const start = performance.now();
-
-      function animate(time) {
-        const progress = Math.min((time - start) / 3600, 1);
-        currentWheelAngle = startAngle + (1 - Math.pow(1 - progress, 3)) * totalSpinAngle;
-        drawWheel(currentWheelAngle);
-        if (progress < 1) requestAnimationFrame(animate);
-        else {
-          isSpinning = false;
-          const prize = WHEEL_SLICES[prizeIndex];
-          balance += prize.val;
-          updateBalanceUI();
-          transactions.unshift({ id: `SPIN-${Math.floor(1000 + Math.random() * 9000)}`, type: 'profit', amount: prize.val, desc: `Vòng quay tân thủ duy nhất (+${prize.text})` });
-          renderTransactions();
-          showToast(`🎉 Trúng thưởng +${prize.text} vào ví!`);
-        }
-      }
-      requestAnimationFrame(animate);
-    }
-
-    function renderCheckInGrid() {
-      const gridEl = document.getElementById('checkInGrid');
-      if (!gridEl) return;
-      gridEl.innerHTML = [1, 2, 3, 4, 5, 6, 7].map(d => `
-        <div class="p-1.5 rounded-lg border text-center ${d <= checkInDay ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400' : 'bg-slate-950 border-slate-800 text-slate-500'}">
-          <div class="text-[9px] font-bold">N${d}</div>
-          <div class="text-[10px] font-black">+${d * 2}k</div>
-        </div>
-      `).join('');
-    }
-
-    function checkInDaily() {
-      if (!hasDeposited) {
-        showToast('Nạp tối thiểu 70k để mở khóa Điểm Danh!', true);
-        openWalletModal('deposit');
-        return;
-      }
-      if (isCheckedIn) return showToast('Hôm nay đã điểm danh!', true);
-      checkInDay++;
-      isCheckedIn = true;
-      const reward = checkInDay * 2000;
-      balance += reward;
-      updateBalanceUI();
-      renderCheckInGrid();
-      transactions.unshift({ id: `CHK-${checkInDay}`, type: 'profit', amount: reward, desc: `Điểm danh ngày ${checkInDay}` });
-      renderTransactions();
-      showToast(`Điểm danh nhận +${formatVND(reward)}!`);
-    }
-
-    function updateVipQuestsUI() {
-      const vipTotalEl = document.getElementById('vipTotalDeposited');
-      if (vipTotalEl) vipTotalEl.innerText = formatVND(totalDeposited);
-      [
-        { id: 'vip_500k', target: 500000, btnId: 'btnVip-500k', barId: 'barVip-500k' },
-        { id: 'vip_1m', target: 1000000, btnId: 'btnVip-1m', barId: 'barVip-1m' },
-        { id: 'vip_2m', target: 2000000, btnId: 'btnVip-2m', barId: 'barVip-2m' }
-      ].forEach(item => {
-        const btn = document.getElementById(item.btnId);
-        const bar = document.getElementById(item.barId);
-        if (bar) bar.style.width = Math.min(100, Math.round((totalDeposited / item.target) * 100)) + '%';
-        if (!btn) return;
-        if (claimedQuests.includes(item.id)) {
-          btn.innerText = 'Đã Nhận';
-          btn.className = 'px-2.5 py-1.5 bg-emerald-500/10 text-emerald-400 text-xs font-bold rounded-lg';
-        } else if (totalDeposited >= item.target) {
-          btn.innerText = 'Nhận Ngay';
-          btn.className = 'px-2.5 py-1.5 bg-emerald-500 text-slate-950 font-black text-xs rounded-lg';
-        }
-      });
-    }
-
-    function claimVipQuest(questId, targetAmount, reward) {
-      if (totalDeposited < targetAmount) {
-        showToast(`Cần nạp đủ ${formatVND(targetAmount)}!`, true);
-        openWalletModal('deposit');
-        return;
-      }
-      if (claimedQuests.includes(questId)) return;
-      claimedQuests.push(questId);
-      balance += reward;
-      updateBalanceUI();
-      updateVipQuestsUI();
-      transactions.unshift({ id: `VIP-${Math.floor(1000 + Math.random() * 9000)}`, type: 'profit', amount: reward, desc: `Thưởng VIP nạp ${formatVND(targetAmount)}` });
-      renderTransactions();
-      showToast(`Nhận thưởng VIP +${formatVND(reward)}!`);
-    }
-
-    function openAffiliateModal(tier) {
-      document.getElementById('affiliateModal').classList.remove('hidden');
-      filterAffiliate(tier);
-    }
-    function closeAffiliateModal() {
-      document.getElementById('affiliateModal').classList.add('hidden');
-    }
-    function toggleMaskPhone() {
-      showFullPhone = !showFullPhone;
-      document.getElementById('btnTogglePhone').innerText = showFullPhone ? 'Ẩn SĐT' : 'Hiện SĐT';
-      filterAffiliate(currentAffiliateFilter);
-    }
-    function filterAffiliate(tier) {
-      currentAffiliateFilter = tier;
-      const list = tier === 'ALL' ? AFFILIATES_DATA : AFFILIATES_DATA.filter(a => a.tier === tier);
-      document.getElementById('affTotalCommission').innerText = `+${formatVND(list.reduce((s, a) => s + a.com, 0))}`;
-      document.getElementById('affiliateTableBody').innerHTML = list.map(a => `
-        <tr>
-          <td class="px-2.5 py-2">
-            <div class="font-bold text-white">${a.name}</div>
-            <div class="font-mono text-[10px] text-slate-400">${showFullPhone ? a.phoneFull : a.phoneMask}</div>
-          </td>
-          <td class="px-2.5 py-2 font-bold text-emerald-400">${a.tier} (${a.rate}%)</td>
-          <td class="px-2.5 py-2">${formatVND(a.dep)}</td>
-          <td class="px-2.5 py-2 font-black text-emerald-400">+${formatVND(a.com)}</td>
-        </tr>
-      `).join('');
-    }
-    function copyRefLink() {
-      const link = document.getElementById('refLinkInput');
-      link.select();
-      document.execCommand('copy');
-      showToast(`Đã sao chép link mời (Mã mời: ${currentUser})!`);
-    }
-
-    function openWalletModal(tab = 'deposit') {
-      document.getElementById('walletModal').classList.remove('hidden');
-      syncPhoneToCodes(currentUser);
-      setWalletModalTab(tab);
-    }
-    function closeWalletModal() {
-      document.getElementById('walletModal').classList.add('hidden');
-    }
-    function setWalletModalTab(tab) {
-      const dep = document.getElementById('walletDepositArea');
-      const wit = document.getElementById('walletWithdrawArea');
-      const code = document.getElementById('walletCodeArea');
-      const bDep = document.getElementById('walletTabBtn-deposit');
-      const bWit = document.getElementById('walletTabBtn-withdraw');
-      const bCode = document.getElementById('walletTabBtn-code');
-
-      dep.classList.toggle('hidden', tab !== 'deposit');
-      wit.classList.toggle('hidden', tab !== 'withdraw');
-      code.classList.toggle('hidden', tab !== 'code');
-
-      bDep.className = tab === 'deposit' ? 'flex-1 py-2 rounded-xl text-xs font-bold bg-emerald-500 text-slate-950 transition' : 'flex-1 py-2 rounded-xl text-xs font-bold text-slate-400 transition';
-      bWit.className = tab === 'withdraw' ? 'flex-1 py-2 rounded-xl text-xs font-bold bg-rose-500 text-white transition' : 'flex-1 py-2 rounded-xl text-xs font-bold text-slate-400 transition';
-      bCode.className = tab === 'code' ? 'flex-1 py-2 rounded-xl text-xs font-bold bg-purple-600 text-white transition' : 'flex-1 py-2 rounded-xl text-xs font-bold text-slate-400 transition';
-
-      if (tab === 'withdraw') {
-        applyBankLockUI();
-        validateWithdrawRealtime();
-      }
-    }
-
-    function applyBankLockUI() {
-      const bankEl = document.getElementById('selectBank');
-      const stkEl = document.getElementById('inputWithdrawSTK');
-      const nameEl = document.getElementById('inputWithdrawName');
-      const badge = document.getElementById('bankLockedBadge');
-      if (savedBankInfo) {
-        bankEl.value = savedBankInfo.bank;
-        stkEl.value = savedBankInfo.stk;
-        nameEl.value = savedBankInfo.name;
-        bankEl.disabled = true;
-        stkEl.disabled = true;
-        nameEl.disabled = true;
-        badge.classList.remove('hidden');
-      }
-    }
-
-    function setDepositAmount(val) {
-      document.getElementById('inputDepositAmount').value = val;
-    }
-
-    function setWithdrawAmount(val) {
-      document.getElementById('inputWithdrawAmount').value = val === 'ALL' ? balance : val;
-      validateWithdrawRealtime();
-    }
-
-    function validateWithdrawRealtime() {
-      const inputEl = document.getElementById('inputWithdrawAmount');
-      const alertBox = document.getElementById('withdrawInlineAlert');
-      const detailEl = document.getElementById('withdrawInlineDetail');
-      if (!inputEl || !alertBox) return;
-      const amt = parseFloat(inputEl.value) || 0;
-      if (amt > balance) {
-        alertBox.classList.remove('hidden');
-        detailEl.innerText = `Muốn rút ${formatVND(amt)} nhưng ví chỉ có ${formatVND(balance)} (Thiếu ${formatVND(amt - balance)}).`;
-      } else {
-        alertBox.classList.add('hidden');
-      }
-    }
-
-    function openInsufficientModal(reqAmt) {
-      document.getElementById('errWithdrawReq').innerText = formatVND(reqAmt);
-      document.getElementById('errWithdrawBal').innerText = formatVND(balance);
-      document.getElementById('errWithdrawShortfall').innerText = formatVND(Math.max(0, reqAmt - balance));
-      document.getElementById('insufficientWithdrawModal').classList.remove('hidden');
-    }
-    function closeInsufficientModal() {
-      document.getElementById('insufficientWithdrawModal').classList.add('hidden');
-    }
-    function switchFromErrorToDeposit() {
-      closeInsufficientModal();
-      openWalletModal('deposit');
-    }
-
-    function claimGiftCode() {
-      const code = document.getElementById('inputGiftCode').value.trim().toUpperCase();
-      if (!code) return showToast('Vui lòng nhập mã code!', true);
-      showToast(`Đã nhận diện mã: ${code}. (Liên kết Admin thành công)`);
-      closeWalletModal();
-    }
-
-    // GỬI LỆNH NẠP VÀO LOCALSTORAGE ĐỂ ADMIN DUYỆT (MB BANK - VU HOANG HIEP - 0365355946)
-    function confirmDeposit() {
-      if (isDepositCountingDown) return;
-      const amt = parseFloat(document.getElementById('inputDepositAmount').value);
-      if (isNaN(amt) || amt < 70000) return showToast('Nạp tối thiểu từ 70.000 VNĐ!', true);
-
-      isDepositCountingDown = true;
-      const btn = document.getElementById('btnConfirmDeposit');
-      let countdown = 15;
-      
-      btn.disabled = true;
-      btn.classList.add('opacity-70', 'cursor-not-allowed');
-
-      const timer = setInterval(() => {
-        if (countdown > 0) {
-          btn.innerText = `Đang gửi lệnh đến hệ thống (${countdown}s)...`;
-          countdown--;
-        } else {
-          clearInterval(timer);
-          isDepositCountingDown = false;
-          btn.disabled = false;
-          btn.classList.remove('opacity-70', 'cursor-not-allowed');
-          btn.innerText = 'Xác Nhận Đã Chuyển Tiền Vào Ví';
-
-          // Lưu lệnh nạp vào pending để Admin duyệt
-          let pendingDeposits = JSON.parse(localStorage.getItem('fin_pending_deposits') || '[]');
-          pendingDeposits.push({
-            id: `DEP-${Math.floor(1000 + Math.random() * 9000)}`,
-            phone: currentUser,
-            amount: amt,
-            time: new Date().toLocaleTimeString()
+              if (willLock) {
+                alert('Phát hiện IP đã tạo trên 2 tài khoản. Tài khoản mới này đã tự động bị khóa bảo vệ hệ thống!');
+              } else {
+                this.userPhone = phone;
+                localStorage.setItem('auravault_user', phone);
+                this.closeAuth();
+                this.initFirebaseListeners();
+                this.notify('Đăng ký thành công! Nhận +20.000đ.');
+              }
+            });
           });
-          localStorage.setItem('fin_pending_deposits', JSON.stringify(pendingDeposits));
+        });
+      },
 
-          closeWalletModal();
-          showToast(`Đã gửi yêu cầu nạp ${formatVND(amt)}. Vui lòng đợi Admin duyệt!`);
+      handleLogin() {
+        const phone = document.getElementById('inpLoginPhone').value.trim();
+        const pass = document.getElementById('inpLoginPass').value;
+
+        if (!phone || !pass) return this.notify('Vui lòng điền đủ SĐT và Mật khẩu!', true);
+
+        db.ref('users/' + phone).once('value', snap => {
+          if (!snap.exists()) return this.notify('SĐT chưa được đăng ký!', true);
+          const acc = snap.val();
+          if (acc.pass !== pass) return this.notify('Mật khẩu không chính xác!', true);
+          if (acc.isLocked) return this.notify('Tài khoản đã bị tạm khóa!', true);
+
+          this.userPhone = phone;
+          localStorage.setItem('auravault_user', phone);
+          this.closeAuth();
+          this.initFirebaseListeners();
+          this.notify('Đăng nhập thành công!');
+        });
+      },
+
+      handleDeposit() {
+        if (!this.userPhone) { this.openAuth(); return this.notify('Vui lòng đăng nhập trước!', true); }
+        const amt = parseFloat(document.getElementById('inpDepAmount').value);
+        if (isNaN(amt) || amt < 70000) return this.notify('Nạp tối thiểu từ 70.000 VNĐ!', true);
+
+        const depId = 'DEP-' + Math.floor(1000 + Math.random() * 9000);
+        const depData = {
+          id: depId,
+          phone: this.userPhone,
+          amount: amt,
+          status: 'PENDING',
+          time: new Date().toLocaleTimeString()
+        };
+
+        db.ref('pending_deposits/' + depId).set(depData).then(() => {
+          db.ref(`user_tx_status/${this.userPhone}/deposits/${depId}`).set(depData);
+          this.closeWallet();
+          this.notify(`Đã gửi lệnh nạp ${this.formatCurrency(amt)}. Chờ Admin duyệt!`);
+        });
+      },
+
+      openGiftModal() {
+        if (!this.userPhone) return this.openAuth();
+        document.getElementById('giftModal').classList.remove('hidden');
+      },
+      closeGiftModal() {
+        document.getElementById('giftModal').classList.add('hidden');
+      },
+
+      claimGiftCode() {
+        const code = document.getElementById('inpGiftCode').value.trim().toUpperCase();
+        if (!code) return this.notify('Vui lòng nhập mã code!', true);
+
+        db.ref('giftcodes/' + code).once('value', snap => {
+          if (!snap.exists()) return this.notify('Mã code không tồn tại!', true);
+          const gc = snap.val();
+
+          if (gc.usedUsers && gc.usedUsers[this.userPhone]) {
+            return this.notify('Bạn đã sử dụng mã code này rồi (mỗi người 1 lần duy nhất)!', true);
+          }
+          if ((gc.usedCount || 0) >= gc.maxUses) return this.notify('Mã code đã hết số lượt nhập!', true);
+
+          const reward = Math.floor(Math.random() * (gc.max - gc.min + 1)) + gc.min;
+          this.state.balance += reward;
+          this.state.ledger.unshift({
+            id: 'GIFT-' + code,
+            type: 'profit',
+            amount: reward,
+            desc: `Nhận thưởng Giftcode ${code}`
+          });
+
+          db.ref('users/' + this.userPhone).update({
+            balance: this.state.balance,
+            transactions: this.state.ledger
+          });
+
+          db.ref(`giftcodes/${code}/usedCount`).set((gc.usedCount || 0) + 1);
+          db.ref(`giftcodes/${code}/usedUsers/${this.userPhone}`).set(true);
+
+          this.closeGiftModal();
+          this.notify(`🎁 Bạn đã nhận +${this.formatCurrency(reward)} từ Giftcode!`);
+        });
+      },
+
+      navigate(tabKey) {
+        ['nodes', 'active', 'wheel', 'referral', 'ledger'].forEach(k => {
+          document.getElementById('view-' + k).classList.toggle('hidden', k !== tabKey);
+          document.getElementById('tabBtn-' + k).className = (k === tabKey)
+            ? 'px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-emerald-400 text-black shadow-md shadow-emerald-400/20 transition'
+            : 'px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-slate-900 text-slate-400 border border-white/5 transition';
+        });
+        if (tabKey === 'wheel') this.drawWheelCanvas(this.wheelAngle);
+      },
+
+      openAuth() { document.getElementById('authModal').classList.remove('hidden'); },
+      closeAuth() { document.getElementById('authModal').classList.add('hidden'); },
+      switchAuth(tab) {
+        document.getElementById('authForm-login').classList.toggle('hidden', tab !== 'login');
+        document.getElementById('authForm-reg').classList.toggle('hidden', tab !== 'reg');
+        document.getElementById('authTab-login').className = tab === 'login' ? 'flex-1 py-1.5 rounded-lg bg-emerald-400 text-black' : 'flex-1 py-1.5 rounded-lg text-slate-400';
+        document.getElementById('authTab-reg').className = tab === 'reg' ? 'flex-1 py-1.5 rounded-lg bg-cyan-400 text-black' : 'flex-1 py-1.5 rounded-lg text-slate-400';
+      },
+
+      openWallet(mode) {
+        if (!this.userPhone) return this.openAuth();
+        document.getElementById('walletModal').classList.remove('hidden');
+        this.switchWalletTab(mode === 'deposit' ? 'dep' : 'wit');
+      },
+      closeWallet() { document.getElementById('walletModal').classList.add('hidden'); },
+      switchWalletTab(tab) {
+        document.getElementById('walletView-dep').classList.toggle('hidden', tab !== 'dep');
+        document.getElementById('walletView-wit').classList.toggle('hidden', tab !== 'wit');
+        document.getElementById('walletTab-dep').className = tab === 'dep' ? 'flex-1 py-1.5 rounded-lg bg-emerald-400 text-black' : 'flex-1 py-1.5 rounded-lg text-slate-400';
+        document.getElementById('walletTab-wit').className = tab === 'wit' ? 'flex-1 py-1.5 rounded-lg bg-rose-500 text-white' : 'flex-1 py-1.5 rounded-lg text-slate-400';
+      },
+
+      copySTK() {
+        navigator.clipboard.writeText('11557000');
+        this.notify('Đã sao chép STK VietinBank: 11557000');
+      },
+      copyRefCode() {
+        if (this.userPhone) {
+          navigator.clipboard.writeText(this.userPhone);
+          this.notify('Đã sao chép mã mời: ' + this.userPhone);
         }
-      }, 1000);
-    }
-
-    function confirmWithdraw() {
-      const bank = document.getElementById('selectBank').value;
-      const stk = document.getElementById('inputWithdrawSTK').value.trim();
-      const name = document.getElementById('inputWithdrawName').value.trim().toUpperCase();
-      const amt = parseFloat(document.getElementById('inputWithdrawAmount').value);
-
-      if (!stk || !name) return showToast('Vui lòng nhập Số tài khoản và Họ tên!', true);
-      if (isNaN(amt) || amt < 30000) {
-        if (balance < 30000) {
-          openInsufficientModal(30000);
-          return showToast('Không thể rút tiền: Số dư không đủ!', true);
+      },
+      copyRefLink() {
+        if (this.userPhone) {
+          const link = document.getElementById('uiRefLinkInput').value;
+          navigator.clipboard.writeText(link);
+          this.notify('Đã sao chép liên kết giới thiệu!');
         }
-        return showToast('Rút tối thiểu là 30.000 VNĐ!', true);
       }
-      if (amt > balance) {
-        openInsufficientModal(amt);
-        return showToast('Không thể rút tiền: Số dư không đủ!', true);
-      }
-
-      if (!savedBankInfo) {
-        savedBankInfo = { bank, stk, name };
-        applyBankLockUI();
-      }
-
-      // Lưu lệnh rút vào pending cho Admin duyệt
-      let pendingWithdraws = JSON.parse(localStorage.getItem('fin_pending_withdraws') || '[]');
-      pendingWithdraws.push({
-        id: `WIT-${Math.floor(1000 + Math.random() * 9000)}`,
-        phone: currentUser,
-        bank: savedBankInfo.bank,
-        stk: savedBankInfo.stk,
-        name: savedBankInfo.name,
-        amount: amt
-      });
-      localStorage.setItem('fin_pending_withdraws', JSON.stringify(pendingWithdraws));
-
-      balance -= amt;
-      updateBalanceUI();
-      closeWalletModal();
-      showToast(`Lệnh rút ${formatVND(amt)} đã gửi lên hệ thống chờ Admin giải ngân!`);
-    }
-
-    function renderCalculator() {
-      const grid = document.getElementById('calcPkgGrid');
-      if (!grid) return;
-      grid.innerHTML = PACKAGES.map(p => `
-        <button onclick="selectCalcPkg('${p.id}')" class="p-2 rounded-xl border text-left ${selectedCalcPkg.id === p.id ? 'bg-emerald-500/15 border-emerald-500 text-emerald-400' : 'bg-slate-950 border-slate-800 text-slate-300'}">
-          <div class="text-xs font-black text-white">${formatVND(p.amount)}</div>
-          <div class="text-[10px] text-emerald-400 font-bold">${p.days} ngày</div>
-        </button>
-      `).join('');
-      updateCalculator();
-    }
-    function selectCalcPkg(id) {
-      selectedCalcPkg = PACKAGES.find(p => p.id === id) || PACKAGES[0];
-      renderCalculator();
-    }
-    function updateCalculator() {
-      const days = selectedCalcPkg.days;
-      document.getElementById('calcDaysLabel').innerText = `${days} Ngày (Cố định gói)`;
-      const profit = selectedCalcPkg.total - selectedCalcPkg.amount;
-      document.getElementById('calcDailyOut').innerText = `+${formatVND(selectedCalcPkg.income)}`;
-      document.getElementById('calcTotalProfitOut').innerText = `+${formatVND(profit)}`;
-      document.getElementById('calcTotalReturnOut').innerText = formatVND(selectedCalcPkg.total);
-    }
-
-    function renderLeaderboard() {
-      document.getElementById('leaderboardList').innerHTML = TOP_INVESTORS.map(u => `
-        <div class="py-2.5 flex items-center justify-between gap-2">
-          <div class="text-xs font-bold text-white truncate">#${u.rank} ${u.name} <span class="text-slate-400 font-mono text-[10px]">(${u.phone})</span></div>
-          <div class="text-xs font-black text-emerald-400 shrink-0">+${formatVND(u.profit)}</div>
-        </div>
-      `).join('');
-    }
-
-    function filterHistory(type) {
-      currentHistoryFilter = type;
-      ['all', 'deposit', 'withdraw', 'profit'].forEach(t => {
-        const btn = document.getElementById(`histFilter-${t}`);
-        if (!btn) return;
-        btn.className = (t === type)
-          ? 'px-2 py-1 rounded-lg font-bold bg-emerald-500 text-slate-950'
-          : 'px-2 py-1 rounded-lg font-bold text-slate-400';
-      });
-      renderTransactions();
-    }
-    function renderTransactions() {
-      const list = currentHistoryFilter === 'all' ? transactions : transactions.filter(t => t.type === currentHistoryFilter);
-      document.getElementById('txTableBody').innerHTML = list.map(t => `
-        <tr>
-          <td class="px-3 py-2 font-mono text-[10px] text-slate-400">${t.id || 'TX'}</td>
-          <td class="px-3 py-2 font-bold text-[11px] uppercase">${t.type}</td>
-          <td class="px-3 py-2 font-black text-emerald-400">${formatVND(t.amount)}</td>
-          <td class="px-3 py-2 text-xs text-slate-300">${t.desc}</td>
-        </tr>
-      `).join('');
-    }
-
-    function toggleChat() {
-      document.getElementById('chatBox').classList.toggle('hidden');
-    }
-    function sendChat() {
-      const inp = document.getElementById('chatInput');
-      const txt = inp.value.trim();
-      if (!txt) return;
-      const box = document.getElementById('chatMessages');
-      box.innerHTML += `<div class="flex justify-end"><div class="bg-emerald-500 text-slate-950 font-semibold p-2 rounded-xl max-w-[85%]">${txt}</div></div>`;
-      inp.value = '';
-      box.scrollTop = box.scrollHeight;
-      setTimeout(() => {
-        box.innerHTML += `<div class="flex justify-start"><div class="bg-slate-800 text-slate-200 p-2 rounded-xl max-w-[85%]">CSKH đã nhận: "${txt}". Vui lòng chuyển khoản trước tới STK 0365355946 (VU HOANG HIEP) rồi mới bấm xác nhận nhé!</div></div>`;
-        box.scrollTop = box.scrollHeight;
-      }, 500);
-    }
-
-    const LIVE_FEED = [
-      { name: 'Nguyễn H***', action: 'vừa rút', amount: '350.000 đ' },
-      { name: 'Trần T***', action: 'kích hoạt gói', amount: '1.000.000 đ' },
-      { name: 'Lê M***', action: 'vừa nạp', amount: '500.000 đ' }
-    ];
-    let liveIdx = 0;
-    setInterval(() => {
-      liveIdx = (liveIdx + 1) % LIVE_FEED.length;
-      const n = document.getElementById('tickerName');
-      const a = document.getElementById('tickerAction');
-      const m = document.getElementById('tickerAmount');
-      if (n && a && m) {
-        n.innerText = LIVE_FEED[liveIdx].name;
-        a.innerText = LIVE_FEED[liveIdx].action;
-        m.innerText = LIVE_FEED[liveIdx].amount;
-      }
-    }, 5000);
-
-    window.onload = function () {
-      syncPhoneToCodes(currentUser);
-      updateBalanceUI();
-      renderPackages();
-      renderActivePackages();
-      renderCheckInGrid();
-      updateVipQuestsUI();
-      renderCalculator();
-      renderLeaderboard();
-      renderTransactions();
-      drawWheel();
-
-      // Quét trạng thái đồng bộ dữ liệu & đóng/mở server liên tục mỗi 1 giây
-      setInterval(() => {
-        syncUserDataFromStorage();
-        checkServerStatus();
-      }, 1000);
     };
+
+    window.onload = () => App.init();
   </script>
 </body>
 </html>
